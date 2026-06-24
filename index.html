@@ -1,0 +1,360 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Nicky & Pete — US Trip July 2026</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  html, body {
+    width: 100%;
+    min-height: 100vh;
+    font-family: 'Inter', sans-serif;
+    background: #f7f4ef;
+    color: #1a1a1a;
+  }
+
+  body {
+    padding: 36px 40px 60px;
+  }
+
+  header {
+    text-align: center;
+    margin-bottom: 28px;
+  }
+
+  header h1 {
+    font-family: 'Playfair Display', serif;
+    font-size: 2.1rem;
+    color: #1a3a4a;
+    letter-spacing: 0.02em;
+  }
+
+  header p {
+    font-size: 0.8rem;
+    color: #6b7c8a;
+    margin-top: 5px;
+    font-weight: 500;
+    letter-spacing: 0.09em;
+    text-transform: uppercase;
+  }
+
+  /* ── Legend ── */
+  .legend {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 14px;
+    justify-content: center;
+    margin-bottom: 22px;
+    font-size: 0.74rem;
+    font-weight: 500;
+    color: #444;
+  }
+  .legend-item { display: flex; align-items: center; gap: 6px; }
+  .legend-dot  { width: 13px; height: 13px; border-radius: 3px; }
+
+  /* ── Calendar shell ── */
+  .calendar {
+    width: 100%;
+    border: 1.5px solid #c5bfb5;
+    border-radius: 10px;
+    overflow: hidden;
+    box-shadow: 0 4px 28px rgba(0,0,0,0.09);
+  }
+
+  /* ── Day-of-week header ── */
+  .cal-header {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    background: #1a3a4a;
+    color: #f7f4ef;
+  }
+  .cal-header div {
+    padding: 11px 0;
+    text-align: center;
+    font-size: 0.68rem;
+    font-weight: 600;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+  }
+
+  /* ── Grid ── */
+  .cal-grid {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    background: #ddd8cf;
+    gap: 1px;
+  }
+
+  /* Week separator label */
+  .week-label {
+    grid-column: 1 / -1;
+    background: #243f50;
+    color: #a8cfe0;
+    font-size: 0.63rem;
+    font-weight: 600;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    padding: 4px 14px;
+  }
+
+  /* ── Cells ── */
+  .cal-cell {
+    background: #fff;
+    min-height: 120px;
+    padding: 9px 10px 14px;
+    position: relative;
+  }
+  .cal-cell.inactive { background: #f0ede8; }
+  .cal-cell.flight-day { background: #f0f6ff; }
+
+  .date-num {
+    font-size: 0.72rem;
+    font-weight: 700;
+    color: #1a3a4a;
+    margin-bottom: 6px;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+  }
+  .cal-cell.inactive .date-num { color: #bbb; }
+
+  /* US holiday tag */
+  .holiday-tag {
+    font-size: 0.55rem;
+    background: #fde8a0;
+    color: #6b4600;
+    border-radius: 3px;
+    padding: 1px 5px;
+    font-weight: 600;
+    letter-spacing: 0.04em;
+  }
+
+  /* Location badge */
+  .loc-badge {
+    display: inline-block;
+    font-size: 0.58rem;
+    font-weight: 700;
+    letter-spacing: 0.07em;
+    text-transform: uppercase;
+    padding: 2px 7px;
+    border-radius: 4px;
+    margin-bottom: 6px;
+  }
+  .loc-boston { background: #c8dff0; color: #0f2e45; }
+
+  /* Events */
+  .event {
+    font-size: 0.62rem;
+    line-height: 1.45;
+    margin-top: 4px;
+    padding: 3px 6px;
+    border-radius: 4px;
+  }
+  .ev-flight {
+    background: #e4edf9;
+    color: #0f2e45;
+    border-left: 3px solid #3d7dbf;
+    font-weight: 600;
+  }
+  .ev-note {
+    background: #fef8e6;
+    color: #5a3e00;
+    border-left: 3px solid #e8b800;
+  }
+
+  /* Bottom colour strip */
+  .strip {
+    position: absolute;
+    bottom: 0; left: 0; right: 0;
+    height: 5px;
+  }
+  .strip-boston { background: #5aaad8; }
+
+  /* ── Flight summary footer ── */
+  .summary {
+    margin-top: 22px;
+    background: #fff;
+    border: 1.5px solid #c5bfb5;
+    border-radius: 8px;
+    padding: 16px 22px;
+    font-size: 0.78rem;
+    color: #444;
+    line-height: 1.8;
+  }
+  .summary strong { color: #1a3a4a; font-size: 0.85rem; display: block; margin-bottom: 4px; }
+  .summary b { color: #1a3a4a; }
+</style>
+</head>
+<body>
+
+<header>
+  <h1>Nicky &amp; Pete's US Trip ✈️</h1>
+  <p>1 July – 17 July 2026 &nbsp;·&nbsp; Japan Airlines &nbsp;·&nbsp; Booking Ref: FQ5ZSK</p>
+</header>
+
+<div class="legend">
+  <div class="legend-item"><div class="legend-dot" style="background:#5aaad8"></div>Boston</div>
+  <div class="legend-item"><div class="legend-dot" style="background:#3d7dbf"></div>Flight</div>
+  <div class="legend-item"><div class="legend-dot" style="background:#e8b800"></div>Note / Holiday</div>
+</div>
+
+<div class="calendar">
+
+  <!-- Day headers — starting Wednesday (trip starts Wed 1 Jul) -->
+  <div class="cal-header">
+    <div>Wed</div><div>Thu</div><div>Fri</div>
+    <div>Sat</div><div>Sun</div><div>Mon</div><div>Tue</div>
+  </div>
+
+  <div class="cal-grid">
+
+    <div class="week-label">Week 1 &nbsp;·&nbsp; 1–7 July 2026</div>
+
+    <!-- Jul 1 Wed — Departure day -->
+    <div class="cal-cell flight-day">
+      <div class="date-num">1 Jul</div>
+      <div class="event ev-flight">✈ BKK→NRT &nbsp;JL708 &nbsp;07:55</div>
+      <div class="event ev-flight">✈ NRT→BOS &nbsp;JL008 &nbsp;18:25</div>
+      <div class="strip strip-boston"></div>
+    </div>
+
+    <!-- Jul 2 Thu — Arrive Boston -->
+    <div class="cal-cell">
+      <div class="date-num">2 Jul</div>
+      <span class="loc-badge loc-boston">Boston</span>
+      <div class="event ev-note">🛬 Arr BOS 18:15 local<br><span style="color:#999">Recover, settle in</span></div>
+      <div class="strip strip-boston"></div>
+    </div>
+
+    <!-- Jul 3 Fri -->
+    <div class="cal-cell">
+      <div class="date-num">3 Jul</div>
+      <span class="loc-badge loc-boston">Boston</span>
+      <div class="strip strip-boston"></div>
+    </div>
+
+    <!-- Jul 4 Sat -->
+    <div class="cal-cell">
+      <div class="date-num">4 Jul <span class="holiday-tag">Independence Day 🎆</span></div>
+      <span class="loc-badge loc-boston">Boston</span>
+      <div class="strip strip-boston"></div>
+    </div>
+
+    <!-- Jul 5 Sun -->
+    <div class="cal-cell">
+      <div class="date-num">5 Jul</div>
+      <span class="loc-badge loc-boston">Boston</span>
+      <div class="strip strip-boston"></div>
+    </div>
+
+    <!-- Jul 6 Mon -->
+    <div class="cal-cell">
+      <div class="date-num">6 Jul</div>
+      <span class="loc-badge loc-boston">Boston</span>
+      <div class="strip strip-boston"></div>
+    </div>
+
+    <!-- Jul 7 Tue -->
+    <div class="cal-cell">
+      <div class="date-num">7 Jul</div>
+      <span class="loc-badge loc-boston">Boston</span>
+      <div class="strip strip-boston"></div>
+    </div>
+
+    <div class="week-label">Week 2 &nbsp;·&nbsp; 8–14 July 2026</div>
+
+    <!-- Jul 8 Wed -->
+    <div class="cal-cell">
+      <div class="date-num">8 Jul</div>
+      <span class="loc-badge loc-boston">Boston</span>
+      <div class="strip strip-boston"></div>
+    </div>
+
+    <!-- Jul 9 Thu -->
+    <div class="cal-cell">
+      <div class="date-num">9 Jul</div>
+      <span class="loc-badge loc-boston">Boston</span>
+      <div class="strip strip-boston"></div>
+    </div>
+
+    <!-- Jul 10 Fri -->
+    <div class="cal-cell">
+      <div class="date-num">10 Jul</div>
+      <span class="loc-badge loc-boston">Boston</span>
+      <div class="strip strip-boston"></div>
+    </div>
+
+    <!-- Jul 11 Sat -->
+    <div class="cal-cell">
+      <div class="date-num">11 Jul</div>
+      <span class="loc-badge loc-boston">Boston</span>
+      <div class="strip strip-boston"></div>
+    </div>
+
+    <!-- Jul 12 Sun -->
+    <div class="cal-cell">
+      <div class="date-num">12 Jul</div>
+      <span class="loc-badge loc-boston">Boston</span>
+      <div class="strip strip-boston"></div>
+    </div>
+
+    <!-- Jul 13 Mon -->
+    <div class="cal-cell">
+      <div class="date-num">13 Jul</div>
+      <span class="loc-badge loc-boston">Boston</span>
+      <div class="strip strip-boston"></div>
+    </div>
+
+    <!-- Jul 14 Tue -->
+    <div class="cal-cell">
+      <div class="date-num">14 Jul</div>
+      <span class="loc-badge loc-boston">Boston</span>
+      <div class="strip strip-boston"></div>
+    </div>
+
+    <div class="week-label">Week 3 &nbsp;·&nbsp; 15–17 July 2026 — Return</div>
+
+    <!-- Jul 15 Wed -->
+    <div class="cal-cell">
+      <div class="date-num">15 Jul</div>
+      <span class="loc-badge loc-boston">Boston</span>
+      <div class="strip strip-boston"></div>
+    </div>
+
+    <!-- Jul 16 Thu — Departure -->
+    <div class="cal-cell flight-day">
+      <div class="date-num">16 Jul</div>
+      <div class="event ev-flight">✈ BOS→NRT &nbsp;JL007 &nbsp;13:15</div>
+      <div class="strip strip-boston"></div>
+    </div>
+
+    <!-- Jul 17 Fri — Arrives Bangkok -->
+    <div class="cal-cell flight-day">
+      <div class="date-num">17 Jul</div>
+      <div class="event ev-flight">✈ NRT→BKK &nbsp;JL707 &nbsp;18:25</div>
+      <div class="event ev-note">🛬 Arr BKK 23:00</div>
+    </div>
+
+    <!-- Filler to complete 7-col row -->
+    <div class="cal-cell inactive"><div class="date-num">18</div></div>
+    <div class="cal-cell inactive"><div class="date-num">19</div></div>
+    <div class="cal-cell inactive"><div class="date-num">20</div></div>
+    <div class="cal-cell inactive"><div class="date-num">21</div></div>
+
+  </div><!-- /cal-grid -->
+</div><!-- /calendar -->
+
+<div class="summary">
+  <strong>✈ Flight Details — Both Passengers</strong>
+  <b>Passengers:</b> Peter Guild (MR) &amp; Nicholas Boonsuan (MSTR, child) &nbsp;·&nbsp; Booked via Satguru Travel &amp; Tours, Bangkok &nbsp;·&nbsp; Ref: <b>FQ5ZSK</b><br>
+  <b>Outbound (1 Jul):</b> BKK→NRT JL708 07:55–16:05 · NRT→BOS JL008 18:25–18:15 (next day, local) · Economy (V) · 2 bags each · Meals included<br>
+  <b>Return (16–17 Jul):</b> BOS→NRT JL007 13:15 (16 Jul)–16:00 (17 Jul) · NRT→BKK JL707 18:25–23:00 · Economy (N) · 2 bags each · Meals included<br>
+  <b>Aircraft:</b> BKK↔NRT Boeing 787-8 &nbsp;·&nbsp; BOS↔NRT Boeing 787-9
+</div>
+
+</body>
+</html>
