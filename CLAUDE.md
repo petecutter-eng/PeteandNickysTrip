@@ -105,6 +105,7 @@ Node.js script, no npm dependencies (uses built-in `https` and `fs`).
 4. Builds context object (today + tomorrow + day after)
 5. Calls Claude API (`claude-sonnet-4-6`) with system prompt → generates briefing text
 6. Delivers the briefing via `sendBriefing()`, which dispatches to Telegram when `TELEGRAM_BOT_TOKEN` + `TELEGRAM_CHAT_ID` are set, otherwise falls back to WhatsApp/Twilio
+7. On any failure, `sendFailureAlert()` sends a short "briefing failed" heads-up to Telegram (best-effort) so a broken run is visible instead of silently missing
 
 **All credentials via environment variables** (GitHub Secrets):
 - `ANTHROPIC_API_KEY`

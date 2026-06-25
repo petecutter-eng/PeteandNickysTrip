@@ -262,6 +262,24 @@ function sendBriefing(message) {
   return sendWhatsApp(message);
 }
 
+// ── Failure alert ──
+// If the morning run throws, send a short heads-up to Telegram so a failed
+// briefing is visible instead of silently missing. Best-effort: if the alert
+// itself can't be sent (or Telegram isn't configured), we just log and move on.
+async function sendFailureAlert(reason) {
+  if (!(TELEGRAM_BOT_TOKEN && TELEGRAM_CHAT_ID)) return;
+  const text =
+    "⚠️ Trip briefing failed this morning — no briefing was sent.\n\n" +
+    `Reason: ${reason}\n\n` +
+    "Check the GitHub Actions run and the Anthropic API key/credits.";
+  try {
+    await sendTelegram(text);
+    console.log("Sent failure alert to Telegram.");
+  } catch (e) {
+    console.error("Could not send failure alert:", e.message);
+  }
+}
+
 // ── Main ──
 async function main() {
   const todayKey = getTodayET();
@@ -284,6 +302,7 @@ async function main() {
     console.log("Done.");
   } catch (err) {
     console.error("❌ Error:", err.message);
+    await sendFailureAlert(err.message);
     process.exit(1);
   }
 }
