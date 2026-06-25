@@ -19,7 +19,12 @@ const config = JSON.parse(fs.readFileSync("trip-config.json", "utf8"));
 
 // ── Date helpers (all in ET) ──
 function getTodayET() {
-  return new Date().toLocaleDateString("en-CA", { timeZone: "America/New_York" }); // YYYY-MM-DD
+  // Use Bangkok time for pre/post trip; ET during trip (11hr diff, same date by 7am ET)
+  const bkk = new Date().toLocaleDateString("en-CA", { timeZone: "Asia/Bangkok" });
+  const et  = new Date().toLocaleDateString("en-CA", { timeZone: "America/New_York" });
+  // Return whichever date exists in the trip config
+  const days = config.days;
+  return days[bkk] ? bkk : et;
 }
 
 function getDateET(offsetDays) {
