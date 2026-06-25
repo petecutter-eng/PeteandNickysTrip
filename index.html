@@ -2,369 +2,858 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
 <title>Nicky & Pete — US Trip July 2026</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 <style>
   * { box-sizing: border-box; margin: 0; padding: 0; }
-
   html, body {
-    width: 100%;
+    width: 100%; height: 100%;
     font-family: 'Inter', sans-serif;
     background: #f7f4ef;
     color: #1a1a1a;
     -webkit-text-size-adjust: 100%;
+    overflow-x: hidden;
   }
 
-  body { padding: 20px 16px 48px; }
+  /* ── App shell: two views side by side, slide with transform ── */
+  .app-shell {
+    display: flex;
+    width: 200%;
+    transition: transform 0.35s cubic-bezier(0.4,0,0.2,1);
+  }
+  .app-shell.show-detail { transform: translateX(-50%); }
 
-  /* ── Header ── */
-  header { text-align: center; margin-bottom: 20px; }
+  .view {
+    width: 50%;
+    min-height: 100vh;
+  }
+
+  /* ══════════════════════════════════════
+     CALENDAR VIEW
+  ══════════════════════════════════════ */
+  #calendar-view { padding: 20px 14px 48px; }
+
+  header { text-align: center; margin-bottom: 18px; }
   header h1 {
     font-family: 'Playfair Display', serif;
     font-size: clamp(1.3rem, 5vw, 2rem);
     color: #1a3a4a;
   }
   header p {
-    font-size: clamp(0.6rem, 2.5vw, 0.78rem);
-    color: #6b7c8a;
-    margin-top: 5px;
-    font-weight: 500;
-    letter-spacing: 0.07em;
-    text-transform: uppercase;
+    font-size: clamp(0.6rem, 2.2vw, 0.75rem);
+    color: #6b7c8a; margin-top: 5px;
+    font-weight: 500; letter-spacing: 0.07em; text-transform: uppercase;
   }
 
-  /* ── Legend ── */
   .legend {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 10px;
-    justify-content: center;
-    margin-bottom: 18px;
-    font-size: clamp(0.6rem, 2.2vw, 0.74rem);
-    font-weight: 500;
-    color: #444;
+    display: flex; flex-wrap: wrap; gap: 10px;
+    justify-content: center; margin-bottom: 16px;
+    font-size: clamp(0.58rem, 2vw, 0.72rem);
+    font-weight: 500; color: #444;
   }
   .legend-item { display: flex; align-items: center; gap: 5px; }
   .legend-dot { width: 11px; height: 11px; border-radius: 3px; flex-shrink: 0; }
 
-  /* ── Calendar shell ── */
   .calendar {
     width: 100%;
-    border: 1.5px solid #c5bfb5;
-    border-radius: 10px;
-    overflow: hidden;
-    box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+    border: 1.5px solid #c5bfb5; border-radius: 10px;
+    overflow: hidden; box-shadow: 0 4px 20px rgba(0,0,0,0.08);
   }
 
-  /* ── Day-of-week header ── */
   .cal-header {
-    display: grid;
-    grid-template-columns: repeat(7, 1fr);
-    background: #1a3a4a;
-    color: #f7f4ef;
+    display: grid; grid-template-columns: repeat(7, 1fr);
+    background: #1a3a4a; color: #f7f4ef;
   }
   .cal-header div {
-    padding: 8px 2px;
-    text-align: center;
-    font-size: clamp(0.5rem, 1.8vw, 0.68rem);
-    font-weight: 600;
-    letter-spacing: 0.06em;
-    text-transform: uppercase;
+    padding: 8px 2px; text-align: center;
+    font-size: clamp(0.48rem, 1.7vw, 0.65rem);
+    font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase;
   }
 
-  /* ── Grid ── */
   .cal-grid {
-    display: grid;
-    grid-template-columns: repeat(7, 1fr);
-    background: #ddd8cf;
-    gap: 1px;
+    display: grid; grid-template-columns: repeat(7, 1fr);
+    background: #ddd8cf; gap: 1px;
   }
 
   .week-label {
     grid-column: 1 / -1;
-    background: #243f50;
-    color: #a8cfe0;
-    font-size: clamp(0.55rem, 1.8vw, 0.63rem);
-    font-weight: 600;
-    letter-spacing: 0.1em;
-    text-transform: uppercase;
+    background: #243f50; color: #a8cfe0;
+    font-size: clamp(0.52rem, 1.7vw, 0.62rem);
+    font-weight: 600; letter-spacing: 0.1em; text-transform: uppercase;
     padding: 4px 10px;
   }
 
-  /* ── Cells ── */
   .cal-cell {
     background: #fff;
-    min-height: clamp(80px, 14vw, 130px);
-    padding: clamp(5px, 1.5vw, 10px) clamp(4px, 1.2vw, 10px) 14px;
-    position: relative;
-    overflow: hidden;
+    min-height: clamp(72px, 13vw, 120px);
+    padding: clamp(5px, 1.3vw, 9px) clamp(4px, 1vw, 8px) 14px;
+    position: relative; overflow: hidden;
+    cursor: pointer;
+    transition: background 0.15s;
+    -webkit-tap-highlight-color: transparent;
   }
-  .cal-cell.inactive { background: #f0ede8; }
+  .cal-cell:active { background: #eef4fb; }
+  .cal-cell.inactive { background: #f0ede8; cursor: default; }
+  .cal-cell.inactive:active { background: #f0ede8; }
   .cal-cell.flight-day { background: #f0f6ff; }
+  .cal-cell.has-data { background: #f6fbf4; }
 
   .date-num {
-    font-size: clamp(0.55rem, 1.8vw, 0.72rem);
-    font-weight: 700;
-    color: #1a3a4a;
-    margin-bottom: 4px;
-    line-height: 1.3;
+    font-size: clamp(0.54rem, 1.8vw, 0.7rem);
+    font-weight: 700; color: #1a3a4a; margin-bottom: 3px; line-height: 1.3;
   }
   .cal-cell.inactive .date-num { color: #bbb; }
 
   .holiday-tag {
     display: block;
-    font-size: clamp(0.45rem, 1.4vw, 0.55rem);
-    background: #fde8a0;
-    color: #6b4600;
-    border-radius: 3px;
-    padding: 1px 4px;
-    font-weight: 600;
-    margin-top: 2px;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
+    font-size: clamp(0.42rem, 1.3vw, 0.52rem);
+    background: #fde8a0; color: #6b4600;
+    border-radius: 3px; padding: 1px 4px; font-weight: 600;
+    margin-top: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
   }
 
   .loc-badge {
     display: inline-block;
-    font-size: clamp(0.45rem, 1.4vw, 0.58rem);
-    font-weight: 700;
-    letter-spacing: 0.05em;
-    text-transform: uppercase;
-    padding: 1px 5px;
-    border-radius: 3px;
-    margin-bottom: 4px;
-    white-space: nowrap;
+    font-size: clamp(0.42rem, 1.3vw, 0.55rem);
+    font-weight: 700; letter-spacing: 0.05em; text-transform: uppercase;
+    padding: 1px 5px; border-radius: 3px; margin-bottom: 3px; white-space: nowrap;
   }
   .loc-boston { background: #c8dff0; color: #0f2e45; }
 
-  .event {
-    font-size: clamp(0.45rem, 1.5vw, 0.62rem);
-    line-height: 1.4;
-    margin-top: 3px;
-    padding: 2px 4px;
-    border-radius: 3px;
-    overflow: hidden;
+  .cal-event {
+    font-size: clamp(0.42rem, 1.4vw, 0.58rem);
+    line-height: 1.4; margin-top: 2px; padding: 2px 4px;
+    border-radius: 3px; overflow: hidden; white-space: nowrap; text-overflow: ellipsis;
   }
-  .ev-flight {
-    background: #e4edf9;
-    color: #0f2e45;
-    border-left: 2px solid #3d7dbf;
-    font-weight: 600;
+  .ev-flight { background: #e4edf9; color: #0f2e45; border-left: 2px solid #3d7dbf; font-weight: 600; }
+  .ev-note   { background: #fef8e6; color: #5a3e00; border-left: 2px solid #e8b800; }
+  .ev-user   { background: #edf7ed; color: #1a4a1a; border-left: 2px solid #4caf50; }
+
+  .strip { position: absolute; bottom: 0; left: 0; right: 0; height: 4px; }
+  .strip-boston  { background: #5aaad8; }
+  .strip-cottage { background: #7cb87a; }
+
+  /* Multi-day event label on cell */
+  .multiday-badge {
+    display: block;
+    font-size: clamp(0.4rem, 1.2vw, 0.52rem);
+    font-weight: 700; letter-spacing: 0.04em;
+    padding: 1px 5px; border-radius: 3px; margin-bottom: 3px;
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
   }
-  .ev-note {
-    background: #fef8e6;
-    color: #5a3e00;
-    border-left: 2px solid #e8b800;
+  /* start of span: rounded left, square right */
+  .multiday-start { background: #c8e6c9; color: #1b5e20; border-radius: 4px 2px 2px 4px; }
+  /* middle of span */
+  .multiday-mid   { background: #dcedc8; color: #33691e; border-radius: 2px; }
+  /* end of span: square left, rounded right */
+  .multiday-end   { background: #c8e6c9; color: #1b5e20; border-radius: 2px 4px 4px 2px; }
+
+  .has-notes-dot {
+    position: absolute; top: 5px; right: 6px;
+    width: 6px; height: 6px; border-radius: 50%; background: #4caf50;
   }
 
-  .strip {
-    position: absolute;
-    bottom: 0; left: 0; right: 0;
-    height: 4px;
+  /* tap hint */
+  .tap-hint {
+    text-align: center; font-size: 0.68rem; color: #9aacb8;
+    margin-top: 12px; letter-spacing: 0.04em;
   }
-  .strip-boston { background: #5aaad8; }
 
-  /* ── Flight summary ── */
-  .summary {
-    margin-top: 18px;
-    background: #fff;
-    border: 1.5px solid #c5bfb5;
-    border-radius: 8px;
+  /* ══════════════════════════════════════
+     DETAIL VIEW
+  ══════════════════════════════════════ */
+  #detail-view {
+    background: #f7f4ef;
+    min-height: 100vh;
+    display: flex; flex-direction: column;
+  }
+
+  .detail-topbar {
+    background: #1a3a4a; color: #fff;
+    display: flex; align-items: center; gap: 12px;
     padding: 14px 16px;
-    font-size: clamp(0.65rem, 2.2vw, 0.78rem);
-    color: #444;
-    line-height: 1.9;
+    position: sticky; top: 0; z-index: 10;
+  }
+  .back-btn {
+    background: none; border: none; color: #a8cfe0;
+    font-size: 1.3rem; cursor: pointer; padding: 0 4px;
+    line-height: 1; flex-shrink: 0;
+  }
+  .detail-topbar-title {
+    font-family: 'Playfair Display', serif;
+    font-size: 1.1rem; color: #fff; flex: 1;
+  }
+  .detail-topbar-sub {
+    font-size: 0.65rem; color: #a8cfe0; letter-spacing: 0.06em; text-transform: uppercase;
+  }
+
+  .detail-body { padding: 20px 16px 40px; flex: 1; }
+
+  .detail-section {
+    background: #fff; border-radius: 10px;
+    border: 1.5px solid #ddd8cf;
+    margin-bottom: 16px; overflow: hidden;
+  }
+  .detail-section-header {
+    background: #243f50; color: #a8cfe0;
+    font-size: 0.6rem; font-weight: 700; letter-spacing: 0.12em;
+    text-transform: uppercase; padding: 6px 14px;
+  }
+  .detail-section-body { padding: 14px; }
+
+  .detail-flight-row {
+    display: flex; align-items: flex-start; gap: 10px;
+    padding: 8px 0; border-bottom: 1px solid #f0ede8;
+  }
+  .detail-flight-row:last-child { border-bottom: none; padding-bottom: 0; }
+  .flight-icon { font-size: 1.2rem; flex-shrink: 0; margin-top: 1px; }
+  .flight-info { flex: 1; }
+  .flight-route { font-size: 0.85rem; font-weight: 700; color: #1a3a4a; }
+  .flight-meta  { font-size: 0.7rem; color: #6b7c8a; margin-top: 2px; line-height: 1.5; }
+  .flight-conf  { font-size: 0.68rem; background: #e4edf9; color: #1a3a4a;
+                  border-radius: 4px; padding: 2px 8px; display: inline-block;
+                  margin-top: 4px; font-weight: 600; letter-spacing: 0.04em; }
+
+  /* Notes / AI input area */
+  .notes-list { list-style: none; padding: 0; margin-bottom: 12px; }
+  .notes-list li {
+    padding: 8px 10px; margin-bottom: 8px;
+    background: #f7f4ef; border-radius: 6px;
+    border-left: 3px solid #4caf50;
+    font-size: 0.78rem; line-height: 1.5; color: #1a1a1a;
+    position: relative;
+  }
+  .notes-list li .note-label {
+    font-size: 0.58rem; font-weight: 700; text-transform: uppercase;
+    letter-spacing: 0.08em; color: #4caf50; display: block; margin-bottom: 2px;
+  }
+  .notes-list li .note-delete {
+    position: absolute; top: 6px; right: 8px;
+    background: none; border: none; color: #bbb; font-size: 0.9rem; cursor: pointer;
+  }
+  .notes-list li .note-delete:hover { color: #e55; }
+
+  .ai-input-area textarea {
+    width: 100%; border: 1.5px solid #c5bfb5; border-radius: 8px;
+    padding: 10px 12px; font-family: 'Inter', sans-serif;
+    font-size: 0.82rem; line-height: 1.5; resize: none;
+    background: #fff; color: #1a1a1a; outline: none;
+    transition: border-color 0.2s;
+    min-height: 80px;
+  }
+  .ai-input-area textarea:focus { border-color: #3d7dbf; }
+  .ai-input-area textarea::placeholder { color: #aaa; }
+
+  .ai-btn-row { display: flex; gap: 10px; margin-top: 10px; }
+
+  .btn {
+    flex: 1; padding: 11px 10px; border: none; border-radius: 8px;
+    font-family: 'Inter', sans-serif; font-size: 0.78rem; font-weight: 600;
+    cursor: pointer; transition: opacity 0.15s, background 0.15s;
+    letter-spacing: 0.03em;
+  }
+  .btn:active { opacity: 0.8; }
+  .btn-primary { background: #1a3a4a; color: #fff; }
+  .btn-secondary { background: #e8e3da; color: #1a3a4a; }
+  .btn-publish { background: #2e7d32; color: #fff; width: 100%; margin-top: 10px; }
+  .btn:disabled { opacity: 0.45; cursor: not-allowed; }
+
+  .ai-status {
+    font-size: 0.7rem; color: #6b7c8a; margin-top: 8px;
+    min-height: 18px; text-align: center; font-style: italic;
+  }
+
+  /* ── Setup modal ── */
+  .modal-overlay {
+    display: none; position: fixed; inset: 0;
+    background: rgba(0,0,0,0.55); z-index: 100;
+    align-items: center; justify-content: center; padding: 24px;
+  }
+  .modal-overlay.active { display: flex; }
+  .modal {
+    background: #fff; border-radius: 12px;
+    padding: 24px 20px; width: 100%; max-width: 420px;
+    box-shadow: 0 8px 40px rgba(0,0,0,0.2);
+  }
+  .modal h2 {
+    font-family: 'Playfair Display', serif;
+    font-size: 1.2rem; color: #1a3a4a; margin-bottom: 6px;
+  }
+  .modal p { font-size: 0.76rem; color: #555; line-height: 1.6; margin-bottom: 16px; }
+  .modal label { font-size: 0.7rem; font-weight: 600; color: #1a3a4a;
+                 display: block; margin-bottom: 4px; text-transform: uppercase; letter-spacing: 0.05em; }
+  .modal input {
+    width: 100%; border: 1.5px solid #c5bfb5; border-radius: 7px;
+    padding: 9px 12px; font-size: 0.82rem; font-family: 'Inter', sans-serif;
+    margin-bottom: 14px; outline: none; color: #1a1a1a;
+  }
+  .modal input:focus { border-color: #3d7dbf; }
+  .modal-note {
+    font-size: 0.65rem; color: #999; line-height: 1.5;
+    background: #f7f4ef; border-radius: 6px; padding: 8px 10px; margin-bottom: 16px;
+  }
+
+  /* publish modal */
+  .publish-status {
+    font-size: 0.75rem; color: #555; margin-top: 12px;
+    text-align: center; line-height: 1.6;
+  }
+
+  /* summary footer */
+  .summary {
+    margin-top: 0; background: #fff;
+    border: 1.5px solid #c5bfb5; border-radius: 10px;
+    padding: 14px 16px;
+    font-size: clamp(0.63rem, 2vw, 0.76rem); color: #444; line-height: 1.9;
   }
   .summary strong {
-    color: #1a3a4a;
-    font-size: clamp(0.7rem, 2.4vw, 0.85rem);
-    display: block;
-    margin-bottom: 4px;
+    color: #1a3a4a; font-size: clamp(0.68rem, 2.2vw, 0.82rem);
+    display: block; margin-bottom: 4px;
   }
-  .summary b { color: #1a3a4a; }
 
-  /* ── Landscape: slightly taller cells ── */
   @media (orientation: landscape) and (max-width: 900px) {
-    body { padding: 12px 12px 32px; }
-    .cal-cell { min-height: clamp(70px, 12vw, 110px); }
-    header h1 { font-size: clamp(1.1rem, 4vw, 1.6rem); }
+    #calendar-view { padding: 12px 10px 24px; }
+    .cal-cell { min-height: clamp(60px, 10vw, 100px); }
   }
-
-  /* ── Tablet / desktop: more breathing room ── */
   @media (min-width: 700px) {
-    body { padding: 32px 32px 60px; }
-    .cal-header div { padding: 10px 4px; }
+    #calendar-view { padding: 32px 32px 60px; }
   }
 </style>
 </head>
 <body>
 
-<header>
-  <h1>Nicky &amp; Pete's US Trip ✈️</h1>
-  <p>1 July – 17 July 2026 &nbsp;·&nbsp; Japan Airlines &nbsp;·&nbsp; Ref: FQ5ZSK</p>
-</header>
-
-<div class="legend">
-  <div class="legend-item"><div class="legend-dot" style="background:#5aaad8"></div>Boston</div>
-  <div class="legend-item"><div class="legend-dot" style="background:#3d7dbf"></div>Flight</div>
-  <div class="legend-item"><div class="legend-dot" style="background:#e8b800"></div>Note / Holiday</div>
-</div>
-
-<div class="calendar">
-
-  <div class="cal-header">
-    <div>Wed</div><div>Thu</div><div>Fri</div>
-    <div>Sat</div><div>Sun</div><div>Mon</div><div>Tue</div>
-  </div>
-
-  <div class="cal-grid">
-
-    <div class="week-label">Week 1 · 1–7 July</div>
-
-    <!-- Jul 1 -->
-    <div class="cal-cell flight-day">
-      <div class="date-num">1 Jul</div>
-      <div class="event ev-flight">✈ BKK→NRT JL708 07:55</div>
-      <div class="event ev-flight">✈ NRT→BOS JL008 18:25</div>
-      <div class="strip strip-boston"></div>
+<!-- ══ Setup Modal ══ -->
+<div class="modal-overlay" id="setup-modal">
+  <div class="modal">
+    <h2>⚙️ First-time Setup</h2>
+    <p>To save notes and publish to your live page, we need two keys. These are stored only in your browser.</p>
+    <div class="modal-note">
+      <b>Anthropic API key:</b> get it at console.anthropic.com → API Keys<br>
+      <b>GitHub token:</b> github.com → Settings → Developer settings → Personal access tokens → Tokens (classic) → Generate new token → tick <b>repo</b> scope
     </div>
-
-    <!-- Jul 2 -->
-    <div class="cal-cell">
-      <div class="date-num">2 Jul</div>
-      <span class="loc-badge loc-boston">Boston</span>
-      <div class="event ev-note">🛬 Arr 18:15</div>
-      <div class="strip strip-boston"></div>
-    </div>
-
-    <!-- Jul 3 -->
-    <div class="cal-cell">
-      <div class="date-num">3 Jul</div>
-      <span class="loc-badge loc-boston">Boston</span>
-      <div class="strip strip-boston"></div>
-    </div>
-
-    <!-- Jul 4 -->
-    <div class="cal-cell">
-      <div class="date-num">4 Jul</div>
-      <span class="loc-badge loc-boston">Boston</span>
-      <span class="holiday-tag">🎆 Independence Day</span>
-      <div class="strip strip-boston"></div>
-    </div>
-
-    <!-- Jul 5 -->
-    <div class="cal-cell">
-      <div class="date-num">5 Jul</div>
-      <span class="loc-badge loc-boston">Boston</span>
-      <div class="strip strip-boston"></div>
-    </div>
-
-    <!-- Jul 6 -->
-    <div class="cal-cell">
-      <div class="date-num">6 Jul</div>
-      <span class="loc-badge loc-boston">Boston</span>
-      <div class="strip strip-boston"></div>
-    </div>
-
-    <!-- Jul 7 -->
-    <div class="cal-cell">
-      <div class="date-num">7 Jul</div>
-      <span class="loc-badge loc-boston">Boston</span>
-      <div class="strip strip-boston"></div>
-    </div>
-
-    <div class="week-label">Week 2 · 8–14 July</div>
-
-    <!-- Jul 8 -->
-    <div class="cal-cell">
-      <div class="date-num">8 Jul</div>
-      <span class="loc-badge loc-boston">Boston</span>
-      <div class="strip strip-boston"></div>
-    </div>
-
-    <!-- Jul 9 -->
-    <div class="cal-cell">
-      <div class="date-num">9 Jul</div>
-      <span class="loc-badge loc-boston">Boston</span>
-      <div class="strip strip-boston"></div>
-    </div>
-
-    <!-- Jul 10 -->
-    <div class="cal-cell">
-      <div class="date-num">10 Jul</div>
-      <span class="loc-badge loc-boston">Boston</span>
-      <div class="strip strip-boston"></div>
-    </div>
-
-    <!-- Jul 11 -->
-    <div class="cal-cell">
-      <div class="date-num">11 Jul</div>
-      <span class="loc-badge loc-boston">Boston</span>
-      <div class="strip strip-boston"></div>
-    </div>
-
-    <!-- Jul 12 -->
-    <div class="cal-cell">
-      <div class="date-num">12 Jul</div>
-      <span class="loc-badge loc-boston">Boston</span>
-      <div class="strip strip-boston"></div>
-    </div>
-
-    <!-- Jul 13 -->
-    <div class="cal-cell">
-      <div class="date-num">13 Jul</div>
-      <span class="loc-badge loc-boston">Boston</span>
-      <div class="strip strip-boston"></div>
-    </div>
-
-    <!-- Jul 14 -->
-    <div class="cal-cell">
-      <div class="date-num">14 Jul</div>
-      <span class="loc-badge loc-boston">Boston</span>
-      <div class="strip strip-boston"></div>
-    </div>
-
-    <div class="week-label">Week 3 · 15–17 July — Return</div>
-
-    <!-- Jul 15 -->
-    <div class="cal-cell">
-      <div class="date-num">15 Jul</div>
-      <span class="loc-badge loc-boston">Boston</span>
-      <div class="strip strip-boston"></div>
-    </div>
-
-    <!-- Jul 16 -->
-    <div class="cal-cell flight-day">
-      <div class="date-num">16 Jul</div>
-      <div class="event ev-flight">✈ BOS→NRT JL007 13:15</div>
-      <div class="strip strip-boston"></div>
-    </div>
-
-    <!-- Jul 17 -->
-    <div class="cal-cell flight-day">
-      <div class="date-num">17 Jul</div>
-      <div class="event ev-flight">✈ NRT→BKK JL707 18:25</div>
-      <div class="event ev-note">🛬 Arr BKK 23:00</div>
-    </div>
-
-    <!-- Fillers -->
-    <div class="cal-cell inactive"><div class="date-num">18</div></div>
-    <div class="cal-cell inactive"><div class="date-num">19</div></div>
-    <div class="cal-cell inactive"><div class="date-num">20</div></div>
-    <div class="cal-cell inactive"><div class="date-num">21</div></div>
-
+    <label>Anthropic API Key</label>
+    <input type="password" id="setup-anthropic" placeholder="sk-ant-..." autocomplete="off">
+    <label>GitHub Personal Access Token</label>
+    <input type="password" id="setup-github" placeholder="ghp_..." autocomplete="off">
+    <label>GitHub Username</label>
+    <input type="text" id="setup-ghuser" placeholder="petecutter-eng" autocomplete="off">
+    <label>GitHub Repo Name</label>
+    <input type="text" id="setup-ghrepo" placeholder="PeteandNickysTrip" autocomplete="off">
+    <button class="btn btn-primary" onclick="saveSetup()" style="width:100%">Save & Continue</button>
   </div>
 </div>
 
-<div class="summary">
-  <strong>✈ Flight Details — Peter Guild &amp; Nicholas Boonsuan</strong>
-  <b>Outbound (1 Jul):</b> BKK→NRT JL708 07:55–16:05 · NRT→BOS JL008 18:25–18:15 local · Economy (V) · 2 bags · Meals<br>
-  <b>Return (16–17 Jul):</b> BOS→NRT JL007 13:15–16:00 · NRT→BKK JL707 18:25–23:00 · Economy (N) · 2 bags · Meals<br>
-  <b>Booking ref:</b> FQ5ZSK · Satguru Travel &amp; Tours, Bangkok · HTTPS enforce ✓
-</div>
+<!-- ══ App Shell ══ -->
+<div class="app-shell" id="app-shell">
 
+  <!-- ── Calendar View ── -->
+  <div class="view" id="calendar-view">
+    <header>
+      <h1>Nicky &amp; Pete's US Trip ✈️</h1>
+      <p>1 July – 17 July 2026 &nbsp;·&nbsp; Japan Airlines &nbsp;·&nbsp; Ref: FQ5ZSK</p>
+    </header>
+
+    <div class="legend">
+      <div class="legend-item"><div class="legend-dot" style="background:#5aaad8"></div>Boston</div>
+      <div class="legend-item"><div class="legend-dot" style="background:#3d7dbf"></div>Flight</div>
+      <div class="legend-item"><div class="legend-dot" style="background:#7cb87a"></div>Gallagher Cottage</div>
+      <div class="legend-item"><div class="legend-dot" style="background:#4caf50"></div>Notes saved</div>
+      <div class="legend-item"><div class="legend-dot" style="background:#e8b800"></div>Holiday</div>
+    </div>
+
+    <div class="calendar">
+      <div class="cal-header">
+        <div>Wed</div><div>Thu</div><div>Fri</div>
+        <div>Sat</div><div>Sun</div><div>Mon</div><div>Tue</div>
+      </div>
+      <div class="cal-grid" id="cal-grid">
+        <!-- Cells injected by JS -->
+      </div>
+    </div>
+
+    <p class="tap-hint">Tap any day to view or add details</p>
+
+    <div class="summary" style="margin-top:18px">
+      <strong>✈ Flight Details — Peter Guild &amp; Nicholas Boonsuan</strong>
+      <b>Out (1 Jul):</b> BKK→NRT JL708 07:55 · NRT→BOS JL008 18:25 · Economy V · 2 bags<br>
+      <b>Return (16–17 Jul):</b> BOS→NRT JL007 13:15 · NRT→BKK JL707 18:25 · Economy N · 2 bags<br>
+      <b>Ref:</b> FQ5ZSK · Satguru Travel &amp; Tours, Bangkok
+    </div>
+  </div>
+
+  <!-- ── Detail View ── -->
+  <div class="view" id="detail-view">
+    <div class="detail-topbar">
+      <button class="back-btn" onclick="closeDetail()">‹</button>
+      <div>
+        <div class="detail-topbar-title" id="detail-title">—</div>
+        <div class="detail-topbar-sub" id="detail-sub">—</div>
+      </div>
+    </div>
+    <div class="detail-body" id="detail-body">
+      <!-- injected by JS -->
+    </div>
+  </div>
+
+</div><!-- /app-shell -->
+
+<script>
+// ══════════════════════════════════════════════════════
+//  DATA — base trip data (flights, holidays, location)
+// ══════════════════════════════════════════════════════
+const TRIP_DATA = {
+  "2026-07-01": {
+    label: "1 Jul", dow: "Wed", location: "In transit",
+    flights: [
+      { route: "BKK → NRT", flight: "JL 708", dep: "07:55", arr: "16:05", aircraft: "787-8", bags: "2PC", cls: "Economy (V)" },
+      { route: "NRT → BOS", flight: "JL 008", dep: "18:25", arr: "18:15+1", aircraft: "787-9", bags: "2PC", cls: "Economy (V)" }
+    ],
+    conf: "FQ5ZSK",
+    calEvents: ["✈ BKK→NRT JL708 07:55", "✈ NRT→BOS JL008 18:25"],
+    calClasses: ["ev-flight", "ev-flight"],
+    strip: "strip-boston", cellClass: "flight-day"
+  },
+  "2026-07-02": { label: "2 Jul", dow: "Thu", location: "Boston, MA", badge: "Boston",
+    calEvents: ["🛬 Arr BOS 18:15 local"], calClasses: ["ev-note"], strip: "strip-boston" },
+  "2026-07-03": { label: "3 Jul", dow: "Fri", location: "Boston, MA", badge: "Boston", strip: "strip-boston" },
+  "2026-07-04": { label: "4 Jul", dow: "Sat", location: "Boston, MA", badge: "Boston",
+    holiday: "🎆 Independence Day", strip: "strip-boston" },
+  "2026-07-05": { label: "5 Jul", dow: "Sun", location: "Boston, MA", badge: "Boston", strip: "strip-boston" },
+  "2026-07-06": { label: "6 Jul", dow: "Mon", location: "Boston, MA", badge: "Boston", strip: "strip-boston" },
+  "2026-07-07": { label: "7 Jul", dow: "Tue", location: "Gallagher Cottage", badge: "Boston",
+    calEvents: ["🏡 Check-in: Gallagher Cottage"], calClasses: ["ev-note"], strip: "strip-cottage",
+    multiday: { name: "Gallagher Cottage", position: "start" } },
+  "2026-07-08": { label: "8 Jul", dow: "Wed", location: "Gallagher Cottage", badge: "Cottage",
+    strip: "strip-cottage", multiday: { name: "Gallagher Cottage", position: "mid" } },
+  "2026-07-09": { label: "9 Jul", dow: "Thu", location: "Gallagher Cottage", badge: "Cottage",
+    strip: "strip-cottage", multiday: { name: "Gallagher Cottage", position: "mid" } },
+  "2026-07-10": { label: "10 Jul", dow: "Fri", location: "Gallagher Cottage → Boston", badge: "Cottage",
+    calEvents: ["🏡 Check-out: Gallagher Cottage"], calClasses: ["ev-note"], strip: "strip-cottage",
+    multiday: { name: "Gallagher Cottage", position: "end" } },
+  "2026-07-11": { label: "11 Jul", dow: "Sat", location: "Boston, MA", badge: "Boston", strip: "strip-boston" },
+  "2026-07-12": { label: "12 Jul", dow: "Sun", location: "Boston, MA", badge: "Boston", strip: "strip-boston" },
+  "2026-07-13": { label: "13 Jul", dow: "Mon", location: "Boston, MA", badge: "Boston", strip: "strip-boston" },
+  "2026-07-14": { label: "14 Jul", dow: "Tue", location: "Boston, MA", badge: "Boston", strip: "strip-boston" },
+  "2026-07-15": { label: "15 Jul", dow: "Wed", location: "Boston, MA", badge: "Boston", strip: "strip-boston" },
+  "2026-07-16": {
+    label: "16 Jul", dow: "Thu", location: "Boston → Tokyo", cellClass: "flight-day",
+    flights: [
+      { route: "BOS → NRT", flight: "JL 007", dep: "13:15", arr: "16:00+1", aircraft: "787-9", bags: "2PC", cls: "Economy (N)" }
+    ],
+    conf: "FQ5ZSK",
+    calEvents: ["✈ BOS→NRT JL007 13:15"], calClasses: ["ev-flight"], strip: "strip-boston"
+  },
+  "2026-07-17": {
+    label: "17 Jul", dow: "Fri", location: "Tokyo → Bangkok", cellClass: "flight-day",
+    flights: [
+      { route: "NRT → BKK", flight: "JL 707", dep: "18:25", arr: "23:00", aircraft: "787-8", bags: "2PC", cls: "Economy (N)" }
+    ],
+    conf: "FQ5ZSK",
+    calEvents: ["✈ NRT→BKK JL707 18:25", "🛬 Arr BKK 23:00"], calClasses: ["ev-flight","ev-note"]
+  }
+};
+
+const WEEK_LABELS = {
+  "2026-07-01": "Week 1 · 1–7 July 2026",
+  "2026-07-08": "Week 2 · 8–14 July 2026",
+  "2026-07-15": "Week 3 · 15–17 July — Return"
+};
+
+// ══════════════════════════════════════════════════════
+//  LOCAL STORAGE helpers
+// ══════════════════════════════════════════════════════
+function getNotes(dateKey) {
+  try { return JSON.parse(localStorage.getItem("notes_" + dateKey) || "[]"); } catch { return []; }
+}
+function saveNotes(dateKey, notes) {
+  localStorage.setItem("notes_" + dateKey, JSON.stringify(notes));
+}
+function getCreds() {
+  return {
+    anthropic: localStorage.getItem("cred_anthropic") || "",
+    github:    localStorage.getItem("cred_github") || "",
+    ghuser:    localStorage.getItem("cred_ghuser") || "",
+    ghrepo:    localStorage.getItem("cred_ghrepo") || ""
+  };
+}
+
+function saveSetup() {
+  const a = document.getElementById("setup-anthropic").value.trim();
+  const g = document.getElementById("setup-github").value.trim();
+  const u = document.getElementById("setup-ghuser").value.trim();
+  const r = document.getElementById("setup-ghrepo").value.trim();
+  if (!a || !g || !u || !r) { alert("Please fill in all four fields."); return; }
+  localStorage.setItem("cred_anthropic", a);
+  localStorage.setItem("cred_github", g);
+  localStorage.setItem("cred_ghuser", u);
+  localStorage.setItem("cred_ghrepo", r);
+  document.getElementById("setup-modal").classList.remove("active");
+  renderCalendar();
+}
+
+// ══════════════════════════════════════════════════════
+//  CALENDAR RENDER
+// ══════════════════════════════════════════════════════
+function renderCalendar() {
+  const grid = document.getElementById("cal-grid");
+  grid.innerHTML = "";
+
+  const dates = Object.keys(TRIP_DATA).sort();
+  const fillersBefore = 0; // Week starts Wed = 0 fillers
+
+  dates.forEach((dateKey, i) => {
+    if (WEEK_LABELS[dateKey]) {
+      const lbl = document.createElement("div");
+      lbl.className = "week-label";
+      lbl.textContent = WEEK_LABELS[dateKey];
+      grid.appendChild(lbl);
+    }
+
+    const d = TRIP_DATA[dateKey];
+    const notes = getNotes(dateKey);
+    const cell = document.createElement("div");
+    cell.className = "cal-cell " + (d.cellClass || "");
+    if (notes.length > 0) cell.classList.add("has-data");
+    cell.onclick = () => openDetail(dateKey);
+
+    let inner = `<div class="date-num">${d.label}</div>`;
+    if (d.badge) inner += `<span class="loc-badge loc-boston">${d.badge}</span>`;
+    if (d.multiday) {
+      const pos = d.multiday.position;
+      const cls = pos === "start" ? "multiday-start" : pos === "end" ? "multiday-end" : "multiday-mid";
+      const icon = pos === "start" ? "▶ " : pos === "end" ? "◀ " : "— ";
+      inner += `<span class="multiday-badge ${cls}">${icon}${d.multiday.name}</span>`;
+    }
+    if (d.holiday) inner += `<span class="holiday-tag">${d.holiday}</span>`;
+    (d.calEvents || []).forEach((ev, ei) => {
+      inner += `<div class="cal-event ${d.calClasses[ei]}">${ev}</div>`;
+    });
+    // show first user note on calendar
+    if (notes.length > 0) {
+      inner += `<div class="cal-event ev-user">📝 ${notes[0].summary || notes[0].raw}</div>`;
+      inner += `<div class="has-notes-dot"></div>`;
+    }
+    if (d.strip) inner += `<div class="strip ${d.strip}"></div>`;
+
+    cell.innerHTML = inner;
+    grid.appendChild(cell);
+  });
+
+  // Filler cells after Jul 17 (Fri=3rd col; need 4 more to complete row)
+  for (let f = 0; f < 4; f++) {
+    const fc = document.createElement("div");
+    fc.className = "cal-cell inactive";
+    fc.innerHTML = `<div class="date-num">${18 + f}</div>`;
+    grid.appendChild(fc);
+  }
+}
+
+// ══════════════════════════════════════════════════════
+//  DETAIL VIEW
+// ══════════════════════════════════════════════════════
+let currentDateKey = null;
+
+function openDetail(dateKey) {
+  currentDateKey = dateKey;
+  const d = TRIP_DATA[dateKey];
+  const notes = getNotes(dateKey);
+
+  document.getElementById("detail-title").textContent = d.label + " — " + d.location;
+  document.getElementById("detail-sub").textContent = d.dow;
+
+  let html = "";
+
+  // Multi-day stay section
+  if (d.multiday) {
+    const pos = d.multiday.position;
+    const posLabel = pos === "start" ? "Check-in" : pos === "end" ? "Check-out" : "Staying";
+    html += `<div class="detail-section">
+      <div class="detail-section-header">🏡 Accommodation</div>
+      <div class="detail-section-body">
+        <div class="detail-flight-row">
+          <div class="flight-icon">🏡</div>
+          <div class="flight-info">
+            <div class="flight-route">${d.multiday.name}</div>
+            <div class="flight-meta">${posLabel} · 7 Jul – 10 Jul (3 nights)</div>
+          </div>
+        </div>
+      </div>
+    </div>`;
+  }
+
+  // Flights section
+  if (d.flights && d.flights.length) {
+    html += `<div class="detail-section">
+      <div class="detail-section-header">✈ Flights</div>
+      <div class="detail-section-body">`;
+    d.flights.forEach(f => {
+      html += `<div class="detail-flight-row">
+        <div class="flight-icon">✈️</div>
+        <div class="flight-info">
+          <div class="flight-route">${f.route}</div>
+          <div class="flight-meta">${f.flight} &nbsp;·&nbsp; Dep ${f.dep} → Arr ${f.arr}<br>${f.aircraft} &nbsp;·&nbsp; ${f.cls} &nbsp;·&nbsp; Bags: ${f.bags}</div>
+          <span class="flight-conf">Conf: ${d.conf}</span>
+        </div>
+      </div>`;
+    });
+    html += `</div></div>`;
+  }
+
+  // Holiday
+  if (d.holiday) {
+    html += `<div class="detail-section">
+      <div class="detail-section-header">📅 Holiday</div>
+      <div class="detail-section-body" style="font-size:0.85rem;color:#6b4600;padding:12px 14px">${d.holiday}</div>
+    </div>`;
+  }
+
+  // Notes
+  html += `<div class="detail-section">
+    <div class="detail-section-header">📝 Plans &amp; Notes</div>
+    <div class="detail-section-body">
+      <ul class="notes-list" id="notes-list">`;
+  if (notes.length === 0) {
+    html += `<li style="border-left-color:#ccc;color:#aaa;font-style:italic">Nothing planned yet — add something below</li>`;
+  } else {
+    notes.forEach((n, i) => {
+      html += `<li>
+        <span class="note-label">${n.type || "Note"}</span>
+        ${n.formatted || n.raw}
+        <button class="note-delete" onclick="deleteNote(${i})">✕</button>
+      </li>`;
+    });
+  }
+  html += `</ul>
+
+      <div class="ai-input-area">
+        <textarea id="note-input" rows="3"
+          placeholder="e.g. Dinner at Oleana, 7pm, 134 Hampshire St — reservation under Cutter&#10;or: pick up rental car from Hertz, conf #ABC123&#10;or: visit MFA 10am–1pm"></textarea>
+        <div class="ai-btn-row">
+          <button class="btn btn-primary" onclick="processNote()" id="save-btn">✨ Save with AI</button>
+          <button class="btn btn-secondary" onclick="saveRaw()">Save as-is</button>
+        </div>
+        <div class="ai-status" id="ai-status"></div>
+      </div>
+
+      <button class="btn btn-publish" onclick="publishToGitHub()">🚀 Publish to GitHub Pages</button>
+    </div>
+  </div>`;
+
+  document.getElementById("detail-body").innerHTML = html;
+  document.getElementById("app-shell").classList.add("show-detail");
+  window.scrollTo(0, 0);
+}
+
+function closeDetail() {
+  document.getElementById("app-shell").classList.remove("show-detail");
+  renderCalendar();
+}
+
+function deleteNote(index) {
+  const notes = getNotes(currentDateKey);
+  notes.splice(index, 1);
+  saveNotes(currentDateKey, notes);
+  openDetail(currentDateKey);
+}
+
+function saveRaw() {
+  const raw = document.getElementById("note-input").value.trim();
+  if (!raw) return;
+  const notes = getNotes(currentDateKey);
+  notes.push({ type: "Note", raw, formatted: raw, summary: raw.slice(0, 40) });
+  saveNotes(currentDateKey, notes);
+  openDetail(currentDateKey);
+}
+
+// ══════════════════════════════════════════════════════
+//  AI NOTE PROCESSING
+// ══════════════════════════════════════════════════════
+async function processNote() {
+  const raw = document.getElementById("note-input").value.trim();
+  if (!raw) return;
+  const creds = getCreds();
+  if (!creds.anthropic) {
+    document.getElementById("setup-modal").classList.add("active");
+    return;
+  }
+
+  const btn = document.getElementById("save-btn");
+  const status = document.getElementById("ai-status");
+  btn.disabled = true;
+  status.textContent = "✨ Claude is parsing your note…";
+
+  const d = TRIP_DATA[currentDateKey];
+
+  try {
+    const res = await fetch("https://api.anthropic.com/v1/messages", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "x-api-key": creds.anthropic,
+        "anthropic-version": "2023-06-01",
+        "anthropic-dangerous-direct-browser-access": "true"
+      },
+      body: JSON.stringify({
+        model: "claude-sonnet-4-6",
+        max_tokens: 1000,
+        system: `You are a travel planner assistant. Parse the user's freeform note about a trip day and return ONLY a JSON object with these fields:
+- "type": short category label (e.g. "Dinner", "Activity", "Transport", "Hotel", "Reminder", "Reservation")
+- "summary": one short line (max 45 chars) for the calendar grid
+- "formatted": a clean HTML string (use <b> for key info like names/times/addresses, plain text otherwise — no block elements, just inline) for the detail view
+- "raw": the original text unchanged
+
+Return ONLY the JSON object. No markdown, no explanation.`,
+        messages: [{ role: "user", content: `Date: ${d.label} (${d.location})\nNote: ${raw}` }]
+      })
+    });
+
+    const data = await res.json();
+    const text = data.content.filter(b => b.type === "text").map(b => b.text).join("");
+    const clean = text.replace(/```json|```/g, "").trim();
+    const parsed = JSON.parse(clean);
+    parsed.raw = raw;
+
+    const notes = getNotes(currentDateKey);
+    notes.push(parsed);
+    saveNotes(currentDateKey, notes);
+    status.textContent = "✅ Saved!";
+    setTimeout(() => openDetail(currentDateKey), 600);
+
+  } catch (err) {
+    console.error(err);
+    status.textContent = "⚠️ Couldn't reach Claude — saved as plain text.";
+    saveRaw();
+  } finally {
+    btn.disabled = false;
+  }
+}
+
+// ══════════════════════════════════════════════════════
+//  GITHUB PUBLISH
+// ══════════════════════════════════════════════════════
+async function publishToGitHub() {
+  const creds = getCreds();
+  if (!creds.github || !creds.ghuser || !creds.ghrepo) {
+    document.getElementById("setup-modal").classList.add("active");
+    return;
+  }
+
+  const btn = document.querySelector(".btn-publish");
+  btn.disabled = true;
+  btn.textContent = "⏳ Publishing…";
+
+  try {
+    // 1. Get current file SHA
+    const metaRes = await fetch(
+      `https://api.github.com/repos/${creds.ghuser}/${creds.ghrepo}/contents/index.html`,
+      { headers: { Authorization: `token ${creds.github}`, Accept: "application/vnd.github.v3+json" } }
+    );
+    const meta = await metaRes.json();
+    const sha = meta.sha;
+
+    // 2. Build updated HTML with all notes baked in
+    const updatedHTML = buildPublishableHTML();
+    const encoded = btoa(unescape(encodeURIComponent(updatedHTML)));
+
+    // 3. Commit
+    const putRes = await fetch(
+      `https://api.github.com/repos/${creds.ghuser}/${creds.ghrepo}/contents/index.html`,
+      {
+        method: "PUT",
+        headers: {
+          Authorization: `token ${creds.github}`,
+          Accept: "application/vnd.github.v3+json",
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+          message: `Trip update: notes for ${currentDateKey}`,
+          content: encoded,
+          sha
+        })
+      }
+    );
+
+    if (putRes.ok) {
+      btn.textContent = "✅ Published! Live in ~60s";
+      btn.style.background = "#1b5e20";
+    } else {
+      throw new Error("GitHub API error " + putRes.status);
+    }
+  } catch (err) {
+    console.error(err);
+    btn.textContent = "⚠️ Publish failed — check token";
+    btn.style.background = "#b71c1c";
+  } finally {
+    btn.disabled = false;
+    setTimeout(() => {
+      btn.textContent = "🚀 Publish to GitHub Pages";
+      btn.style.background = "";
+    }, 4000);
+  }
+}
+
+// ══════════════════════════════════════════════════════
+//  BUILD PUBLISHABLE HTML (bakes notes into data block)
+// ══════════════════════════════════════════════════════
+function buildPublishableHTML() {
+  // Collect all notes from localStorage into a snapshot
+  const allNotes = {};
+  Object.keys(TRIP_DATA).forEach(k => {
+    const n = getNotes(k);
+    if (n.length) allNotes[k] = n;
+  });
+
+  // Inject the notes snapshot into the current page source
+  const currentHTML = document.documentElement.outerHTML;
+  const notesJSON = JSON.stringify(allNotes);
+  const marker = "// __BAKED_NOTES_START__";
+  const endMarker = "// __BAKED_NOTES_END__";
+
+  if (currentHTML.includes(marker)) {
+    // Replace existing baked notes
+    return currentHTML.replace(
+      new RegExp(marker + "[\\s\\S]*?" + endMarker),
+      `${marker}\nconst BAKED_NOTES = ${notesJSON};\n${endMarker}`
+    );
+  } else {
+    // First publish — inject after TRIP_DATA declaration
+    return currentHTML.replace(
+      "// __INJECT_BAKED_NOTES__",
+      `${marker}\nconst BAKED_NOTES = ${notesJSON};\n${endMarker}`
+    );
+  }
+}
+
+// ══════════════════════════════════════════════════════
+//  INIT
+// ══════════════════════════════════════════════════════
+
+// __INJECT_BAKED_NOTES__
+// __BAKED_NOTES_START__
+const BAKED_NOTES = {};
+// __BAKED_NOTES_END__
+
+function init() {
+  // Load any baked notes into localStorage (so published version has them)
+  if (typeof BAKED_NOTES !== "undefined") {
+    Object.entries(BAKED_NOTES).forEach(([k, v]) => {
+      if (!localStorage.getItem("notes_" + k)) {
+        saveNotes(k, v);
+      }
+    });
+  }
+
+  const creds = getCreds();
+  if (!creds.anthropic || !creds.github) {
+    document.getElementById("setup-modal").classList.add("active");
+  }
+  renderCalendar();
+}
+
+init();
+</script>
 </body>
 </html>
+
