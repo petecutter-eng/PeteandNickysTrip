@@ -1,11 +1,9 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
+<html lang="en"><head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
-<title>Nicky & Pete — US Trip July 2026</title>
+<title>Nicky &amp; Pete — US Trip July 2026</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&amp;display=swap" rel="stylesheet">
 <style>
   * { box-sizing: border-box; margin: 0; padding: 0; }
   html, body {
@@ -524,46 +522,74 @@
     <input type="text" id="setup-ghuser" placeholder="petecutter-eng" autocomplete="off">
     <label>GitHub Repo Name</label>
     <input type="text" id="setup-ghrepo" placeholder="PeteandNickysTrip" autocomplete="off">
-    <button class="btn btn-primary" onclick="saveSetup()" style="width:100%">Save & Continue</button>
+    <button class="btn btn-primary" onclick="saveSetup()" style="width:100%">Save &amp; Continue</button>
   </div>
 </div>
 
 <!-- ══ Ingester Overlay ══ -->
-<div class="ingester-overlay" id="ingester-overlay" onclick="closeIngester()"></div>
+<div class="ingester-overlay active" id="ingester-overlay" onclick="closeIngester()"></div>
 
 <!-- ══ Ingester Panel ══ -->
-<div class="ingester-panel" id="ingester-panel">
+<div class="ingester-panel active" id="ingester-panel">
   <div class="ingester-handle"></div>
   <div class="ingester-header">
     <h2>＋ Add / Edit Plans</h2>
     <button class="ingester-close" onclick="closeIngester()">✕</button>
   </div>
 
-  <div class="chat-thread" id="chat-thread">
-    <!-- Messages injected by JS -->
-  </div>
+  <div class="chat-thread" id="chat-thread"><div class="chat-bubble claude">Hi Pete! Drop in a booking confirmation, paste an itinerary, or just tell me what's planned — I'll figure out what goes where. You can also attach a PDF or image. 📋</div><div class="chat-bubble system">🎤 Listening — speak now. Tap ⏹ to stop and send.</div><div class="chat-bubble user">on on the on the on the on the first on the first day on the first day on the first day when on the first day when we on the first day when we leave on the first day when we leave on the first day when we leave on the first day when we leave Bangkok on the first day when we leave Bangkok on the first day when we leave Bangkok on the first day when we leave Bangkok on the first day when we leave Bangkok on the first day when we leave Bangkok on the first day when we leave Bangkok calculate on the first day when we leave Bangkok calculate on the first day when we leave Bangkok calculate the on the first day when we leave Bangkok calculate the on the first day when we leave Bangkok calculate the time on the first day when we leave Bangkok calculate the time that on the first day when we leave Bangkok calculate the time that on the first day when we leave Bangkok calculate the time that we on the first day when we leave Bangkok calculate the time that we need on the first day when we leave Bangkok calculate the time that we need on the first day when we leave Bangkok calculate the time that we need to on the first day when we leave Bangkok calculate the time that we need to leave on the first day when we leave Bangkok calculate the time that we need to leave the on the first day when we leave Bangkok calculate the time that we need to leave the house on the first day when we leave Bangkok calculate the time that we need to leave the house add add it add it to add it to the add it to the calendar</div><div class="chat-bubble claude">Sounds like you're voice-dictating — got it! 😄
 
-  <div class="publish-bar" id="publish-bar">
+So you want to figure out what time you need to leave home in Bangkok on **July 1**, and add that to the calendar.
+
+To calculate that, I need a few details:
+
+1. **What flight are you taking out of Bangkok?** (airline, flight number, or departure time?)
+2. **Which Bangkok airport?** Suvarnabhumi (BKK) or Don Mueang (DMK)?
+3. **How far is your home from the airport?** (or roughly which area of Bangkok?)
+
+Once I have those I can work backwards and give you a "leave the house by" time! 🏠✈️</div><div class="chat-bubble user">you you you have you have you have all you have all of you have all of the you have all of the you have all of the information you have all of the information you have all of the information about you have all of the information about you have all of the information about the you have all of the information about the flight you have all of the information about the flight already</div><div class="chat-bubble claude">You're right, I'm sorry — but I actually *don't* have your flight details yet! This is a fresh conversation and no booking info has been shared with me yet.
+
+Could you paste your flight confirmation for **July 1**? Even just the key details:
+
+- ✈️ Airline &amp; flight number
+- 🕐 Departure time
+- 🛫 Airport (BKK or DMK?)
+
+Then I'll calculate your leave-home time and add it! 🙂</div><div class="chat-bubble user">📎 E-Ticket_PETER GUILD MR.pdf</div><div class="chat-bubble claude">Got it — I have all your flights now! ✈️
+
+**July 1: JL 708 departs Suvarnabhumi at 07:55**
+
+For an international flight, you'll want to be at the airport **2.5–3 hours early** → so at BKK by **5:00am**.
+
+One question: **roughly where in Bangkok do you live?** That'll let me calculate your leave-home time accurately (e.g. Sukhumvit vs. outskirts can be very different at 4am!).</div><div class="chat-bubble user">La Perla apt</div><div class="chat-bubble claude">I'm not familiar with exactly where La Perla apartment is in Bangkok — do you know which area/neighborhood it's in, or the nearest BTS/MRT station? 🙏</div><div class="chat-bubble user">Near Ari BTS station</div><div class="chat-bubble claude">Perfect! Ari to Suvarnabhumi at ~4:30am — traffic will be very light, so about **45–60 minutes** by taxi/Grab.
+
+So I'd suggest:
+
+- 🛫 Be at BKK airport by **5:00am**
+- 🚗 **Leave home by 4:00am**
+
+Does that work? Want me to add a "Leave home" reminder for **4:00am on July 1** to the calendar?</div><div class="chat-bubble user">Yes</div><div class="chat-bubble claude">Here's what I'll add to July 1 👆 — looks good?</div><div class="preview-card"><div class="preview-card-header">📋 Ready to add — 1 item</div><div class="preview-card-item"><b>1 Jul</b> · <b>Reminder</b><br><b>🚗 Leave home for airport</b> · 4:00am · Grab/taxi from La Perla (Ari) → Suvarnabhumi · JL 708 departs 07:55 · Conf: FQ5ZSK</div><div class="preview-confirm-row">
+    <button class="btn btn-confirm" onclick="confirmPreview()">✓ Add to calendar</button>
+    <button class="btn btn-revise" onclick="revisePreview()">Edit</button>
+  </div></div><div class="chat-bubble claude">✅ Done! Added to your calendar. Hit "Publish Live" to update the live page.</div></div>
+
+  <div class="publish-bar visible" id="publish-bar">
     <span class="publish-bar-text">✅ Changes ready to publish</span>
-    <button class="btn-publish-bar" id="publish-bar-btn" onclick="publishToGitHub()">🚀 Publish Live</button>
+    <button class="btn-publish-bar" id="publish-bar-btn" onclick="publishToGitHub()" disabled="">⏳ Publishing…</button>
   </div>
 
   <div class="ingester-input-area">
     <!-- File upload -->
     <div class="file-drop-zone" id="file-drop-zone" onclick="document.getElementById('file-input').click()">
       <div class="file-drop-icon">📎</div>
-      <div class="file-drop-text" id="file-drop-text">
-        <b>Attach a document</b><br>PDF, image, or text — booking confirmation, itinerary, etc.
-      </div>
+      <div class="file-drop-text" id="file-drop-text"><b>Attach a document</b><br>PDF, image, or text — booking confirmation, itinerary, etc.</div>
     </div>
     <input type="file" id="file-input" accept=".pdf,.jpg,.jpeg,.png,.txt,.html" onchange="handleFileSelect(event)">
 
     <!-- Text input -->
     <div class="ingester-row">
       <button class="ingester-mic" id="ingester-mic" onclick="toggleVoice()" title="Voice input">🎤</button>
-      <textarea class="ingester-textarea" id="ingester-input"
-        placeholder="Type, speak 🎤, or attach a file — 'Dinner at Oleana July 9th 7:30pm', paste a confirmation email…"
-        rows="2" onkeydown="handleIngesterKey(event)"></textarea>
+      <textarea class="ingester-textarea" id="ingester-input" placeholder="Type, speak 🎤, or attach a file…" rows="2" onkeydown="handleIngesterKey(event)"></textarea>
       <button class="ingester-send" id="ingester-send" onclick="sendIngesterMessage()">↑</button>
     </div>
   </div>
@@ -624,14 +650,14 @@
       <div class="legend-item"><div class="legend-dot" style="background:#e8b800"></div>Holiday</div>
     </div>
     <button class="checklist-launch" onclick="openChecklist()">
-      📋 Packing Checklist <span class="cl-count" id="checklist-launch-count">0/0</span>
+      📋 Packing Checklist <span class="cl-count" id="checklist-launch-count">3/46</span>
     </button>
     <div class="calendar">
       <div class="cal-header">
         <div>Wed</div><div>Thu</div><div>Fri</div>
         <div>Sat</div><div>Sun</div><div>Mon</div><div>Tue</div>
       </div>
-      <div class="cal-grid" id="cal-grid"></div>
+      <div class="cal-grid" id="cal-grid"><div class="week-label">Week 1 · 1–7 July 2026</div><div class="cal-cell flight-day has-data"><div class="date-num">1 Jul</div><div class="cal-event ev-flight">✈ BKK→NRT JL708 07:55</div><div class="cal-event ev-flight">✈ NRT→BOS JL008 18:25</div><div class="cal-event ev-user">📝 Leave home 4:00am</div><div class="has-notes-dot"></div><div class="strip strip-boston"></div></div><div class="cal-cell "><div class="date-num">2 Jul</div><div class="cal-event ev-note">🛬 Arr BOS 18:15 local</div><div class="strip strip-boston"></div></div><div class="cal-cell "><div class="date-num">3 Jul</div><div class="strip strip-boston"></div></div><div class="cal-cell "><div class="date-num">4 Jul</div><span class="holiday-tag">🎆 Independence Day</span><div class="strip strip-boston"></div></div><div class="cal-cell "><div class="date-num">5 Jul</div><div class="strip strip-boston"></div></div><div class="cal-cell "><div class="date-num">6 Jul</div><div class="strip strip-boston"></div></div><div class="cal-cell "><div class="date-num">7 Jul</div><span class="multiday-badge multiday-start">▶ Gallagher Cottage</span><div class="cal-event ev-note">🏡 Check-in: Gallagher Cottage</div><div class="strip strip-cottage"></div></div><div class="week-label">Week 2 · 8–14 July 2026</div><div class="cal-cell "><div class="date-num">8 Jul</div><span class="multiday-badge multiday-mid">— Gallagher Cottage</span><div class="strip strip-cottage"></div></div><div class="cal-cell "><div class="date-num">9 Jul</div><span class="multiday-badge multiday-mid">— Gallagher Cottage</span><div class="strip strip-cottage"></div></div><div class="cal-cell "><div class="date-num">10 Jul</div><span class="multiday-badge multiday-end">◀ Gallagher Cottage</span><div class="cal-event ev-note">🏡 Check-out: Gallagher Cottage</div><div class="strip strip-cottage"></div></div><div class="cal-cell "><div class="date-num">11 Jul</div><div class="strip strip-boston"></div></div><div class="cal-cell "><div class="date-num">12 Jul</div><div class="strip strip-boston"></div></div><div class="cal-cell "><div class="date-num">13 Jul</div><div class="strip strip-boston"></div></div><div class="cal-cell "><div class="date-num">14 Jul</div><div class="strip strip-boston"></div></div><div class="week-label">Week 3 · 15–17 July — Return</div><div class="cal-cell "><div class="date-num">15 Jul</div><div class="strip strip-boston"></div></div><div class="cal-cell flight-day"><div class="date-num">16 Jul</div><div class="cal-event ev-flight">✈ BOS→NRT JL007 13:15</div><div class="strip strip-boston"></div></div><div class="cal-cell flight-day"><div class="date-num">17 Jul</div><div class="cal-event ev-flight">✈ NRT→BKK JL707 18:25</div><div class="cal-event ev-note">🛬 Arr BKK 23:00</div></div><div class="cal-cell inactive"><div class="date-num">18</div></div><div class="cal-cell inactive"><div class="date-num">19</div></div><div class="cal-cell inactive"><div class="date-num">20</div></div><div class="cal-cell inactive"><div class="date-num">21</div></div></div>
     </div>
     <p class="tap-hint">Tap any day to view details</p>
     <div class="summary">
@@ -712,7 +738,7 @@ const WEEK_LABELS = {
 };
 
 // __BAKED_NOTES_START__
-const BAKED_NOTES = {};
+const BAKED_NOTES = {"2026-07-01":[{"type":"Reminder","summary":"Leave home 4:00am","formatted":"<b>🚗 Leave home for airport</b> · 4:00am · Grab/taxi from La Perla (Ari) → Suvarnabhumi · JL 708 departs 07:55 · Conf: FQ5ZSK","raw":"JL 708 Bangkok to Tokyo, departs 07:55. Leave La Perla apt (Ari BTS) by 4:00am."}]};
 // __BAKED_NOTES_END__
 
 // ══════════════════════════════════════════════════════
@@ -1429,5 +1455,6 @@ function doClearChecklist() {
 
 init();
 </script>
-</body>
-</html>
+
+
+</body></html>
