@@ -1,0 +1,84 @@
+{
+  "trip": {
+    "name": "Nicky & Pete's US Trip",
+    "year": 2026,
+    "travelers": ["Peter Guild", "Nicholas Boonsuan"],
+    "home": "Bangkok, Thailand",
+    "timezone_home": "Asia/Bangkok",
+    "timezone_trip": "America/New_York",
+    "briefing_time": "07:00",
+    "whatsapp_recipient_name": "Pete"
+  },
+  "days": {
+    "2026-07-01": {
+      "location": "In transit",
+      "flights": [
+        { "route": "BKK → NRT", "flight": "JL 708", "dep": "07:55", "arr": "16:05", "terminal_dep": "Suvarnabhumi", "terminal_arr": "Narita T2", "aircraft": "787-8", "bags": "2PC", "cls": "Economy (V)", "conf": "FQ5ZSK" },
+        { "route": "NRT → BOS", "flight": "JL 008", "dep": "18:25", "arr": "18:15+1", "terminal_dep": "Narita T2", "terminal_arr": "Logan Terminal E", "aircraft": "787-9", "bags": "2PC", "cls": "Economy (V)", "conf": "FQ5ZSK" }
+      ],
+      "reminders": ["Check in online 24hrs before", "Arrive Suvarnabhumi by 05:30", "Both passports", "Nicky's child documentation", "Yen not needed — transit only"],
+      "notes": []
+    },
+    "2026-07-02": {
+      "location": "Boston, MA",
+      "reminders": ["Jet lag — take it easy", "Get local SIM or check roaming plan", "Stock up on essentials"],
+      "notes": []
+    },
+    "2026-07-03": { "location": "Boston, MA", "notes": [] },
+    "2026-07-04": {
+      "location": "Boston, MA",
+      "holiday": "Independence Day",
+      "reminders": ["Most shops and restaurants closed or busy", "Fireworks at the Esplanade — huge crowds, go early", "Public transport very busy"],
+      "notes": []
+    },
+    "2026-07-05": { "location": "Boston, MA", "notes": [] },
+    "2026-07-06": { "location": "Boston, MA", "notes": [] },
+    "2026-07-07": {
+      "location": "Gallagher Cottage, Boothbay Harbor",
+      "multiday_stay": { "name": "Gallagher Cottage", "checkin": "2026-07-07", "checkout": "2026-07-10" },
+      "reminders": ["Check cottage check-in time", "Pack for 3 nights", "Stock up on groceries before leaving Boston"],
+      "notes": []
+    },
+    "2026-07-08": {
+      "location": "Gallagher Cottage, Boothbay Harbor",
+      "multiday_stay": { "name": "Gallagher Cottage", "checkin": "2026-07-07", "checkout": "2026-07-10" },
+      "notes": []
+    },
+    "2026-07-09": {
+      "location": "Gallagher Cottage, Boothbay Harbor",
+      "multiday_stay": { "name": "Gallagher Cottage", "checkin": "2026-07-07", "checkout": "2026-07-10" },
+      "notes": []
+    },
+    "2026-07-10": {
+      "location": "Gallagher Cottage → Boston, MA",
+      "multiday_stay": { "name": "Gallagher Cottage", "checkin": "2026-07-07", "checkout": "2026-07-10" },
+      "reminders": ["Check cottage checkout time", "Leave cottage as found", "Return drive to Boston"],
+      "notes": []
+    },
+    "2026-07-11": { "location": "Boston, MA", "notes": [] },
+    "2026-07-12": { "location": "Boston, MA", "notes": [] },
+    "2026-07-13": { "location": "Boston, MA", "notes": [] },
+    "2026-07-14": { "location": "Boston, MA", "notes": [] },
+    "2026-07-15": {
+      "location": "Boston, MA",
+      "reminders": ["Last full day — pack tonight", "Check JL007 check-in opens 24hrs before (13:15 tomorrow)", "Confirm nothing left behind"],
+      "notes": []
+    },
+    "2026-07-16": {
+      "location": "Boston → Tokyo",
+      "flights": [
+        { "route": "BOS → NRT", "flight": "JL 007", "dep": "13:15", "arr": "16:00+1", "terminal_dep": "Logan Terminal E", "terminal_arr": "Narita T2", "aircraft": "787-9", "bags": "2PC", "cls": "Economy (N)", "conf": "FQ5ZSK" }
+      ],
+      "reminders": ["Arrive Logan by 10:30 for 13:15 departure", "Terminal E for Japan Airlines", "Check all accommodation cleared", "Both passports"],
+      "notes": []
+    },
+    "2026-07-17": {
+      "location": "Tokyo → Bangkok",
+      "flights": [
+        { "route": "NRT → BKK", "flight": "JL 707", "dep": "18:25", "arr": "23:00", "terminal_dep": "Narita T2", "terminal_arr": "Suvarnabhumi", "aircraft": "787-8", "bags": "2PC", "cls": "Economy (N)", "conf": "FQ5ZSK" }
+      ],
+      "reminders": ["Long layover in Tokyo — explore Narita terminal or rest", "Arrive BKK 23:00 — arrange late pickup or taxi"],
+      "notes": []
+    }
+  }
+}
