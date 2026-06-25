@@ -10,6 +10,11 @@
     "whatsapp_recipient_name": "Pete"
   },
   "days": {
+    "2026-06-25": {
+  "location": "Bangkok — pre-trip test",
+  "reminders": ["This is a test briefing — trip starts July 1!"],
+  "notes": []
+  }, 
     "2026-07-01": {
       "location": "In transit",
       "flights": [
