@@ -133,6 +133,98 @@
     color: #1a3a4a; font-size: clamp(0.68rem, 2.2vw, 0.82rem); display: block; margin-bottom: 4px;
   }
 
+  /* ══ Checklist launch button ══ */
+  .checklist-launch {
+    display: flex; align-items: center; justify-content: center; gap: 9px;
+    margin: 0 auto 16px;
+    background: #fff; color: #1a3a4a;
+    border: 1.5px solid #c5bfb5; border-radius: 24px;
+    padding: 10px 20px; font-family: 'Inter', sans-serif;
+    font-size: 0.82rem; font-weight: 600; letter-spacing: 0.03em;
+    cursor: pointer; box-shadow: 0 2px 10px rgba(0,0,0,0.06);
+    transition: transform 0.15s, box-shadow 0.15s, border-color 0.15s;
+    -webkit-tap-highlight-color: transparent;
+  }
+  .checklist-launch:hover  { border-color: #3d7dbf; transform: translateY(-1px); box-shadow: 0 4px 14px rgba(0,0,0,0.1); }
+  .checklist-launch:active { transform: translateY(0); }
+  .checklist-launch .cl-count {
+    background: #1a3a4a; color: #fff; border-radius: 11px;
+    font-size: 0.62rem; font-weight: 700; padding: 2px 8px; letter-spacing: 0.02em;
+  }
+
+  /* ══ Checklist panel (slides up from bottom) ══ */
+  .checklist-overlay {
+    display: none; position: fixed; inset: 0; z-index: 60;
+    background: rgba(0,0,0,0.4);
+  }
+  .checklist-overlay.active { display: block; }
+  .checklist-panel {
+    position: fixed; left: 0; right: 0; bottom: 0; z-index: 61;
+    background: #f7f4ef; border-radius: 20px 20px 0 0;
+    box-shadow: 0 -4px 32px rgba(0,0,0,0.18);
+    max-height: 92vh; display: flex; flex-direction: column;
+    transform: translateY(100%);
+    transition: transform 0.35s cubic-bezier(0.4,0,0.2,1);
+  }
+  .checklist-panel.active { transform: translateY(0); }
+  .checklist-handle { width: 40px; height: 4px; background: #ddd; border-radius: 2px; margin: 12px auto 0; }
+  .checklist-header {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 12px 18px 10px; border-bottom: 1px solid #e3ddd2; background: #fff;
+  }
+  .checklist-header h2 { font-family: 'Playfair Display', serif; font-size: 1.05rem; color: #1a3a4a; }
+  .checklist-header-sub { font-size: 0.62rem; color: #6b7c8a; margin-top: 2px; letter-spacing: 0.04em; }
+  .checklist-close { background: none; border: none; font-size: 1.4rem; color: #aaa; cursor: pointer; padding: 0 4px; line-height: 1; flex-shrink: 0; }
+
+  .checklist-progress-wrap { padding: 10px 18px; background: #fff; border-bottom: 1px solid #f0ede8; }
+  .checklist-progress-track { height: 6px; background: #e8e3da; border-radius: 3px; overflow: hidden; }
+  .checklist-progress-fill { height: 100%; background: #4caf50; width: 0%; transition: width 0.25s; }
+  .checklist-progress-label { font-size: 0.64rem; color: #6b7c8a; font-weight: 600; margin-top: 6px; }
+
+  .checklist-body { flex: 1; overflow-y: auto; padding: 14px 16px 16px; }
+  .checklist-section { margin-bottom: 18px; }
+  .checklist-section:last-child { margin-bottom: 4px; }
+  .checklist-section-title {
+    font-size: 0.62rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.1em;
+    color: #1a3a4a; margin-bottom: 8px; padding-left: 2px;
+  }
+  .checklist-item {
+    display: flex; align-items: center; gap: 12px;
+    background: #fff; border: 1.5px solid #e3ddd2; border-radius: 10px;
+    padding: 11px 13px; margin-bottom: 7px; cursor: pointer;
+    transition: background 0.12s, border-color 0.12s;
+    -webkit-tap-highlight-color: transparent;
+  }
+  .checklist-item:hover { border-color: #c5bfb5; }
+  .checklist-item.checked { background: #f0f7f0; border-color: #a5d6a7; }
+  .checklist-box {
+    width: 22px; height: 22px; border-radius: 6px; flex-shrink: 0;
+    border: 2px solid #c5bfb5; background: #fff;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 0.82rem; color: #fff; line-height: 1;
+    transition: background 0.12s, border-color 0.12s;
+  }
+  .checklist-item.checked .checklist-box { background: #4caf50; border-color: #4caf50; }
+  .checklist-text { flex: 1; line-height: 1.3; }
+  .checklist-en { font-size: 0.84rem; font-weight: 500; color: #1a1a1a; }
+  .checklist-th { font-size: 0.72rem; color: #6b7c8a; margin-top: 1px; }
+  .checklist-item.checked .checklist-en { text-decoration: line-through; color: #8a9a8a; }
+  .checklist-item.checked .checklist-th { text-decoration: line-through; color: #aab4ba; }
+
+  .checklist-footer { padding: 12px 16px; border-top: 1px solid #e3ddd2; background: #fff; }
+  .btn-clear-checklist {
+    width: 100%; background: #fff; color: #c0392b; border: 1.5px solid #e8c0ba;
+    border-radius: 10px; padding: 12px; font-family: 'Inter', sans-serif;
+    font-size: 0.8rem; font-weight: 600; cursor: pointer; transition: background 0.15s;
+    letter-spacing: 0.03em;
+  }
+  .btn-clear-checklist:hover { background: #fdf0ee; }
+
+  @media (min-width: 700px) {
+    .checklist-panel { max-width: 560px; left: 50%; transform: translateX(-50%) translateY(100%); right: auto; }
+    .checklist-panel.active { transform: translateX(-50%) translateY(0); }
+  }
+
   /* ══ FAB — Add Plans button ══ */
   .fab {
     position: fixed; bottom: 24px; right: 24px; z-index: 50;
@@ -471,6 +563,41 @@
   </div>
 </div>
 
+<!-- ══ Checklist Overlay ══ -->
+<div class="checklist-overlay" id="checklist-overlay" onclick="closeChecklist()"></div>
+
+<!-- ══ Checklist Panel ══ -->
+<div class="checklist-panel" id="checklist-panel">
+  <div class="checklist-handle"></div>
+  <div class="checklist-header">
+    <div>
+      <h2>📋 Packing Checklist</h2>
+      <div class="checklist-header-sub">Tap an item to check it off · saved on this device</div>
+    </div>
+    <button class="checklist-close" onclick="closeChecklist()">✕</button>
+  </div>
+  <div class="checklist-progress-wrap">
+    <div class="checklist-progress-track"><div class="checklist-progress-fill" id="checklist-progress-fill"></div></div>
+    <div class="checklist-progress-label" id="checklist-progress-label">0 of 0 packed</div>
+  </div>
+  <div class="checklist-body" id="checklist-body"></div>
+  <div class="checklist-footer">
+    <button class="btn-clear-checklist" onclick="openClearConfirm()">🗑 Clear entire checklist</button>
+  </div>
+</div>
+
+<!-- ══ Clear-Checklist Confirm ══ -->
+<div class="modal-overlay" id="checklist-confirm">
+  <div class="modal" style="max-width:360px">
+    <h2>Clear the whole checklist?</h2>
+    <p>This unchecks <b>every item in all sections</b>. It can't be undone — you'll have to tick everything again.</p>
+    <div style="display:flex; gap:10px">
+      <button class="btn btn-secondary" onclick="closeClearConfirm()">Cancel</button>
+      <button class="btn btn-primary" style="background:#c0392b" onclick="doClearChecklist()">Yes, clear all</button>
+    </div>
+  </div>
+</div>
+
 <!-- ══ FAB ══ -->
 <button class="fab" id="fab" onclick="openIngester()">＋ Add Plans</button>
 
@@ -490,6 +617,9 @@
       <div class="legend-item"><div class="legend-dot" style="background:#4caf50"></div>Notes saved</div>
       <div class="legend-item"><div class="legend-dot" style="background:#e8b800"></div>Holiday</div>
     </div>
+    <button class="checklist-launch" onclick="openChecklist()">
+      📋 Packing Checklist <span class="cl-count" id="checklist-launch-count">0/0</span>
+    </button>
     <div class="calendar">
       <div class="cal-header">
         <div>Wed</div><div>Thu</div><div>Fri</div>
@@ -1131,6 +1261,164 @@ function init() {
     document.getElementById("setup-modal").classList.add("active");
   }
   renderCalendar();
+  updateChecklistLaunchCount();
+}
+
+// ══════════════════════════════════════════════════════
+//  PACKING CHECKLIST
+// ══════════════════════════════════════════════════════
+const CHECKLIST_DATA = {
+  title: "Trip Checklist",
+  sections: [
+    { id: "essentials", title: "Absolute essentials", items: [
+      { id: "essentials-1", en: "Passport",                     th: "หนังสือเดินทาง" },
+      { id: "essentials-2", en: "Cash",                         th: "เงินสด" },
+      { id: "essentials-3", en: "Plane ticket",                 th: "ตั๋วเครื่องบิน" },
+      { id: "essentials-4", en: "Travel insurance docs",        th: "เอกสารประกันการเดินทาง" },
+      { id: "essentials-5", en: "International driving permit",  th: "ใบอนุญาตขับรถระหว่างประเทศ" },
+      { id: "essentials-6", en: "Power bank",                   th: "แบตเตอรี่สำรอง" },
+      { id: "essentials-7", en: "Mobile phone",                 th: "โทรศัพท์มือถือ" },
+      { id: "essentials-8", en: "Mobile charger",               th: "ที่ชาร์จโทรศัพท์" },
+      { id: "essentials-9", en: "Phone holder",                 th: "ที่วางโทรศัพท์ในรถ" }
+    ]},
+    { id: "health-hygiene", title: "Health & hygiene", items: [
+      { id: "health-1", en: "Toiletry kit",          th: "ชุดอุปกรณ์อาบน้ำ" },
+      { id: "health-2", en: "First aid kit",         th: "ชุดปฐมพยาบาลเบื้องต้น" },
+      { id: "health-3", en: "Sunblock",              th: "ครีมกันแดด" },
+      { id: "health-4", en: "Lip balm",              th: "ลิปบาล์ม" },
+      { id: "health-5", en: "Hand sanitizer",        th: "เจลล้างมือ" },
+      { id: "health-6", en: "Hand wipes",            th: "ทิชชู่เปียก" },
+      { id: "health-7", en: "Personal medications",  th: "ยาประจำตัว" },
+      { id: "health-8", en: "Water",                 th: "น้ำดื่ม" }
+    ]},
+    { id: "outdoor-safety", title: "Outdoor & safety", items: [
+      { id: "outdoor-1", en: "Mosquito repellent",           th: "ยากันยุง" },
+      { id: "outdoor-2", en: "Tick repellent",               th: "ยากันเห็บ" },
+      { id: "outdoor-3", en: "Tick remover tool",            th: "อุปกรณ์ถอนเห็บ" },
+      { id: "outdoor-4", en: "Rain gear / light jacket",     th: "เสื้อกันฝน / แจ็คเก็ตเบา" },
+      { id: "outdoor-5", en: "Umbrella",                     th: "ร่ม" },
+      { id: "outdoor-6", en: "Dry bags / waterproof pouches",th: "ถุงกันน้ำ" },
+      { id: "outdoor-7", en: "Emergency roadside kit",       th: "ชุดฉุกเฉินในรถ" }
+    ]},
+    { id: "clothing-gear", title: "Clothing & gear", items: [
+      { id: "clothing-1",  en: "Hats",              th: "หมวก" },
+      { id: "clothing-2",  en: "Flip flops",        th: "รองเท้าแตะ" },
+      { id: "clothing-3",  en: "Bathing suit",      th: "ชุดว่ายน้ำ" },
+      { id: "clothing-4",  en: "Sunglasses",        th: "แว่นกันแดด" },
+      { id: "clothing-5",  en: "Change of clothes", th: "เสื้อผ้าสำรอง" },
+      { id: "clothing-6",  en: "Towel",             th: "ผ้าเช็ดตัว" },
+      { id: "clothing-7",  en: "Laundry bag",       th: "ถุงใส่ผ้าสกปรก" },
+      { id: "clothing-8",  en: "Binoculars",        th: "กล้องส่องทางไกล" },
+      { id: "clothing-9",  en: "Camera",            th: "กล้องถ่ายรูป" },
+      { id: "clothing-10", en: "Travel pillow",     th: "หมอนรองคอ" },
+      { id: "clothing-11", en: "Reusable bags",     th: "ถุงผ้าอเนกประสงค์" }
+    ]},
+    { id: "food-fun", title: "Food, drinks & fun", items: [
+      { id: "fun-1",  en: "Coffee",                    th: "กาแฟ" },
+      { id: "fun-2",  en: "Hot chocolate",             th: "ช็อกโกแลตร้อน" },
+      { id: "fun-3",  en: "Snacks",                    th: "ขนมขบเคี้ยว" },
+      { id: "fun-4",  en: "Cooler / ice chest",        th: "กระติกน้ำแข็ง" },
+      { id: "fun-5",  en: "Playing cards / Uno",       th: "ไพ่ / อูโน่" },
+      { id: "fun-6",  en: "Board game",                th: "เกมกระดาน" },
+      { id: "fun-7",  en: "Book",                      th: "หนังสือ" },
+      { id: "fun-8",  en: "Art materials",             th: "วัสดุศิลปะ" },
+      { id: "fun-9",  en: "Frisbee",                   th: "จานร่อน" },
+      { id: "fun-10", en: "Kids' tablet & headphones", th: "แท็บเล็ตและหูฟังสำหรับเด็ก" },
+      { id: "fun-11", en: "Offline maps downloaded",   th: "ดาวน์โหลดแผนที่ออฟไลน์แล้ว" }
+    ]}
+  ]
+};
+
+function getChecklistState() {
+  try { return JSON.parse(localStorage.getItem("checklist_checked")||"{}"); } catch { return {}; }
+}
+function saveChecklistState(s) { localStorage.setItem("checklist_checked", JSON.stringify(s)); }
+
+function checklistCounts() {
+  const state = getChecklistState();
+  let total = 0, done = 0;
+  CHECKLIST_DATA.sections.forEach(sec => sec.items.forEach(it => {
+    total++; if (state[it.id]) done++;
+  }));
+  return { total, done };
+}
+
+function escapeHtml(s) {
+  return String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;");
+}
+
+function renderChecklist() {
+  const state = getChecklistState();
+  let html = "";
+  CHECKLIST_DATA.sections.forEach(sec => {
+    html += `<div class="checklist-section">
+      <div class="checklist-section-title">${escapeHtml(sec.title)}</div>`;
+    sec.items.forEach(it => {
+      const on = !!state[it.id];
+      html += `<div class="checklist-item${on?" checked":""}" id="chk-${it.id}" onclick="toggleChecklistItem('${it.id}')">
+        <div class="checklist-box">${on?"✓":""}</div>
+        <div class="checklist-text">
+          <div class="checklist-en">${escapeHtml(it.en)}</div>
+          <div class="checklist-th">${escapeHtml(it.th)}</div>
+        </div>
+      </div>`;
+    });
+    html += `</div>`;
+  });
+  document.getElementById("checklist-body").innerHTML = html;
+  updateChecklistProgress();
+}
+
+function updateChecklistProgress() {
+  const { total, done } = checklistCounts();
+  const pct = total ? Math.round((done/total)*100) : 0;
+  const fill = document.getElementById("checklist-progress-fill");
+  const label = document.getElementById("checklist-progress-label");
+  if (fill)  fill.style.width = pct + "%";
+  if (label) label.textContent = `${done} of ${total} packed`;
+}
+
+function updateChecklistLaunchCount() {
+  const { total, done } = checklistCounts();
+  const el = document.getElementById("checklist-launch-count");
+  if (el) el.textContent = `${done}/${total}`;
+}
+
+function toggleChecklistItem(id) {
+  const state = getChecklistState();
+  if (state[id]) delete state[id]; else state[id] = true;
+  saveChecklistState(state);
+  const el = document.getElementById("chk-"+id);
+  if (el) {
+    const on = !!state[id];
+    el.classList.toggle("checked", on);
+    el.querySelector(".checklist-box").textContent = on ? "✓" : "";
+  }
+  updateChecklistProgress();
+  updateChecklistLaunchCount();
+}
+
+function openChecklist() {
+  renderChecklist();
+  document.getElementById("checklist-overlay").classList.add("active");
+  document.getElementById("checklist-panel").classList.add("active");
+  document.getElementById("fab").classList.add("hidden");
+}
+
+function closeChecklist() {
+  document.getElementById("checklist-overlay").classList.remove("active");
+  document.getElementById("checklist-panel").classList.remove("active");
+  document.getElementById("fab").classList.remove("hidden");
+}
+
+function openClearConfirm()  { document.getElementById("checklist-confirm").classList.add("active"); }
+function closeClearConfirm() { document.getElementById("checklist-confirm").classList.remove("active"); }
+
+function doClearChecklist() {
+  saveChecklistState({});
+  closeClearConfirm();
+  renderChecklist();
+  updateChecklistLaunchCount();
 }
 
 init();
