@@ -266,6 +266,21 @@
   }
   .ingester-send:hover { background: #243f50; }
   .ingester-send:disabled { opacity: 0.4; cursor: not-allowed; }
+  .ingester-mic {
+    background: #f0ede8; color: #1a3a4a; border: none;
+    border-radius: 10px; padding: 10px 13px;
+    font-size: 1.1rem; cursor: pointer; flex-shrink: 0;
+    transition: background 0.15s, color 0.15s;
+  }
+  .ingester-mic:hover { background: #e8e3da; }
+  .ingester-mic.active {
+    background: #e53935; color: #fff;
+    animation: pulse-mic 1s infinite;
+  }
+  @keyframes pulse-mic {
+    0%, 100% { box-shadow: 0 0 0 0 rgba(229,57,53,0.4); }
+    50%       { box-shadow: 0 0 0 8px rgba(229,57,53,0); }
+  }
 
   /* Publish bar */
   .publish-bar {
@@ -447,8 +462,9 @@
 
     <!-- Text input -->
     <div class="ingester-row">
+      <button class="ingester-mic" id="ingester-mic" onclick="toggleVoice()" title="Voice input">🎤</button>
       <textarea class="ingester-textarea" id="ingester-input"
-        placeholder="Type anything — 'Dinner at Oleana July 9th 7:30pm', 'hotel check-in details', paste a confirmation email…"
+        placeholder="Type, speak 🎤, or attach a file — 'Dinner at Oleana July 9th 7:30pm', paste a confirmation email…"
         rows="2" onkeydown="handleIngesterKey(event)"></textarea>
       <button class="ingester-send" id="ingester-send" onclick="sendIngesterMessage()">↑</button>
     </div>
@@ -1022,6 +1038,87 @@ function buildPublishableHTML() {
 }
 
 // ══════════════════════════════════════════════════════
+//  VOICE INPUT
+// ══════════════════════════════════════════════════════
+let recognition = null;
+let isListening = false;
+
+function initVoice() {
+  const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+  if (!SpeechRecognition) return null;
+  const r = new SpeechRecognition();
+  r.continuous      = true;   // keep listening until manually stopped
+  r.interimResults  = true;   // show live transcript as you speak
+  r.lang            = "en-US";
+
+  r.onresult = (event) => {
+    let interim = "", final = "";
+    for (let i = event.resultIndex; i < event.results.length; i++) {
+      const t = event.results[i][0].transcript;
+      if (event.results[i].isFinal) final += t;
+      else interim += t;
+    }
+    const input = document.getElementById("ingester-input");
+    // Append final text; show interim as placeholder-style suffix
+    if (final) {
+      input.value = (input.value + " " + final).trim();
+    }
+    // Dim interim text in the textarea as a visual hint
+    input.placeholder = interim || "Listening…";
+  };
+
+  r.onerror = (e) => {
+    console.warn("Speech error:", e.error);
+    if (e.error === "not-allowed") {
+      addBubble("system", "Microphone access denied — please allow it in your browser settings.");
+    }
+    stopVoice();
+  };
+
+  r.onend = () => {
+    // Auto-restart if still in listening mode (handles browser auto-stop after silence)
+    if (isListening) r.start();
+  };
+
+  return r;
+}
+
+function toggleVoice() {
+  const mic = document.getElementById("ingester-mic");
+  const input = document.getElementById("ingester-input");
+
+  if (isListening) {
+    stopVoice();
+    // Auto-send if there's content after stopping
+    if (input.value.trim()) sendIngesterMessage();
+  } else {
+    if (!recognition) recognition = initVoice();
+    if (!recognition) {
+      addBubble("system", "⚠️ Voice input isn't supported in this browser. Try Chrome on Android or Safari on iOS.");
+      return;
+    }
+    isListening = true;
+    mic.classList.add("active");
+    mic.textContent = "⏹";
+    mic.title = "Tap to stop & send";
+    input.placeholder = "Listening…";
+    input.value = "";
+    recognition.start();
+    addBubble("system", "🎤 Listening — speak now. Tap ⏹ to stop and send.");
+  }
+}
+
+function stopVoice() {
+  isListening = false;
+  if (recognition) { try { recognition.stop(); } catch(e) {} }
+  const mic = document.getElementById("ingester-mic");
+  mic.classList.remove("active");
+  mic.textContent = "🎤";
+  mic.title = "Voice input";
+  document.getElementById("ingester-input").placeholder = "Type, speak 🎤, or attach a file…";
+}
+
+// ══════════════════════════════════════════════════════
 //  INIT
 // ══════════════════════════════════════════════════════
 function init() {
@@ -1041,3 +1138,4 @@ init();
 </script>
 </body>
 </html>
+
