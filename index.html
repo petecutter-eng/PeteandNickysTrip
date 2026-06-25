@@ -501,6 +501,53 @@
     .ingester-panel.active { transform: translateX(-50%) translateY(0); }
     .fab { right: calc(50% - 260px); }
   }
+
+  /* ══ Mode chooser & guest features ══ */
+  .mode-choice-btn {
+    width: 100%; text-align: left; padding: 14px 16px;
+    border: 1.5px solid #d8d2c7; border-radius: 10px; background: #fff;
+    cursor: pointer; margin-bottom: 10px; transition: border-color 0.15s, background 0.15s;
+    font-family: 'Inter', sans-serif;
+  }
+  .mode-choice-btn:hover  { border-color: #3d7dbf; background: #f7faff; }
+  .mode-choice-btn:active { opacity: 0.85; }
+  .mode-choice-btn b    { display: block; font-size: 0.9rem; color: #1a3a4a; margin-bottom: 3px; }
+  .mode-choice-btn span { display: block; font-size: 0.68rem; color: #888; line-height: 1.45; }
+  .modal select, .modal textarea {
+    width: 100%; border: 1.5px solid #c5bfb5; border-radius: 7px;
+    padding: 9px 12px; font-size: 0.82rem; font-family: 'Inter', sans-serif;
+    margin-bottom: 14px; outline: none; color: #1a1a1a; background: #fff;
+  }
+  .modal textarea { resize: vertical; min-height: 70px; line-height: 1.5; }
+  .modal select:focus, .modal textarea:focus { border-color: #3d7dbf; }
+  .send-to-pete {
+    display: none; width: 100%; margin: 0 0 14px; padding: 12px;
+    border: none; border-radius: 10px; background: #1a3a4a; color: #fff;
+    font-family: 'Inter', sans-serif; font-weight: 600; font-size: 0.8rem; cursor: pointer;
+  }
+  .send-to-pete:active { opacity: 0.85; }
+  body.guest-mode .send-to-pete.has-items { display: block; }
+  body.owner-mode .send-to-pete { display: none !important; }
+  .import-code {
+    width: 100%; font-family: monospace; font-size: 0.6rem; line-height: 1.4;
+    border: 1.5px solid #c5bfb5; border-radius: 7px; padding: 8px;
+    margin-bottom: 12px; resize: vertical; min-height: 56px; color: #444; background: #f7f4ef;
+  }
+  .mode-footer { text-align: center; font-size: 0.62rem; color: #aaa; margin-top: 18px; letter-spacing: 0.04em; }
+  .mode-footer a { color: #3d7dbf; text-decoration: none; cursor: pointer; }
+  .add-custom-item {
+    width: 100%; padding: 10px; border: 1.5px dashed #b9b3a8; border-radius: 8px;
+    background: #fff; color: #1a3a4a; font-family: 'Inter', sans-serif;
+    font-weight: 600; font-size: 0.72rem; cursor: pointer; margin-bottom: 8px;
+  }
+  .add-custom-item:active { opacity: 0.85; }
+  .checklist-custom-del {
+    margin-left: auto; border: none; background: none; color: #c0392b;
+    font-size: 0.85rem; cursor: pointer; padding: 0 4px;
+  }
+  .import-day-group { margin-bottom: 12px; }
+  .import-day-group > b { font-size: 0.78rem; color: #1a3a4a; }
+  .import-item { font-size: 0.72rem; color: #555; padding: 4px 0 4px 12px; line-height: 1.4; }
 </style>
 </head>
 <body>
@@ -526,11 +573,90 @@
   </div>
 </div>
 
+<!-- ══ Mode Chooser Modal ══ -->
+<div class="modal-overlay" id="mode-modal">
+  <div class="modal" style="max-width:400px">
+    <h2>Welcome 👋</h2>
+    <p>How are you using Nicky &amp; Pete's trip planner?</p>
+    <button class="mode-choice-btn" onclick="chooseMode('guest')">
+      <b>👨‍👩‍👧 Family / Guest</b>
+      <span>View the calendar, day details &amp; packing list. Add your own notes and packing items, then send them to Pete to publish. No keys needed.</span>
+    </button>
+    <button class="mode-choice-btn" onclick="chooseMode('owner')">
+      <b>🔑 I'm Pete — full access</b>
+      <span>Everything above, plus the AI plan ingester and publishing to the live page. Needs API keys.</span>
+    </button>
+  </div>
+</div>
+
+<!-- ══ Guest Add-Note Modal ══ -->
+<div class="modal-overlay" id="guest-note-modal">
+  <div class="modal" style="max-width:400px">
+    <h2>📝 Add a note</h2>
+    <p>Saved on this device. When you're ready, tap <b>Send to Pete</b> on the calendar and he'll publish it for everyone.</p>
+    <label>Which day</label>
+    <select id="guest-note-day"></select>
+    <label>Your note</label>
+    <textarea id="guest-note-text" placeholder="e.g. Bring the canoe to the cottage"></textarea>
+    <div style="display:flex; gap:10px">
+      <button class="btn btn-secondary" onclick="closeGuestNote()">Cancel</button>
+      <button class="btn btn-primary" onclick="saveGuestNote()">Save note</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══ Guest Add-Checklist-Item Modal ══ -->
+<div class="modal-overlay" id="guest-item-modal">
+  <div class="modal" style="max-width:400px">
+    <h2>➕ Add a packing item</h2>
+    <p>Added to the checklist on this device. Send it to Pete to publish it to everyone's list.</p>
+    <label>Item (English)</label>
+    <input type="text" id="guest-item-en" placeholder="e.g. Fishing rod" autocomplete="off">
+    <label>Thai (optional)</label>
+    <input type="text" id="guest-item-th" placeholder="คันเบ็ด" autocomplete="off">
+    <div style="display:flex; gap:10px">
+      <button class="btn btn-secondary" onclick="closeGuestItem()">Cancel</button>
+      <button class="btn btn-primary" onclick="saveGuestItem()">Add item</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══ Send-to-Pete Modal ══ -->
+<div class="modal-overlay" id="send-modal">
+  <div class="modal" style="max-width:420px">
+    <h2>📤 Send to Pete</h2>
+    <p id="send-summary">—</p>
+    <label>Your name (optional)</label>
+    <input type="text" id="send-name" placeholder="e.g. Auntie Jane" autocomplete="off">
+    <div class="modal-note">Pete opens the link in his app, reviews your additions, and publishes them to the live page. Nothing goes live until he approves it.</div>
+    <button class="btn btn-primary" style="width:100%; margin-bottom:8px" onclick="shareToPhone()">📲 Share link…</button>
+    <button class="btn btn-secondary" style="width:100%; margin-bottom:12px" onclick="copyShareLink()">📋 Copy link</button>
+    <label>Or copy this code</label>
+    <textarea class="import-code" id="send-code" readonly onclick="this.select()"></textarea>
+    <button class="btn btn-secondary" style="width:100%" onclick="closeSend()">Done</button>
+  </div>
+</div>
+
+<!-- ══ Import Review Modal (Pete) ══ -->
+<div class="modal-overlay" id="import-modal">
+  <div class="modal" style="max-width:440px">
+    <h2 id="import-title">📥 Family additions</h2>
+    <p id="import-summary">—</p>
+    <div id="import-body" style="max-height:40vh; overflow-y:auto; margin-bottom:16px"></div>
+    <div id="import-status" style="font-size:0.72rem; color:#1b5e20; margin-bottom:10px; display:none"></div>
+    <div style="display:flex; gap:10px; flex-wrap:wrap">
+      <button class="btn btn-secondary" onclick="closeImport()">Dismiss</button>
+      <button class="btn btn-primary" id="import-add-btn" onclick="mergeImport()">✓ Add to calendar</button>
+    </div>
+    <button class="btn btn-primary" id="import-publish-btn" style="width:100%; margin-top:10px; background:#1b5e20; display:none" onclick="publishImported()">🚀 Publish to live page now</button>
+  </div>
+</div>
+
 <!-- ══ Ingester Overlay ══ -->
-<div class="ingester-overlay active" id="ingester-overlay" onclick="closeIngester()"></div>
+<div class="ingester-overlay" id="ingester-overlay" onclick="closeIngester()"></div>
 
 <!-- ══ Ingester Panel ══ -->
-<div class="ingester-panel active" id="ingester-panel">
+<div class="ingester-panel" id="ingester-panel">
   <div class="ingester-handle"></div>
   <div class="ingester-header">
     <h2>＋ Add / Edit Plans</h2>
@@ -573,7 +699,7 @@ Does that work? Want me to add a "Leave home" reminder for **4:00am on July 1** 
     <button class="btn btn-revise" onclick="revisePreview()">Edit</button>
   </div></div><div class="chat-bubble claude">✅ Done! Added to your calendar. Hit "Publish Live" to update the live page.</div></div>
 
-  <div class="publish-bar visible" id="publish-bar">
+  <div class="publish-bar" id="publish-bar">
     <span class="publish-bar-text">✅ Changes ready to publish</span>
     <button class="btn-publish-bar" id="publish-bar-btn" onclick="publishToGitHub()" disabled="">⏳ Publishing…</button>
   </div>
@@ -631,7 +757,7 @@ Does that work? Want me to add a "Leave home" reminder for **4:00am on July 1** 
 </div>
 
 <!-- ══ FAB ══ -->
-<button class="fab" id="fab" onclick="openIngester()">＋ Add Plans</button>
+<button class="fab" id="fab" onclick="onFabClick()">＋ Add Plans</button>
 
 <!-- ══ App Shell ══ -->
 <div class="app-shell" id="app-shell">
@@ -652,6 +778,7 @@ Does that work? Want me to add a "Leave home" reminder for **4:00am on July 1** 
     <button class="checklist-launch" onclick="openChecklist()">
       📋 Packing Checklist <span class="cl-count" id="checklist-launch-count">3/46</span>
     </button>
+    <button class="send-to-pete" id="send-to-pete-btn" onclick="openSend()">📤 Send my additions to Pete</button>
     <div class="calendar">
       <div class="cal-header">
         <div>Wed</div><div>Thu</div><div>Fri</div>
@@ -665,6 +792,9 @@ Does that work? Want me to add a "Leave home" reminder for **4:00am on July 1** 
       <b>Out (1 Jul):</b> BKK→NRT JL708 07:55 · NRT→BOS JL008 18:25 · Economy V · 2 bags<br>
       <b>Return (16–17 Jul):</b> BOS→NRT JL007 13:15 · NRT→BKK JL707 18:25 · Economy N · 2 bags<br>
       <b>Ref:</b> FQ5ZSK · Satguru Travel &amp; Tours, Bangkok
+    </div>
+    <div class="mode-footer">
+      <span id="mode-indicator"></span> · <a onclick="reopenModeChooser()">switch mode</a>
     </div>
   </div>
 
@@ -740,6 +870,10 @@ const WEEK_LABELS = {
 // __BAKED_NOTES_START__
 const BAKED_NOTES = {"2026-07-01":[{"type":"Reminder","summary":"Leave home 4:00am","formatted":"<b>🚗 Leave home for airport</b> · 4:00am · Grab/taxi from La Perla (Ari) → Suvarnabhumi · JL 708 departs 07:55 · Conf: FQ5ZSK","raw":"JL 708 Bangkok to Tokyo, departs 07:55. Leave La Perla apt (Ari BTS) by 4:00am."}]};
 // __BAKED_NOTES_END__
+
+// __BAKED_CHECKLIST_START__
+const BAKED_CHECKLIST = [];
+// __BAKED_CHECKLIST_END__
 
 // ══════════════════════════════════════════════════════
 //  STORAGE
@@ -865,7 +999,7 @@ function openDetail(dateKey) {
     <div class="detail-section-body">
       <ul class="notes-list">`;
   if (!notes.length) {
-    html += `<li class="empty-day" style="list-style:none">Nothing yet — use ＋ Add Plans to add something</li>`;
+    html += `<li class="empty-day" style="list-style:none">Nothing yet — tap the ＋ button to add something</li>`;
   } else {
     notes.forEach((n,i) => {
       html += `<li>
@@ -1141,6 +1275,31 @@ function revisePreview() {
 // ══════════════════════════════════════════════════════
 //  GITHUB PUBLISH
 // ══════════════════════════════════════════════════════
+// Core publish — commits the current notes + checklist into index.html on GitHub.
+// Throws on failure so callers can show their own UI.
+async function doPublish(message) {
+  const creds = getCreds();
+  if (!creds.github||!creds.ghuser||!creds.ghrepo) throw new Error("Missing GitHub credentials");
+  const metaRes = await fetch(
+    `https://api.github.com/repos/${creds.ghuser}/${creds.ghrepo}/contents/index.html`,
+    { headers: { Authorization: `token ${creds.github}`, Accept: "application/vnd.github.v3+json" } }
+  );
+  const meta = await metaRes.json();
+  const sha  = meta.sha;
+  const updatedHTML = buildPublishableHTML();
+  const encoded     = btoa(unescape(encodeURIComponent(updatedHTML)));
+  const putRes = await fetch(
+    `https://api.github.com/repos/${creds.ghuser}/${creds.ghrepo}/contents/index.html`,
+    {
+      method: "PUT",
+      headers: { Authorization: `token ${creds.github}`, Accept: "application/vnd.github.v3+json", "Content-Type": "application/json" },
+      body: JSON.stringify({ message: message || "Trip update via ingester", content: encoded, sha })
+    }
+  );
+  if (!putRes.ok) throw new Error("GitHub API " + putRes.status);
+  return true;
+}
+
 async function publishToGitHub() {
   const creds = getCreds();
   if (!creds.github||!creds.ghuser||!creds.ghrepo) {
@@ -1151,27 +1310,10 @@ async function publishToGitHub() {
   btn.textContent = "⏳ Publishing…";
 
   try {
-    const metaRes = await fetch(
-      `https://api.github.com/repos/${creds.ghuser}/${creds.ghrepo}/contents/index.html`,
-      { headers: { Authorization: `token ${creds.github}`, Accept: "application/vnd.github.v3+json" } }
-    );
-    const meta = await metaRes.json();
-    const sha  = meta.sha;
-    const updatedHTML = buildPublishableHTML();
-    const encoded     = btoa(unescape(encodeURIComponent(updatedHTML)));
-    const putRes = await fetch(
-      `https://api.github.com/repos/${creds.ghuser}/${creds.ghrepo}/contents/index.html`,
-      {
-        method: "PUT",
-        headers: { Authorization: `token ${creds.github}`, Accept: "application/vnd.github.v3+json", "Content-Type": "application/json" },
-        body: JSON.stringify({ message: "Trip update via ingester", content: encoded, sha })
-      }
-    );
-    if (putRes.ok) {
-      btn.textContent = "✅ Live in ~60s";
-      btn.style.background = "#1b5e20";
-      addBubble("system", "Published to GitHub Pages — live in about 60 seconds.");
-    } else { throw new Error("GitHub API " + putRes.status); }
+    await doPublish("Trip update via ingester");
+    btn.textContent = "✅ Live in ~60s";
+    btn.style.background = "#1b5e20";
+    addBubble("system", "Published to GitHub Pages — live in about 60 seconds.");
   } catch(err) {
     console.error(err);
     btn.textContent = "⚠️ Failed";
@@ -1188,14 +1330,20 @@ async function publishToGitHub() {
 function buildPublishableHTML() {
   const allNotes = {};
   Object.keys(TRIP_DATA).forEach(k => { const n=getNotes(k); if(n.length) allNotes[k]=n; });
-  const notesJSON  = JSON.stringify(allNotes);
-  const currentHTML = document.documentElement.outerHTML;
-  const marker    = "// __BAKED_NOTES_START__";
-  const endMarker = "// __BAKED_NOTES_END__";
-  return currentHTML.replace(
-    new RegExp(marker + "[\\s\\S]*?" + endMarker),
-    `${marker}\nconst BAKED_NOTES = ${notesJSON};\n${endMarker}`
+  const notesJSON     = JSON.stringify(allNotes);
+  const checklistJSON = JSON.stringify(getCustomItems().map(i => ({ id: i.id, en: i.en, th: i.th||"" })));
+  let currentHTML = document.documentElement.outerHTML;
+  const nMarker = "// __BAKED_NOTES_START__", nEnd = "// __BAKED_NOTES_END__";
+  const cMarker = "// __BAKED_CHECKLIST_START__", cEnd = "// __BAKED_CHECKLIST_END__";
+  currentHTML = currentHTML.replace(
+    new RegExp(nMarker + "[\\s\\S]*?" + nEnd),
+    `${nMarker}\nconst BAKED_NOTES = ${notesJSON};\n${nEnd}`
   );
+  currentHTML = currentHTML.replace(
+    new RegExp(cMarker + "[\\s\\S]*?" + cEnd),
+    `${cMarker}\nconst BAKED_CHECKLIST = ${checklistJSON};\n${cEnd}`
+  );
+  return currentHTML;
 }
 
 // ══════════════════════════════════════════════════════
@@ -1280,6 +1428,279 @@ function stopVoice() {
 }
 
 // ══════════════════════════════════════════════════════
+//  MODE  (Owner / Guest)
+// ══════════════════════════════════════════════════════
+function applyMode() {
+  const mode = localStorage.getItem("app_mode") || "guest";
+  document.body.classList.toggle("guest-mode", mode === "guest");
+  document.body.classList.toggle("owner-mode", mode === "owner");
+  const fab = document.getElementById("fab");
+  if (fab) fab.textContent = mode === "guest" ? "＋ Add Note" : "＋ Add Plans";
+  const ind = document.getElementById("mode-indicator");
+  if (ind) ind.textContent = mode === "owner" ? "Full access (Pete)" : "Guest view";
+  updateSendButton();
+}
+
+function chooseMode(mode) {
+  localStorage.setItem("app_mode", mode);
+  document.getElementById("mode-modal").classList.remove("active");
+  applyMode();
+  if (mode === "owner") {
+    const creds = getCreds();
+    if (!creds.anthropic || !creds.github) document.getElementById("setup-modal").classList.add("active");
+  }
+}
+
+function reopenModeChooser() { document.getElementById("mode-modal").classList.add("active"); }
+
+function onFabClick() {
+  const mode = localStorage.getItem("app_mode") || "guest";
+  if (mode === "owner") openIngester();
+  else openGuestNote();
+}
+
+// ══════════════════════════════════════════════════════
+//  GUEST — manual notes (no AI)
+// ══════════════════════════════════════════════════════
+function populateDayOptions(sel) {
+  sel.innerHTML = "";
+  Object.keys(TRIP_DATA).sort().forEach(k => {
+    const o = document.createElement("option");
+    o.value = k;
+    o.textContent = TRIP_DATA[k].label + " — " + TRIP_DATA[k].location;
+    sel.appendChild(o);
+  });
+}
+
+function openGuestNote() {
+  const sel = document.getElementById("guest-note-day");
+  populateDayOptions(sel);
+  if (currentDateKey && TRIP_DATA[currentDateKey]) sel.value = currentDateKey;
+  document.getElementById("guest-note-text").value = "";
+  document.getElementById("guest-note-modal").classList.add("active");
+}
+function closeGuestNote() { document.getElementById("guest-note-modal").classList.remove("active"); }
+function saveGuestNote() {
+  const day  = document.getElementById("guest-note-day").value;
+  const text = document.getElementById("guest-note-text").value.trim();
+  if (!text) { alert("Type a note first."); return; }
+  const notes = getNotes(day);
+  notes.push({ type: "Note", summary: text, formatted: escapeHtml(text), raw: text, guest: true });
+  saveNotes(day, notes);
+  closeGuestNote();
+  renderCalendar();
+  updateSendButton();
+  openDetail(day);
+}
+
+// ══════════════════════════════════════════════════════
+//  GUEST — custom packing items
+// ══════════════════════════════════════════════════════
+function openGuestItem() {
+  document.getElementById("guest-item-en").value = "";
+  document.getElementById("guest-item-th").value = "";
+  document.getElementById("guest-item-modal").classList.add("active");
+}
+function closeGuestItem() { document.getElementById("guest-item-modal").classList.remove("active"); }
+function saveGuestItem() {
+  const en = document.getElementById("guest-item-en").value.trim();
+  const th = document.getElementById("guest-item-th").value.trim();
+  if (!en) { alert("Enter an item name."); return; }
+  const items = getCustomItems();
+  items.push({ id: "custom-" + Date.now(), en, th, guest: true });
+  saveCustomItems(items);
+  closeGuestItem();
+  renderChecklist();
+  updateChecklistLaunchCount();
+  updateSendButton();
+}
+function deleteCustomItem(id) {
+  saveCustomItems(getCustomItems().filter(i => i.id !== id));
+  const state = getChecklistState();
+  if (state[id]) { delete state[id]; saveChecklistState(state); }
+  renderChecklist();
+  updateChecklistLaunchCount();
+  updateSendButton();
+}
+
+// ══════════════════════════════════════════════════════
+//  OUTBOX — share guest additions to Pete
+// ══════════════════════════════════════════════════════
+function collectAdditions() {
+  const notes = {};
+  Object.keys(TRIP_DATA).forEach(k => {
+    const g = getNotes(k).filter(n => n.guest);
+    if (g.length) notes[k] = g.map(n => ({ type: n.type, summary: n.summary, formatted: n.formatted, raw: n.raw }));
+  });
+  const items = getCustomItems().filter(it => it.guest).map(it => ({ id: it.id, en: it.en, th: it.th || "" }));
+  return { notes, items };
+}
+function hasAdditions() {
+  const a = collectAdditions();
+  return Object.keys(a.notes).length > 0 || a.items.length > 0;
+}
+function updateSendButton() {
+  const btn = document.getElementById("send-to-pete-btn");
+  if (btn) btn.classList.toggle("has-items", hasAdditions());
+}
+
+function encodePayload(obj) {
+  const b64 = btoa(unescape(encodeURIComponent(JSON.stringify(obj))));
+  return b64.replace(/\+/g,"-").replace(/\//g,"_").replace(/=+$/,"");
+}
+function decodePayload(code) {
+  let b64 = code.replace(/-/g,"+").replace(/_/g,"/");
+  while (b64.length % 4) b64 += "=";
+  return JSON.parse(decodeURIComponent(escape(atob(b64))));
+}
+function buildShareLink(code) { return location.origin + location.pathname + "?import=" + code; }
+
+function currentPayload() {
+  const a = collectAdditions();
+  const by = (document.getElementById("send-name").value || "").trim();
+  return { v: 1, by, notes: a.notes, items: a.items };
+}
+function refreshShareCode() {
+  document.getElementById("send-code").value = buildShareLink(encodePayload(currentPayload()));
+}
+function openSend() {
+  const a = collectAdditions();
+  const noteCount = Object.values(a.notes).reduce((s,arr)=>s+arr.length,0);
+  document.getElementById("send-summary").textContent =
+    `You're sending ${noteCount} note${noteCount!==1?"s":""} and ${a.items.length} packing item${a.items.length!==1?"s":""} to Pete.`;
+  document.getElementById("send-name").value = localStorage.getItem("guest_name") || "";
+  refreshShareCode();
+  document.getElementById("send-modal").classList.add("active");
+}
+function closeSend() { document.getElementById("send-modal").classList.remove("active"); }
+async function shareToPhone() {
+  const by = (document.getElementById("send-name").value || "").trim();
+  if (by) localStorage.setItem("guest_name", by);
+  refreshShareCode();
+  const link = document.getElementById("send-code").value;
+  const text = (by ? by + " added" : "Additions") + " to Nicky & Pete's trip — open to review & publish:";
+  if (navigator.share) {
+    try { await navigator.share({ title: "Trip additions for Pete", text, url: link }); } catch(e) {}
+  } else {
+    copyShareLink();
+  }
+}
+async function copyShareLink() {
+  const by = (document.getElementById("send-name").value || "").trim();
+  if (by) localStorage.setItem("guest_name", by);
+  refreshShareCode();
+  const link = document.getElementById("send-code").value;
+  try {
+    await navigator.clipboard.writeText(link);
+    alert("Link copied! Paste it to Pete via WhatsApp, Telegram or email.");
+  } catch(e) {
+    document.getElementById("send-code").select();
+    alert("Select the link below and copy it to send to Pete.");
+  }
+}
+
+// ══════════════════════════════════════════════════════
+//  IMPORT — Pete reviews & publishes family additions
+// ══════════════════════════════════════════════════════
+let importPayload = null;
+
+function checkImportParam() {
+  const code = new URLSearchParams(location.search).get("import");
+  if (!code) return false;
+  try { importPayload = decodePayload(code); }
+  catch(e) { console.error("Bad import code", e); return false; }
+  history.replaceState(null, "", location.pathname);   // don't re-trigger on refresh
+  showImportReview(importPayload);
+  return true;
+}
+
+function showImportReview(p) {
+  const notes = p.notes || {};
+  const items = p.items || [];
+  const noteCount = Object.values(notes).reduce((s,arr)=>s+arr.length,0);
+  document.getElementById("import-title").textContent = p.by ? `📥 Additions from ${escapeHtml(p.by)}` : "📥 Family additions";
+  document.getElementById("import-summary").textContent =
+    `${noteCount} note${noteCount!==1?"s":""} and ${items.length} packing item${items.length!==1?"s":""} to review.`;
+  let html = "";
+  Object.keys(notes).sort().forEach(k => {
+    const label = TRIP_DATA[k] ? TRIP_DATA[k].label : k;
+    html += `<div class="import-day-group"><b>${escapeHtml(label)}</b>`;
+    notes[k].forEach(n => { html += `<div class="import-item">📝 ${n.formatted || escapeHtml(n.summary || n.raw || "")}</div>`; });
+    html += `</div>`;
+  });
+  if (items.length) {
+    html += `<div class="import-day-group"><b>Packing items</b>`;
+    items.forEach(it => { html += `<div class="import-item">🎒 ${escapeHtml(it.en)}${it.th?" · "+escapeHtml(it.th):""}</div>`; });
+    html += `</div>`;
+  }
+  if (!noteCount && !items.length) html = `<div class="import-item">Nothing to import.</div>`;
+  document.getElementById("import-body").innerHTML = html;
+  document.getElementById("import-status").style.display = "none";
+  document.getElementById("import-publish-btn").style.display = "none";
+  document.getElementById("import-add-btn").disabled = (!noteCount && !items.length);
+  document.getElementById("import-add-btn").textContent = "✓ Add to calendar";
+  document.getElementById("import-modal").classList.add("active");
+}
+
+function mergeImport() {
+  if (!importPayload) return;
+  const notes = importPayload.notes || {};
+  Object.keys(notes).forEach(k => {
+    const existing = getNotes(k);
+    notes[k].forEach(n => existing.push({ type: n.type||"Note", summary: n.summary, formatted: n.formatted, raw: n.raw||n.summary }));
+    saveNotes(k, existing);
+  });
+  const incoming = importPayload.items || [];
+  if (incoming.length) {
+    const cur = getCustomItems();
+    const ids   = new Set(cur.map(i => i.id));
+    const names = new Set(cur.map(i => (i.en||"").toLowerCase()));
+    incoming.forEach(it => {
+      const id = it.id || ("custom-" + Date.now() + "-" + Math.floor(Math.random()*1000));
+      if (ids.has(id) || names.has((it.en||"").toLowerCase())) return;
+      cur.push({ id, en: it.en, th: it.th||"", guest: true });
+      ids.add(id); names.add((it.en||"").toLowerCase());
+    });
+    saveCustomItems(cur);
+  }
+  renderCalendar();
+  updateChecklistLaunchCount();
+  updateSendButton();
+  const status = document.getElementById("import-status");
+  status.style.display = "block";
+  status.textContent = "✓ Added to your calendar and checklist.";
+  document.getElementById("import-add-btn").disabled = true;
+  document.getElementById("import-add-btn").textContent = "✓ Added";
+  const creds = getCreds();
+  if (creds.github && creds.ghuser && creds.ghrepo) {
+    document.getElementById("import-publish-btn").style.display = "block";
+  } else {
+    status.textContent += " Switch to full access (keys) to publish them live.";
+  }
+}
+
+async function publishImported() {
+  const btn = document.getElementById("import-publish-btn");
+  const status = document.getElementById("import-status");
+  btn.disabled = true; btn.textContent = "⏳ Publishing…";
+  try {
+    await doPublish("Add family submissions via import link");
+    status.textContent = "🚀 Published — live on the page in about 60 seconds.";
+    btn.textContent = "✅ Published";
+  } catch(e) {
+    console.error(e);
+    status.textContent = "⚠️ Publish failed — check your GitHub token in setup.";
+    btn.disabled = false; btn.textContent = "🚀 Publish to live page now";
+  }
+}
+
+function closeImport() {
+  importPayload = null;
+  document.getElementById("import-modal").classList.remove("active");
+  if (!localStorage.getItem("app_mode")) document.getElementById("mode-modal").classList.add("active");
+}
+
+// ══════════════════════════════════════════════════════
 //  INIT
 // ══════════════════════════════════════════════════════
 function init() {
@@ -1288,12 +1709,27 @@ function init() {
       if (!localStorage.getItem("notes_"+k)) saveNotes(k,v);
     });
   }
-  const creds = getCreds();
-  if (!creds.anthropic||!creds.github) {
-    document.getElementById("setup-modal").classList.add("active");
-  }
+  seedBakedChecklist();
+  // Defensive: never start with the ingester open (a publish-while-open can bake it open).
+  closeIngester();
+  applyMode();
   renderCalendar();
   updateChecklistLaunchCount();
+
+  // An incoming family submission (?import=...) takes priority.
+  if (checkImportParam()) return;
+
+  const mode = localStorage.getItem("app_mode");
+  if (!mode) {
+    document.getElementById("mode-modal").classList.add("active");
+    return;
+  }
+  if (mode === "owner") {
+    const creds = getCreds();
+    if (!creds.anthropic||!creds.github) {
+      document.getElementById("setup-modal").classList.add("active");
+    }
+  }
 }
 
 // ══════════════════════════════════════════════════════
@@ -1366,12 +1802,29 @@ function getChecklistState() {
 }
 function saveChecklistState(s) { localStorage.setItem("checklist_checked", JSON.stringify(s)); }
 
+// Custom (family-added) checklist items — live locally, baked & published like notes.
+function getCustomItems() {
+  try { return JSON.parse(localStorage.getItem("checklist_custom")||"[]"); } catch { return []; }
+}
+function saveCustomItems(arr) { localStorage.setItem("checklist_custom", JSON.stringify(arr)); }
+
+// Seed baked (published) custom items into local storage on first load.
+function seedBakedChecklist() {
+  if (typeof BAKED_CHECKLIST === "undefined" || !BAKED_CHECKLIST.length) return;
+  const have = getCustomItems();
+  const ids = new Set(have.map(i => i.id));
+  let changed = false;
+  BAKED_CHECKLIST.forEach(it => { if (it && it.id && !ids.has(it.id)) { have.push(it); changed = true; } });
+  if (changed) saveCustomItems(have);
+}
+
 function checklistCounts() {
   const state = getChecklistState();
   let total = 0, done = 0;
   CHECKLIST_DATA.sections.forEach(sec => sec.items.forEach(it => {
     total++; if (state[it.id]) done++;
   }));
+  getCustomItems().forEach(it => { total++; if (state[it.id]) done++; });
   return { total, done };
 }
 
@@ -1397,6 +1850,27 @@ function renderChecklist() {
     });
     html += `</div>`;
   });
+
+  const custom = getCustomItems();
+  html += `<div class="checklist-section">
+    <div class="checklist-section-title">Added by the family</div>`;
+  custom.forEach(it => {
+    const on = !!state[it.id];
+    html += `<div class="checklist-item${on?" checked":""}" id="chk-${it.id}">
+      <div class="checklist-box" onclick="toggleChecklistItem('${it.id}')">${on?"✓":""}</div>
+      <div class="checklist-text" onclick="toggleChecklistItem('${it.id}')">
+        <div class="checklist-en">${escapeHtml(it.en)}</div>
+        ${it.th?`<div class="checklist-th">${escapeHtml(it.th)}</div>`:""}
+      </div>
+      <button class="checklist-custom-del" title="Remove" onclick="deleteCustomItem('${it.id}')">✕</button>
+    </div>`;
+  });
+  if (!custom.length) {
+    html += `<div style="font-size:0.7rem; color:#aaa; padding:6px 2px">Nothing added yet.</div>`;
+  }
+  html += `<button class="add-custom-item" onclick="openGuestItem()" style="margin-top:8px">➕ Add your own item</button>`;
+  html += `</div>`;
+
   document.getElementById("checklist-body").innerHTML = html;
   updateChecklistProgress();
 }

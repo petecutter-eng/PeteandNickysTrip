@@ -44,16 +44,36 @@ Single-file app. No build step, no dependencies except Google Fonts (CDN).
 | `sendIngesterMessage()` | Calls Claude API with conversation history + optional file |
 | `confirmPreview()` | Saves parsed items from Claude into localStorage |
 | `publishToGitHub()` | Commits updated index.html to repo via GitHub API |
-| `buildPublishableHTML()` | Bakes current localStorage notes into BAKED_NOTES block |
+| `buildPublishableHTML()` | Bakes current notes into BAKED_NOTES and custom checklist items into BAKED_CHECKLIST |
 | `toggleVoice()` / `stopVoice()` | Web Speech API mic input |
-| `init()` | Seeds localStorage from BAKED_NOTES, shows setup modal if no creds |
+| `init()` | Seeds localStorage from BAKED_NOTES/BAKED_CHECKLIST, handles `?import=`, shows mode chooser on first open |
+| `applyMode()` / `chooseMode()` | Owner vs Guest mode (see "Access Modes") |
+| `collectAdditions()` / `openSend()` | Guest outbox — packages local additions into a share link |
+| `checkImportParam()` / `mergeImport()` / `publishImported()` | Owner side — review & publish family submissions |
 
-### Credentials
+### Access Modes (Owner / Guest)
+On first open the app shows a **mode chooser** instead of forcing the key-setup modal. The choice is stored in `localStorage["app_mode"]` (`"owner"` | `"guest"`), and a "switch mode" link in the calendar footer reopens it.
+
+- **Owner (Pete)** — needs the keys below. Full app: AI ingester (＋ Add Plans), publish to live page, plus the import flow.
+- **Guest (family, no keys)** — view the whole calendar/details, use the packing checklist, **add their own notes** (＋ Add Note, plain text, no AI) and **custom packing items**. These save to their device only. A **"📤 Send my additions to Pete"** button packages them.
+
+**Guest → Owner handoff (no guest keys, no backend):**
+1. Guest taps Send → `collectAdditions()` gathers notes flagged `guest:true` + custom items flagged `guest:true`, `encodePayload()` URL-safe-base64s them into a link `…/?import=<code>`.
+2. Guest shares the link (native share sheet / copy) via WhatsApp/Telegram/email.
+3. Pete opens it in **owner mode** → `checkImportParam()` decodes → review modal → `mergeImport()` writes into his localStorage → `publishImported()` calls `doPublish()` (same path as the normal publish bar). Nothing goes live until Pete approves.
+
+Custom checklist items are published the same way notes are: baked into the `BAKED_CHECKLIST` block so every device picks them up. The `guest` flag is stripped at bake time.
+
+> Note: `buildPublishableHTML()` snapshots the live DOM, so always publish with the ingester **closed** — `init()` and the clean markup now defend against an open panel being baked in.
+
+### Credentials (owner mode only)
 Stored in browser localStorage (never in code):
 - `cred_anthropic` — Anthropic API key
 - `cred_github` — GitHub Personal Access Token (repo scope)
 - `cred_ghuser` — `petecutter-eng`
 - `cred_ghrepo` — `PeteandNickysTrip`
+- `app_mode` — `"owner"` or `"guest"` (set via the first-open chooser)
+- `guest_name` — optional name a guest attaches to their submissions
 
 ### Notes persistence model
 1. User adds note via ingester → saved to `localStorage["notes_2026-07-XX"]`
@@ -184,7 +204,7 @@ Two separate WhatsApp rules break the unattended 7am send on the sandbox:
 
 ## Known Gaps / Next Features
 
-1. **Ingester → trip-config.json sync** — notes added via ingester should also write to `trip-config.json` so they appear in the daily briefing automatically
+1. **Ingester → trip-config.json sync** — notes added via ingester (or imported from a guest) should also write to `trip-config.json` so they appear in the daily briefing automatically. (Guest additions now reach the *live page* via the import link; the briefing is still a separate manual step.)
 2. **Delivery channel** — now defaults to Telegram (no roaming/business dependency); set `TELEGRAM_BOT_TOKEN` + `TELEGRAM_CHAT_ID` to activate (see "Telegram"). WhatsApp/Twilio remains as a fallback, including an optional approved-template production path via `TWILIO_CONTENT_SID`.
 3. **Favicon** — not yet added
 4. **Multi-day event ingestion** — ingester can add multi-day notes but doesn't yet auto-create the `multiday` strip/badge structure in TRIP_DATA; only adds notes to each day individually
