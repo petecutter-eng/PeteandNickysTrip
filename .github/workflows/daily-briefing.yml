@@ -24,4 +24,7 @@ jobs:
           TWILIO_AUTH_TOKEN:    ${{ secrets.TWILIO_AUTH_TOKEN }}
           TWILIO_WHATSAPP_FROM: ${{ secrets.TWILIO_WHATSAPP_FROM }}
           TWILIO_WHATSAPP_TO:   ${{ secrets.TWILIO_WHATSAPP_TO }}
+          # Optional: set once your WhatsApp Message Template is approved to
+          # switch from the sandbox to the production template send path.
+          TWILIO_CONTENT_SID:   ${{ secrets.TWILIO_CONTENT_SID }}
         run: node briefing.js

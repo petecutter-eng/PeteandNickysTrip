@@ -112,6 +112,7 @@ Node.js script, no npm dependencies (uses built-in `https` and `fs`).
 - `TWILIO_AUTH_TOKEN`
 - `TWILIO_WHATSAPP_FROM` — `whatsapp:+14155238886`
 - `TWILIO_WHATSAPP_TO` — Pete's WhatsApp number
+- `TWILIO_CONTENT_SID` — *(optional)* Content SID of the approved WhatsApp Message Template. When set, `sendWhatsApp()` sends via the template (production path); when unset, it sends a free-form `Body` (sandbox path). See "Twilio WhatsApp" below.
 
 ---
 
@@ -127,9 +128,25 @@ To test manually: Actions tab → Daily Trip Briefing → Run workflow.
 
 ## Twilio WhatsApp
 
-Using Twilio Sandbox (`whatsapp:+14155238886`). Pete's number is verified on the sandbox.
+`sendWhatsApp()` in `briefing.js` supports two send paths, chosen at runtime by whether `TWILIO_CONTENT_SID` is set:
 
-**Note:** Sandbox sessions expire after 72 hours of inactivity. If the briefing stops arriving during the trip, Pete may need to re-send the join message. For a production upgrade, move to a Twilio-approved WhatsApp sender (takes a few days to approve — do this before July 1).
+- **Sandbox (default, no `TWILIO_CONTENT_SID`)** — sends a free-form `Body` from `whatsapp:+14155238886`. Pete's number is verified on the sandbox. Good for testing.
+- **Production (set `TWILIO_CONTENT_SID`)** — sends via an approved Message Template, passing the generated briefing as template variable `{{1}}`.
+
+### Why the sandbox isn't enough for the trip
+Two separate WhatsApp rules break the unattended 7am send on the sandbox:
+1. **72h sandbox opt-in** — lapses if Pete doesn't message the sandbox number for 72h; he'd have to re-send the join code.
+2. **24h session window** — WhatsApp only allows *free-form* text within 24h of the recipient's last inbound message. The briefing is business-initiated (no preceding reply), so outside that window WhatsApp **requires an approved Message Template**, not free text. The sandbox is lenient about this; production is not.
+
+### Migrating to production (do this before July 1 — approval takes days)
+1. In Twilio, register a **WhatsApp Business sender** (Twilio number + Meta business verification).
+2. Create a **Message Template** (a.k.a. Content template) with a single body variable `{{1}}`. Suggested body: a short greeting line followed by `{{1}}`. Category: *Utility*.
+3. Submit it for approval and wait until status is **Approved**.
+4. Copy the template's **Content SID** (`HX…`) and add it as GitHub Secret `TWILIO_CONTENT_SID`.
+5. Update `TWILIO_WHATSAPP_FROM` to the approved production sender number.
+6. That's it — no code change needed; the next run uses the template automatically.
+
+**Template variable caveat:** WhatsApp rejects tabs and runs of 4+ spaces inside template variables. `sanitizeForTemplate()` in `briefing.js` cleans these. Newlines are preserved (modern templates allow them); if your template is rejected for newlines, also strip `\n` in that function.
 
 ---
 
@@ -151,7 +168,7 @@ Using Twilio Sandbox (`whatsapp:+14155238886`). Pete's number is verified on the
 ## Known Gaps / Next Features
 
 1. **Ingester → trip-config.json sync** — notes added via ingester should also write to `trip-config.json` so they appear in the daily briefing automatically
-2. **Twilio sandbox → production** — upgrade before Jul 1 to avoid 72hr expiry issue
+2. **Twilio sandbox → production** — code now supports the template path via `TWILIO_CONTENT_SID`; the remaining work is the Twilio/Meta sender + template approval (see "Twilio WhatsApp"). Do before Jul 1.
 3. **Favicon** — not yet added
 4. **Multi-day event ingestion** — ingester can add multi-day notes but doesn't yet auto-create the `multiday` strip/badge structure in TRIP_DATA; only adds notes to each day individually
 5. **This project is designed as a reusable template** — for future trips, replace `TRIP_DATA`, `trip-config.json` days, and update the header/legend. The ingester, briefing, and publish pipeline are all generic.
