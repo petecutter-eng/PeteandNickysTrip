@@ -639,11 +639,16 @@ So the plan would be:
 Does that look right? And do you have flight details to add, or just want to update the location labels for now?</div><div class="chat-bubble system">🎤 Listening — speak now. Tap ⏹ to stop and send.</div><div class="chat-bubble user">no details now just do that one trip and replace</div><div class="chat-bubble claude">Got it! Simple location swap for those days.</div><div class="preview-card"><div class="preview-card-header">📋 Ready to add — 4 items</div><div class="preview-card-item"><b>12 Jul</b> · <b>Travel</b><br>✈️ Boston → Traverse City</div><div class="preview-card-item"><b>13 Jul</b> · <b>Location</b><br>📍 Traverse City, MI</div><div class="preview-card-item"><b>14 Jul</b> · <b>Location</b><br>📍 Traverse City, MI</div><div class="preview-card-item"><b>15 Jul</b> · <b>Travel</b><br>✈️ Traverse City → Boston</div><div class="preview-confirm-row">
     <button class="btn btn-confirm" onclick="confirmPreview()" fdprocessedid="xwsqu">✓ Add to calendar</button>
     <button class="btn btn-revise" onclick="revisePreview()" fdprocessedid="x3av3k">Edit</button>
+  </div></div><div class="chat-bubble claude">✅ Done! Added to your calendar. Hit "Publish Live" to update the live page.</div><div class="chat-bubble system">Published to GitHub Pages — live in about 60 seconds.</div><div class="chat-bubble system">🎤 Listening — speak now. Tap ⏹ to stop and send.</div><div class="chat-bubble user">you're still showing a a pill for Boston on those dates I was assuming that the Traverse City the location would replace that pill otherwise what are those pills for</div><div class="chat-bubble claude">You're totally right, sorry about that! The location pills on those days should just **replace** the Boston label — not sit alongside it. So July 12–15 should simply show Traverse City (with travel indicators on the 12th and 15th) instead of Boston.
+
+That's a display/logic issue on the app side — the existing Boston pills for those days should be **removed** and replaced with these new ones. I'll make sure that's clear in the output.</div><div class="preview-card"><div class="preview-card-header">📋 Ready to add — 4 items</div><div class="preview-card-item"><b>12 Jul</b> · <b>Location</b><br>✈️ Boston → Traverse City, MI</div><div class="preview-card-item"><b>13 Jul</b> · <b>Location</b><br>📍 Traverse City, MI</div><div class="preview-card-item"><b>14 Jul</b> · <b>Location</b><br>📍 Traverse City, MI</div><div class="preview-card-item"><b>15 Jul</b> · <b>Location</b><br>✈️ Traverse City, MI → Boston</div><div class="preview-confirm-row">
+    <button class="btn btn-confirm" onclick="confirmPreview()" fdprocessedid="lxxlfl">✓ Add to calendar</button>
+    <button class="btn btn-revise" onclick="revisePreview()" fdprocessedid="zfmz14">Edit</button>
   </div></div><div class="chat-bubble claude">✅ Done! Added to your calendar. Hit "Publish Live" to update the live page.</div></div>
 
   <div class="publish-bar visible" id="publish-bar">
     <span class="publish-bar-text">✅ Changes ready to publish</span>
-    <button class="btn-publish-bar" id="publish-bar-btn" onclick="publishToGitHub()" fdprocessedid="gv6wi" disabled="">⏳ Publishing…</button>
+    <button class="btn-publish-bar" id="publish-bar-btn" onclick="publishToGitHub()" fdprocessedid="gv6wi" disabled="" style="">⏳ Publishing…</button>
   </div>
 
   <div class="ingester-input-area">
@@ -657,7 +662,7 @@ Does that look right? And do you have flight details to add, or just want to upd
     <!-- Text input -->
     <div class="ingester-row">
       <button class="ingester-mic" id="ingester-mic" onclick="toggleVoice()" title="Voice input" fdprocessedid="jej9d4">🎤</button>
-      <textarea class="ingester-textarea" id="ingester-input" placeholder="Type, speak 🎤, or attach a file…" rows="2" onkeydown="handleIngesterKey(event)" spellcheck="false"></textarea>
+      <textarea class="ingester-textarea" id="ingester-input" placeholder="Listening…" rows="2" onkeydown="handleIngesterKey(event)" spellcheck="false"></textarea>
       <button class="ingester-send" id="ingester-send" onclick="sendIngesterMessage()" fdprocessedid="w215wa">↑</button>
     </div>
   </div>
@@ -768,7 +773,7 @@ const WEEK_LABELS = {
 };
 
 // __BAKED_NOTES_START__
-const BAKED_NOTES = {"2026-07-02":[{"type":"Hotel","summary":"Stay at Brad's – Lincoln, MA","formatted":"Staying at <b>Brad's place</b> for one night in <b>Lincoln, MA</b>","raw":"Stay at Brad's for one night (Lincoln, MA)"}],"2026-07-12":[{"type":"Travel","summary":"Boston → Traverse City","formatted":"✈️ Boston → Traverse City","raw":"Replace Boston with Traverse City, fly in July 12"}],"2026-07-13":[{"type":"Location","summary":"Traverse City, MI","formatted":"📍 Traverse City, MI","raw":"Traverse City days July 13-14"}],"2026-07-14":[{"type":"Location","summary":"Traverse City, MI","formatted":"📍 Traverse City, MI","raw":"Traverse City days July 13-14"}],"2026-07-15":[{"type":"Travel","summary":"Traverse City → Boston","formatted":"✈️ Traverse City → Boston","raw":"Replace Boston with Traverse City, fly back July 15"}]};
+const BAKED_NOTES = {"2026-07-02":[{"type":"Hotel","summary":"Stay at Brad's – Lincoln, MA","formatted":"Staying at <b>Brad's place</b> for one night in <b>Lincoln, MA</b>","raw":"Stay at Brad's for one night (Lincoln, MA)"}],"2026-07-12":[{"type":"Travel","summary":"Boston → Traverse City","formatted":"✈️ Boston → Traverse City","raw":"Replace Boston with Traverse City, fly in July 12"},{"type":"Location","summary":"Boston → Traverse City","formatted":"✈️ Boston → Traverse City, MI","raw":"Replace Boston label. Flying to Traverse City July 12."}],"2026-07-13":[{"type":"Location","summary":"Traverse City, MI","formatted":"📍 Traverse City, MI","raw":"Traverse City days July 13-14"},{"type":"Location","summary":"Traverse City, MI","formatted":"📍 Traverse City, MI","raw":"Replace Boston label."}],"2026-07-14":[{"type":"Location","summary":"Traverse City, MI","formatted":"📍 Traverse City, MI","raw":"Traverse City days July 13-14"},{"type":"Location","summary":"Traverse City, MI","formatted":"📍 Traverse City, MI","raw":"Replace Boston label."}],"2026-07-15":[{"type":"Travel","summary":"Traverse City → Boston","formatted":"✈️ Traverse City → Boston","raw":"Replace Boston with Traverse City, fly back July 15"},{"type":"Location","summary":"Traverse City → Boston","formatted":"✈️ Traverse City, MI → Boston","raw":"Replace Boston label. Flying back to Boston July 15."}]};
 // __BAKED_NOTES_END__
 
 // ══════════════════════════════════════════════════════
