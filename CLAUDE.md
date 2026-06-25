@@ -1,7 +1,7 @@
 # PeteandNickysTrip — Project Handover
 
 ## What This Is
-A live trip planning web app for Pete Cutter and his son Nicky (Nicholas Boonsuan) travelling from Bangkok to the US, July 1–17, 2026. Built as a GitHub Pages site with a daily WhatsApp briefing system.
+A live trip planning web app for Pete Cutter and his son Nicky (Nicholas Boonsuan) travelling from Bangkok to the US, July 1–17, 2026. Built as a GitHub Pages site with a daily briefing system (delivered via Telegram; WhatsApp/Twilio supported as a fallback).
 
 **Live URL:** https://petecutter-eng.github.io/PeteandNickysTrip/
 **Repo:** https://github.com/petecutter-eng/PeteandNickysTrip
@@ -14,7 +14,7 @@ A live trip planning web app for Pete Cutter and his son Nicky (Nicholas Boonsua
 PeteandNickysTrip/
 ├── index.html               ← Full calendar app (single file, self-contained)
 ├── trip-config.json         ← Source of truth for all trip data (used by briefing)
-├── briefing.js              ← Daily WhatsApp briefing script (run by GitHub Actions)
+├── briefing.js              ← Daily briefing script — Telegram (or WhatsApp), run by GitHub Actions
 ├── CLAUDE.md                ← This file
 └── .github/
     └── workflows/
@@ -72,7 +72,7 @@ Add `multiday` block to each relevant day in `TRIP_DATA`, add a new `.strip-X` C
 
 ## trip-config.json — Architecture
 
-Used exclusively by `briefing.js` for the daily WhatsApp message. Structure:
+Used exclusively by `briefing.js` for the daily briefing message. Structure:
 
 ```json
 {
@@ -104,15 +104,17 @@ Node.js script, no npm dependencies (uses built-in `https` and `fs`).
 3. Checks if today is a trip day — exits cleanly if not
 4. Builds context object (today + tomorrow + day after)
 5. Calls Claude API (`claude-sonnet-4-6`) with system prompt → generates briefing text
-6. Sends via Twilio WhatsApp API to Pete's number
+6. Delivers the briefing via `sendBriefing()`, which dispatches to Telegram when `TELEGRAM_BOT_TOKEN` + `TELEGRAM_CHAT_ID` are set, otherwise falls back to WhatsApp/Twilio
 
 **All credentials via environment variables** (GitHub Secrets):
 - `ANTHROPIC_API_KEY`
-- `TWILIO_ACCOUNT_SID` — stored in GitHub Secrets as `TWILIO_ACCOUNT_SID`
-- `TWILIO_AUTH_TOKEN`
-- `TWILIO_WHATSAPP_FROM` — `whatsapp:+14155238886`
-- `TWILIO_WHATSAPP_TO` — Pete's WhatsApp number
-- `TWILIO_CONTENT_SID` — *(optional)* Content SID of the approved WhatsApp Message Template. When set, `sendWhatsApp()` sends via the template (production path); when unset, it sends a free-form `Body` (sandbox path). See "Twilio WhatsApp" below.
+- `TELEGRAM_BOT_TOKEN` — bot token from @BotFather (preferred channel)
+- `TELEGRAM_CHAT_ID` — chat ID of the recipient (or group). See "Telegram" below.
+- `TWILIO_ACCOUNT_SID` — *(WhatsApp fallback)* stored in GitHub Secrets as `TWILIO_ACCOUNT_SID`
+- `TWILIO_AUTH_TOKEN` — *(WhatsApp fallback)*
+- `TWILIO_WHATSAPP_FROM` — *(WhatsApp fallback)* `whatsapp:+14155238886`
+- `TWILIO_WHATSAPP_TO` — *(WhatsApp fallback)* Pete's WhatsApp number
+- `TWILIO_CONTENT_SID` — *(WhatsApp fallback, optional)* Content SID of the approved WhatsApp Message Template. See "Twilio WhatsApp" below.
 
 ---
 
@@ -126,9 +128,24 @@ To test manually: Actions tab → Daily Trip Briefing → Run workflow.
 
 ---
 
-## Twilio WhatsApp
+## Telegram (preferred channel)
 
-`sendWhatsApp()` in `briefing.js` supports two send paths, chosen at runtime by whether `TWILIO_CONTENT_SID` is set:
+The daily briefing is delivered via the Telegram Bot API. It works over wifi or mobile data (no SMS/roaming dependency), has no session window, and needs no business verification. `sendBriefing()` uses Telegram whenever `TELEGRAM_BOT_TOKEN` and `TELEGRAM_CHAT_ID` are both set; otherwise it falls back to WhatsApp/Twilio.
+
+### One-time setup
+1. In Telegram, message **@BotFather** → `/newbot` → follow prompts. Copy the **bot token** it gives you → add as GitHub Secret `TELEGRAM_BOT_TOKEN`.
+2. Pete (the recipient) opens the new bot and taps **Start** (or sends any message). This is required — bots can't message a user who hasn't started a chat with them.
+3. Get the **chat ID**: visit `https://api.telegram.org/bot<TOKEN>/getUpdates` in a browser (replace `<TOKEN>`), find `"chat":{"id":...}` in the JSON → add that number as GitHub Secret `TELEGRAM_CHAT_ID`.
+   - For a group chat, add the bot to the group, send a message there, then read the (negative) group chat ID from `getUpdates`.
+4. Test: Actions tab → Daily Trip Briefing → Run workflow. The message should arrive in Telegram.
+
+Message is sent as plain text (no `parse_mode`), so emojis and punctuation render as-is. Telegram's 4096-char limit comfortably covers the ~200-280 word briefing.
+
+---
+
+## Twilio WhatsApp (fallback)
+
+If the Telegram secrets are absent, `sendBriefing()` falls back to `sendWhatsApp()`, which supports two send paths, chosen at runtime by whether `TWILIO_CONTENT_SID` is set:
 
 - **Sandbox (default, no `TWILIO_CONTENT_SID`)** — sends a free-form `Body` from `whatsapp:+14155238886`. Pete's number is verified on the sandbox. Good for testing.
 - **Production (set `TWILIO_CONTENT_SID`)** — sends via an approved Message Template, passing the generated briefing as template variable `{{1}}`.
@@ -168,7 +185,7 @@ Two separate WhatsApp rules break the unattended 7am send on the sandbox:
 ## Known Gaps / Next Features
 
 1. **Ingester → trip-config.json sync** — notes added via ingester should also write to `trip-config.json` so they appear in the daily briefing automatically
-2. **Twilio sandbox → production** — code now supports the template path via `TWILIO_CONTENT_SID`; the remaining work is the Twilio/Meta sender + template approval (see "Twilio WhatsApp"). Do before Jul 1.
+2. **Delivery channel** — now defaults to Telegram (no roaming/business dependency); set `TELEGRAM_BOT_TOKEN` + `TELEGRAM_CHAT_ID` to activate (see "Telegram"). WhatsApp/Twilio remains as a fallback, including an optional approved-template production path via `TWILIO_CONTENT_SID`.
 3. **Favicon** — not yet added
 4. **Multi-day event ingestion** — ingester can add multi-day notes but doesn't yet auto-create the `multiday` strip/badge structure in TRIP_DATA; only adds notes to each day individually
 5. **This project is designed as a reusable template** — for future trips, replace `TRIP_DATA`, `trip-config.json` days, and update the header/legend. The ingester, briefing, and publish pipeline are all generic.
