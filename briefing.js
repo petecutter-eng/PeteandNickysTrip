@@ -1,7 +1,7 @@
 // ══════════════════════════════════════════════════════════════
 //  Daily Trip Briefing — briefing.js
 //  Runs via GitHub Actions each morning at 7am ET during trip
-//  Calls Claude API → sends WhatsApp via Twilio
+//  Calls Claude API → sends the briefing via Telegram (or WhatsApp/Twilio)
 // ══════════════════════════════════════════════════════════════
 
 const https = require("https");
@@ -13,6 +13,16 @@ const TWILIO_ACCOUNT_SID    = process.env.TWILIO_ACCOUNT_SID;
 const TWILIO_AUTH_TOKEN     = process.env.TWILIO_AUTH_TOKEN;
 const TWILIO_WHATSAPP_FROM  = process.env.TWILIO_WHATSAPP_FROM;
 const TWILIO_WHATSAPP_TO    = process.env.TWILIO_WHATSAPP_TO;
+// Optional: when set, the briefing is sent via an approved WhatsApp Message
+// Template (production sender) instead of a free-form Body (sandbox). This is
+// required for unattended, business-initiated sends outside WhatsApp's 24h
+// session window. Leave unset to keep using the sandbox during setup/testing.
+const TWILIO_CONTENT_SID    = process.env.TWILIO_CONTENT_SID;
+// Telegram (preferred): if both are set, the briefing is delivered via the
+// Telegram Bot API instead of WhatsApp. Works over wifi or mobile data with no
+// SMS/roaming dependency, no session window, and no business verification.
+const TELEGRAM_BOT_TOKEN    = process.env.TELEGRAM_BOT_TOKEN;
+const TELEGRAM_CHAT_ID      = process.env.TELEGRAM_CHAT_ID;
 
 // ── Load trip config ──
 const config = JSON.parse(fs.readFileSync("trip-config.json", "utf8"));
@@ -140,14 +150,33 @@ Length: aim for 200-280 words. Enough to be useful, short enough to read over mo
   });
 }
 
+// WhatsApp template body parameters reject tabs and runs of 4+ spaces, so
+// clean those before they become a {{1}} variable. Newlines are preserved
+// (modern Meta templates allow them); if your template gets rejected for
+// newlines, replace /\n/ with " " here too.
+function sanitizeForTemplate(text) {
+  return text
+    .replace(/\t/g, " ")        // tabs are disallowed
+    .replace(/ {4,}/g, "   ");  // collapse 4+ consecutive spaces to 3
+}
+
 // ── Send WhatsApp via Twilio ──
+// Production path: if TWILIO_CONTENT_SID is set, send via the approved Message
+// Template, passing the generated briefing as template variable {{1}}.
+// Fallback path: otherwise send the message as a free-form Body (sandbox).
 function sendWhatsApp(message) {
   return new Promise((resolve, reject) => {
-    const body = new URLSearchParams({
+    const params = {
       From: TWILIO_WHATSAPP_FROM,
-      To:   TWILIO_WHATSAPP_TO,
-      Body: message
-    }).toString();
+      To:   TWILIO_WHATSAPP_TO
+    };
+    if (TWILIO_CONTENT_SID) {
+      params.ContentSid       = TWILIO_CONTENT_SID;
+      params.ContentVariables = JSON.stringify({ "1": sanitizeForTemplate(message) });
+    } else {
+      params.Body = message;
+    }
+    const body = new URLSearchParams(params).toString();
 
     const auth    = Buffer.from(`${TWILIO_ACCOUNT_SID}:${TWILIO_AUTH_TOKEN}`).toString("base64");
     const options = {
@@ -180,6 +209,59 @@ function sendWhatsApp(message) {
   });
 }
 
+// ── Send via Telegram Bot API ──
+// Plain text (no parse_mode) so emojis and punctuation in the briefing render
+// as-is without Markdown/HTML escaping issues. Telegram's limit is 4096 chars;
+// the briefing is ~200-280 words, well under.
+function sendTelegram(message) {
+  return new Promise((resolve, reject) => {
+    const body = JSON.stringify({
+      chat_id: TELEGRAM_CHAT_ID,
+      text: message,
+      disable_web_page_preview: true
+    });
+
+    const options = {
+      hostname: "api.telegram.org",
+      path:     `/bot${TELEGRAM_BOT_TOKEN}/sendMessage`,
+      method:   "POST",
+      headers:  {
+        "Content-Type":   "application/json",
+        "Content-Length": Buffer.byteLength(body)
+      }
+    };
+
+    const req = https.request(options, res => {
+      let data = "";
+      res.on("data", chunk => data += chunk);
+      res.on("end", () => {
+        let parsed;
+        try { parsed = JSON.parse(data); } catch { parsed = {}; }
+        if (res.statusCode >= 200 && res.statusCode < 300 && parsed.ok) {
+          console.log("✅ Telegram sent. message_id:", parsed.result && parsed.result.message_id);
+          resolve(parsed);
+        } else {
+          reject(new Error(`Telegram error ${res.statusCode}: ${parsed.description || data}`));
+        }
+      });
+    });
+    req.on("error", reject);
+    req.write(body);
+    req.end();
+  });
+}
+
+// ── Channel dispatch ──
+// Prefer Telegram when configured; otherwise fall back to WhatsApp/Twilio.
+function sendBriefing(message) {
+  if (TELEGRAM_BOT_TOKEN && TELEGRAM_CHAT_ID) {
+    console.log("Sending via Telegram...");
+    return sendTelegram(message);
+  }
+  console.log("Sending via WhatsApp...");
+  return sendWhatsApp(message);
+}
+
 // ── Main ──
 async function main() {
   const todayKey = getTodayET();
@@ -198,8 +280,7 @@ async function main() {
     const briefing = await callClaude(context);
     console.log("Briefing generated:\n", briefing);
 
-    console.log("Sending WhatsApp...");
-    await sendWhatsApp(briefing);
+    await sendBriefing(briefing);
     console.log("Done.");
   } catch (err) {
     console.error("❌ Error:", err.message);
