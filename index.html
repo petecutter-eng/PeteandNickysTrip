@@ -528,6 +528,16 @@
   .send-to-pete:active { opacity: 0.85; }
   body.guest-mode .send-to-pete.has-items { display: block; }
   body.owner-mode .send-to-pete { display: none !important; }
+  /* Owner-only "publish additions" button (mirrors send-to-pete, but publishes directly) */
+  .owner-publish {
+    display: none; width: 100%; margin: 0 0 14px; padding: 12px;
+    border: none; border-radius: 10px; background: #1b5e20; color: #fff;
+    font-family: 'Inter', sans-serif; font-weight: 600; font-size: 0.8rem; cursor: pointer;
+  }
+  .owner-publish:active { opacity: 0.85; }
+  .owner-publish:disabled { opacity: 0.6; cursor: default; }
+  body.owner-mode .owner-publish.has-items { display: block; }
+  body.guest-mode .owner-publish { display: none !important; }
   .import-code {
     width: 100%; font-family: monospace; font-size: 0.6rem; line-height: 1.4;
     border: 1.5px solid #c5bfb5; border-radius: 7px; padding: 8px;
@@ -601,6 +611,20 @@
     <div style="display:flex; gap:10px">
       <button class="btn btn-secondary" onclick="closeGuestNote()">Cancel</button>
       <button class="btn btn-primary" onclick="saveGuestNote()">Save note</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══ Journal Entry Modal ══ -->
+<div class="modal-overlay" id="journal-modal">
+  <div class="modal" style="max-width:400px">
+    <h2>✍️ Journal entry</h2>
+    <p id="journal-day-label" style="font-weight:600; color:#1a3a4a; margin-bottom:6px">—</p>
+    <p>Jot down a memory, a highlight, or what happened on this day. Saved on this device — then send it to Pete (or publish it, if you're Pete) to share it with everyone.</p>
+    <textarea id="journal-text" style="min-height:120px" placeholder="e.g. Walked the Freedom Trail — Nicky loved the duck boats and we got ice cream at Faneuil Hall."></textarea>
+    <div style="display:flex; gap:10px">
+      <button class="btn btn-secondary" onclick="closeJournal()">Cancel</button>
+      <button class="btn btn-primary" onclick="saveJournal()">Save entry</button>
     </div>
   </div>
 </div>
@@ -740,6 +764,7 @@ Does that work? Want me to add a "Leave home" reminder for **4:00am on July 1** 
   </div>
   <div class="checklist-body" id="checklist-body"></div>
   <div class="checklist-footer">
+    <button class="owner-publish" id="checklist-publish-btn" onclick="publishAdditions()" style="margin-bottom:10px">🚀 Publish checklist changes to everyone</button>
     <button class="btn-clear-checklist" onclick="openClearConfirm()">🗑 Clear entire checklist</button>
   </div>
 </div>
@@ -779,6 +804,7 @@ Does that work? Want me to add a "Leave home" reminder for **4:00am on July 1** 
       📋 Packing Checklist <span class="cl-count" id="checklist-launch-count">3/46</span>
     </button>
     <button class="send-to-pete" id="send-to-pete-btn" onclick="openSend()">📤 Send my additions to Pete</button>
+    <button class="owner-publish" id="owner-publish-btn" onclick="publishAdditions()">🚀 Publish my changes to the live page</button>
     <div class="calendar">
       <div class="cal-header">
         <div>Wed</div><div>Thu</div><div>Fri</div>
@@ -874,6 +900,10 @@ const BAKED_NOTES = {"2026-07-01":[{"type":"Reminder","summary":"Leave home 4:00
 // __BAKED_CHECKLIST_START__
 const BAKED_CHECKLIST = [];
 // __BAKED_CHECKLIST_END__
+
+// __BAKED_REMOVED_START__
+const BAKED_REMOVED = [];
+// __BAKED_REMOVED_END__
 
 // ══════════════════════════════════════════════════════
 //  STORAGE
@@ -1009,7 +1039,9 @@ function openDetail(dateKey) {
       </li>`;
     });
   }
-  html += `</ul></div></div>`;
+  html += `</ul>
+      <button class="add-custom-item" onclick="openJournal()" style="margin-top:4px">✍️ Add journal entry</button>
+    </div></div>`;
 
   document.getElementById("detail-body").innerHTML = html;
   document.getElementById("app-shell").classList.add("show-detail");
@@ -1027,6 +1059,7 @@ function deleteNote(dateKey, index) {
   const notes = getNotes(dateKey);
   notes.splice(index,1);
   saveNotes(dateKey,notes);
+  updateSendButton();
   openDetail(dateKey);
 }
 
@@ -1332,9 +1365,11 @@ function buildPublishableHTML() {
   Object.keys(TRIP_DATA).forEach(k => { const n=getNotes(k); if(n.length) allNotes[k]=n; });
   const notesJSON     = JSON.stringify(allNotes);
   const checklistJSON = JSON.stringify(getCustomItems().map(i => ({ id: i.id, en: i.en, th: i.th||"" })));
+  const removedJSON   = JSON.stringify(getRemovedItems());
   let currentHTML = document.documentElement.outerHTML;
   const nMarker = "// __BAKED_NOTES_START__", nEnd = "// __BAKED_NOTES_END__";
   const cMarker = "// __BAKED_CHECKLIST_START__", cEnd = "// __BAKED_CHECKLIST_END__";
+  const rMarker = "// __BAKED_REMOVED_START__", rEnd = "// __BAKED_REMOVED_END__";
   currentHTML = currentHTML.replace(
     new RegExp(nMarker + "[\\s\\S]*?" + nEnd),
     `${nMarker}\nconst BAKED_NOTES = ${notesJSON};\n${nEnd}`
@@ -1342,6 +1377,10 @@ function buildPublishableHTML() {
   currentHTML = currentHTML.replace(
     new RegExp(cMarker + "[\\s\\S]*?" + cEnd),
     `${cMarker}\nconst BAKED_CHECKLIST = ${checklistJSON};\n${cEnd}`
+  );
+  currentHTML = currentHTML.replace(
+    new RegExp(rMarker + "[\\s\\S]*?" + rEnd),
+    `${rMarker}\nconst BAKED_REMOVED = ${removedJSON};\n${rEnd}`
   );
   return currentHTML;
 }
@@ -1494,6 +1533,59 @@ function saveGuestNote() {
 }
 
 // ══════════════════════════════════════════════════════
+//  JOURNAL — per-day entries (launched from any detail view)
+// ══════════════════════════════════════════════════════
+// Journal entries are saved like guest notes (guest:true) so they flow through
+// the exact same pipeline: collected by collectAdditions(), shareable via
+// "Send to Pete", and published on approval — or, for the owner, via the
+// "Publish my additions" button. Works in both owner and guest mode.
+function openJournal() {
+  if (!currentDateKey || !TRIP_DATA[currentDateKey]) return;
+  const d = TRIP_DATA[currentDateKey];
+  document.getElementById("journal-day-label").textContent = d.label + " — " + d.location;
+  document.getElementById("journal-text").value = "";
+  document.getElementById("journal-modal").classList.add("active");
+}
+function closeJournal() { document.getElementById("journal-modal").classList.remove("active"); }
+function saveJournal() {
+  const text = document.getElementById("journal-text").value.trim();
+  if (!text) { alert("Write something first."); return; }
+  const notes = getNotes(currentDateKey);
+  notes.push({ type: "Journal", summary: text, formatted: escapeHtml(text), raw: text, guest: true });
+  saveNotes(currentDateKey, notes);
+  closeJournal();
+  renderCalendar();
+  updateSendButton();
+  openDetail(currentDateKey);
+}
+
+// ══════════════════════════════════════════════════════
+//  OWNER — publish additions directly (notes/journal + packing items)
+// ══════════════════════════════════════════════════════
+// One-tap publish for Pete: bakes the current notes + custom checklist items
+// into index.html and commits via the GitHub API (same path as the ingester).
+async function publishAdditions() {
+  const creds = getCreds();
+  if (!creds.github || !creds.ghuser || !creds.ghrepo) {
+    document.getElementById("setup-modal").classList.add("active");
+    return;
+  }
+  const btns = Array.from(document.querySelectorAll(".owner-publish"));
+  btns.forEach(b => { b.dataset.label = b.dataset.label || b.textContent; b.disabled = true; b.textContent = "⏳ Publishing…"; });
+  try {
+    await doPublish("Publish journal entries & packing list changes");
+    btns.forEach(b => { b.textContent = "✅ Published — live in ~60s"; });
+    setTimeout(() => {
+      btns.forEach(b => { b.disabled = false; b.textContent = b.dataset.label; });
+    }, 4000);
+  } catch (e) {
+    console.error(e);
+    btns.forEach(b => { b.disabled = false; b.textContent = "⚠️ Failed — check keys in setup"; });
+    setTimeout(() => { btns.forEach(b => { b.textContent = b.dataset.label; }); }, 4000);
+  }
+}
+
+// ══════════════════════════════════════════════════════
 //  GUEST — custom packing items
 // ══════════════════════════════════════════════════════
 function openGuestItem() {
@@ -1540,8 +1632,12 @@ function hasAdditions() {
   return Object.keys(a.notes).length > 0 || a.items.length > 0;
 }
 function updateSendButton() {
+  const has = hasAdditions();
   const btn = document.getElementById("send-to-pete-btn");
-  if (btn) btn.classList.toggle("has-items", hasAdditions());
+  if (btn) btn.classList.toggle("has-items", has);
+  // Owner-mode publish buttons light up for any unpublished change — added notes/items OR removed items.
+  const ownerHas = has || getRemovedItems().length > 0;
+  document.querySelectorAll(".owner-publish").forEach(b => b.classList.toggle("has-items", ownerHas));
 }
 
 function encodePayload(obj) {
@@ -1710,6 +1806,7 @@ function init() {
     });
   }
   seedBakedChecklist();
+  seedBakedRemoved();
   // Defensive: never start with the ingester open (a publish-while-open can bake it open).
   closeIngester();
   applyMode();
@@ -1818,10 +1915,51 @@ function seedBakedChecklist() {
   if (changed) saveCustomItems(have);
 }
 
+// Removed built-in items — IDs the owner has dropped from the default list.
+// Owner-only to set; baked & published so every device hides them too.
+function getRemovedItems() {
+  try { return JSON.parse(localStorage.getItem("checklist_removed")||"[]"); } catch { return []; }
+}
+function saveRemovedItems(arr) { localStorage.setItem("checklist_removed", JSON.stringify(arr)); }
+
+function seedBakedRemoved() {
+  if (typeof BAKED_REMOVED === "undefined" || !BAKED_REMOVED.length) return;
+  const have = getRemovedItems();
+  const set = new Set(have);
+  let changed = false;
+  BAKED_REMOVED.forEach(id => { if (id && !set.has(id)) { have.push(id); set.add(id); changed = true; } });
+  if (changed) saveRemovedItems(have);
+}
+
+function isOwner() { return (localStorage.getItem("app_mode")||"guest") === "owner"; }
+
+function findBuiltinItem(id) {
+  for (const sec of CHECKLIST_DATA.sections) {
+    for (const it of sec.items) if (it.id === id) return it;
+  }
+  return null;
+}
+
+// Owner removes a default item from everyone's list (publish afterwards to push it live).
+function removeBuiltinItem(id) {
+  const item = findBuiltinItem(id);
+  const name = item ? item.en : "this item";
+  if (!confirm(`Remove “${name}” from the packing list?\n\nIt disappears for everyone once you publish.`)) return;
+  const removed = getRemovedItems();
+  if (!removed.includes(id)) { removed.push(id); saveRemovedItems(removed); }
+  const state = getChecklistState();
+  if (state[id]) { delete state[id]; saveChecklistState(state); }
+  renderChecklist();
+  updateChecklistLaunchCount();
+  updateSendButton();
+}
+
 function checklistCounts() {
   const state = getChecklistState();
+  const removed = new Set(getRemovedItems());
   let total = 0, done = 0;
   CHECKLIST_DATA.sections.forEach(sec => sec.items.forEach(it => {
+    if (removed.has(it.id)) return;
     total++; if (state[it.id]) done++;
   }));
   getCustomItems().forEach(it => { total++; if (state[it.id]) done++; });
@@ -1834,18 +1972,24 @@ function escapeHtml(s) {
 
 function renderChecklist() {
   const state = getChecklistState();
+  const removed = new Set(getRemovedItems());
+  const owner = isOwner();
   let html = "";
   CHECKLIST_DATA.sections.forEach(sec => {
+    const items = sec.items.filter(it => !removed.has(it.id));
+    if (!items.length) return;   // whole section emptied by removals
     html += `<div class="checklist-section">
       <div class="checklist-section-title">${escapeHtml(sec.title)}</div>`;
-    sec.items.forEach(it => {
+    items.forEach(it => {
       const on = !!state[it.id];
+      const del = owner ? `<button class="checklist-custom-del" title="Remove from everyone's list" onclick="event.stopPropagation(); removeBuiltinItem('${it.id}')">✕</button>` : "";
       html += `<div class="checklist-item${on?" checked":""}" id="chk-${it.id}" onclick="toggleChecklistItem('${it.id}')">
         <div class="checklist-box">${on?"✓":""}</div>
         <div class="checklist-text">
           <div class="checklist-en">${escapeHtml(it.en)}</div>
           <div class="checklist-th">${escapeHtml(it.th)}</div>
         </div>
+        ${del}
       </div>`;
     });
     html += `</div>`;
