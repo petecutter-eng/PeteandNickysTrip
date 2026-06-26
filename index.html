@@ -764,7 +764,7 @@ Does that work? Want me to add a "Leave home" reminder for **4:00am on July 1** 
   </div>
   <div class="checklist-body" id="checklist-body"></div>
   <div class="checklist-footer">
-    <button class="owner-publish" id="checklist-publish-btn" onclick="publishAdditions()" style="margin-bottom:10px">🚀 Publish additions to everyone's list</button>
+    <button class="owner-publish" id="checklist-publish-btn" onclick="publishAdditions()" style="margin-bottom:10px">🚀 Publish checklist changes to everyone</button>
     <button class="btn-clear-checklist" onclick="openClearConfirm()">🗑 Clear entire checklist</button>
   </div>
 </div>
@@ -804,7 +804,7 @@ Does that work? Want me to add a "Leave home" reminder for **4:00am on July 1** 
       📋 Packing Checklist <span class="cl-count" id="checklist-launch-count">3/46</span>
     </button>
     <button class="send-to-pete" id="send-to-pete-btn" onclick="openSend()">📤 Send my additions to Pete</button>
-    <button class="owner-publish" id="owner-publish-btn" onclick="publishAdditions()">🚀 Publish my additions to the live page</button>
+    <button class="owner-publish" id="owner-publish-btn" onclick="publishAdditions()">🚀 Publish my changes to the live page</button>
     <div class="calendar">
       <div class="cal-header">
         <div>Wed</div><div>Thu</div><div>Fri</div>
@@ -900,6 +900,10 @@ const BAKED_NOTES = {"2026-07-01":[{"type":"Reminder","summary":"Leave home 4:00
 // __BAKED_CHECKLIST_START__
 const BAKED_CHECKLIST = [];
 // __BAKED_CHECKLIST_END__
+
+// __BAKED_REMOVED_START__
+const BAKED_REMOVED = [];
+// __BAKED_REMOVED_END__
 
 // ══════════════════════════════════════════════════════
 //  STORAGE
@@ -1361,9 +1365,11 @@ function buildPublishableHTML() {
   Object.keys(TRIP_DATA).forEach(k => { const n=getNotes(k); if(n.length) allNotes[k]=n; });
   const notesJSON     = JSON.stringify(allNotes);
   const checklistJSON = JSON.stringify(getCustomItems().map(i => ({ id: i.id, en: i.en, th: i.th||"" })));
+  const removedJSON   = JSON.stringify(getRemovedItems());
   let currentHTML = document.documentElement.outerHTML;
   const nMarker = "// __BAKED_NOTES_START__", nEnd = "// __BAKED_NOTES_END__";
   const cMarker = "// __BAKED_CHECKLIST_START__", cEnd = "// __BAKED_CHECKLIST_END__";
+  const rMarker = "// __BAKED_REMOVED_START__", rEnd = "// __BAKED_REMOVED_END__";
   currentHTML = currentHTML.replace(
     new RegExp(nMarker + "[\\s\\S]*?" + nEnd),
     `${nMarker}\nconst BAKED_NOTES = ${notesJSON};\n${nEnd}`
@@ -1371,6 +1377,10 @@ function buildPublishableHTML() {
   currentHTML = currentHTML.replace(
     new RegExp(cMarker + "[\\s\\S]*?" + cEnd),
     `${cMarker}\nconst BAKED_CHECKLIST = ${checklistJSON};\n${cEnd}`
+  );
+  currentHTML = currentHTML.replace(
+    new RegExp(rMarker + "[\\s\\S]*?" + rEnd),
+    `${rMarker}\nconst BAKED_REMOVED = ${removedJSON};\n${rEnd}`
   );
   return currentHTML;
 }
@@ -1563,7 +1573,7 @@ async function publishAdditions() {
   const btns = Array.from(document.querySelectorAll(".owner-publish"));
   btns.forEach(b => { b.dataset.label = b.dataset.label || b.textContent; b.disabled = true; b.textContent = "⏳ Publishing…"; });
   try {
-    await doPublish("Publish journal entries & packing additions");
+    await doPublish("Publish journal entries & packing list changes");
     btns.forEach(b => { b.textContent = "✅ Published — live in ~60s"; });
     setTimeout(() => {
       btns.forEach(b => { b.disabled = false; b.textContent = b.dataset.label; });
@@ -1625,8 +1635,9 @@ function updateSendButton() {
   const has = hasAdditions();
   const btn = document.getElementById("send-to-pete-btn");
   if (btn) btn.classList.toggle("has-items", has);
-  // Owner-mode publish buttons (calendar + checklist footer) share the same "has additions" gate.
-  document.querySelectorAll(".owner-publish").forEach(b => b.classList.toggle("has-items", has));
+  // Owner-mode publish buttons light up for any unpublished change — added notes/items OR removed items.
+  const ownerHas = has || getRemovedItems().length > 0;
+  document.querySelectorAll(".owner-publish").forEach(b => b.classList.toggle("has-items", ownerHas));
 }
 
 function encodePayload(obj) {
@@ -1795,6 +1806,7 @@ function init() {
     });
   }
   seedBakedChecklist();
+  seedBakedRemoved();
   // Defensive: never start with the ingester open (a publish-while-open can bake it open).
   closeIngester();
   applyMode();
@@ -1903,10 +1915,51 @@ function seedBakedChecklist() {
   if (changed) saveCustomItems(have);
 }
 
+// Removed built-in items — IDs the owner has dropped from the default list.
+// Owner-only to set; baked & published so every device hides them too.
+function getRemovedItems() {
+  try { return JSON.parse(localStorage.getItem("checklist_removed")||"[]"); } catch { return []; }
+}
+function saveRemovedItems(arr) { localStorage.setItem("checklist_removed", JSON.stringify(arr)); }
+
+function seedBakedRemoved() {
+  if (typeof BAKED_REMOVED === "undefined" || !BAKED_REMOVED.length) return;
+  const have = getRemovedItems();
+  const set = new Set(have);
+  let changed = false;
+  BAKED_REMOVED.forEach(id => { if (id && !set.has(id)) { have.push(id); set.add(id); changed = true; } });
+  if (changed) saveRemovedItems(have);
+}
+
+function isOwner() { return (localStorage.getItem("app_mode")||"guest") === "owner"; }
+
+function findBuiltinItem(id) {
+  for (const sec of CHECKLIST_DATA.sections) {
+    for (const it of sec.items) if (it.id === id) return it;
+  }
+  return null;
+}
+
+// Owner removes a default item from everyone's list (publish afterwards to push it live).
+function removeBuiltinItem(id) {
+  const item = findBuiltinItem(id);
+  const name = item ? item.en : "this item";
+  if (!confirm(`Remove “${name}” from the packing list?\n\nIt disappears for everyone once you publish.`)) return;
+  const removed = getRemovedItems();
+  if (!removed.includes(id)) { removed.push(id); saveRemovedItems(removed); }
+  const state = getChecklistState();
+  if (state[id]) { delete state[id]; saveChecklistState(state); }
+  renderChecklist();
+  updateChecklistLaunchCount();
+  updateSendButton();
+}
+
 function checklistCounts() {
   const state = getChecklistState();
+  const removed = new Set(getRemovedItems());
   let total = 0, done = 0;
   CHECKLIST_DATA.sections.forEach(sec => sec.items.forEach(it => {
+    if (removed.has(it.id)) return;
     total++; if (state[it.id]) done++;
   }));
   getCustomItems().forEach(it => { total++; if (state[it.id]) done++; });
@@ -1919,18 +1972,24 @@ function escapeHtml(s) {
 
 function renderChecklist() {
   const state = getChecklistState();
+  const removed = new Set(getRemovedItems());
+  const owner = isOwner();
   let html = "";
   CHECKLIST_DATA.sections.forEach(sec => {
+    const items = sec.items.filter(it => !removed.has(it.id));
+    if (!items.length) return;   // whole section emptied by removals
     html += `<div class="checklist-section">
       <div class="checklist-section-title">${escapeHtml(sec.title)}</div>`;
-    sec.items.forEach(it => {
+    items.forEach(it => {
       const on = !!state[it.id];
+      const del = owner ? `<button class="checklist-custom-del" title="Remove from everyone's list" onclick="event.stopPropagation(); removeBuiltinItem('${it.id}')">✕</button>` : "";
       html += `<div class="checklist-item${on?" checked":""}" id="chk-${it.id}" onclick="toggleChecklistItem('${it.id}')">
         <div class="checklist-box">${on?"✓":""}</div>
         <div class="checklist-text">
           <div class="checklist-en">${escapeHtml(it.en)}</div>
           <div class="checklist-th">${escapeHtml(it.th)}</div>
         </div>
+        ${del}
       </div>`;
     });
     html += `</div>`;
