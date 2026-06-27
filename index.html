@@ -1020,10 +1020,8 @@ function openDetail(dateKey) {
 
   if (d.calEvents&&d.calEvents.length && !(d.flights&&d.flights.length)) {
     html += `<div class="detail-section"><div class="detail-section-header">✈ Travel</div><div class="detail-section-body">`;
-    d.calEvents.forEach((ev,i) => {
-      const cls = (d.calClasses||[])[i]||"";
-      const icon = cls==="ev-flight" ? "✈️" : "🛬";
-      html += `<div class="detail-flight-row"><div class="flight-icon">${icon}</div><div class="flight-info"><div class="flight-route">${ev}</div></div></div>`;
+    d.calEvents.forEach(ev => {
+      html += `<div class="detail-flight-row"><div class="flight-info"><div class="flight-route">${ev}</div></div></div>`;
     });
     html += `</div></div>`;
   }
