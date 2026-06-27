@@ -1361,7 +1361,10 @@ async function doPublish(message) {
       body: JSON.stringify({ message: message || "Trip update via ingester", content: encoded, sha })
     }
   );
-  if (!putRes.ok) throw new Error("GitHub API " + putRes.status);
+  if (!putRes.ok) {
+    const putData = await putRes.json().catch(() => ({}));
+    throw new Error(putData.message || `GitHub API ${putRes.status}`);
+  }
   return true;
 }
 
@@ -1383,6 +1386,8 @@ async function publishToGitHub() {
     console.error(err);
     btn.textContent = "⚠️ Failed";
     btn.style.background = "#b71c1c";
+    const isAuthErr = /401|403|credential|token|bad credentials/i.test(err.message);
+    addBubble("claude", `⚠️ Publish failed: ${err.message || "unknown error"}${isAuthErr ? ' — <a onclick="openSetupModal()" style="color:inherit;text-decoration:underline">update your GitHub token</a>' : ""}`, true);
   } finally {
     btn.disabled = false;
     setTimeout(() => {
