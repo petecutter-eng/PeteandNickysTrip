@@ -820,7 +820,7 @@ Does that work? Want me to add a "Leave home" reminder for **4:00am on July 1** 
       <b>Ref:</b> FQ5ZSK · Satguru Travel &amp; Tours, Bangkok
     </div>
     <div class="mode-footer">
-      <span id="mode-indicator"></span> · <a onclick="reopenModeChooser()">switch mode</a>
+      <span id="mode-indicator"></span> · <a onclick="reopenModeChooser()">switch mode</a><span id="keys-link" style="display:none"> · <a onclick="openSetupModal()">update keys</a></span>
     </div>
   </div>
 
@@ -918,11 +918,23 @@ function getCreds() {
     ghrepo:    localStorage.getItem("cred_ghrepo")||""
   };
 }
+function openSetupModal() {
+  const creds = getCreds();
+  // Pre-populate only if already set (shows masked placeholder so user knows it's saved)
+  const el = (id, val) => { const e = document.getElementById(id); if (val) e.placeholder = "••••••••" + val.slice(-4); };
+  el("setup-anthropic", creds.anthropic);
+  el("setup-github",    creds.github);
+  document.getElementById("setup-ghuser").value = creds.ghuser || "";
+  document.getElementById("setup-ghrepo").value = creds.ghrepo || "";
+  document.getElementById("setup-modal").classList.add("active");
+}
+
 function saveSetup() {
-  const a = document.getElementById("setup-anthropic").value.trim();
-  const g = document.getElementById("setup-github").value.trim();
-  const u = document.getElementById("setup-ghuser").value.trim();
-  const r = document.getElementById("setup-ghrepo").value.trim();
+  const creds = getCreds();
+  const a = document.getElementById("setup-anthropic").value.trim() || creds.anthropic;
+  const g = document.getElementById("setup-github").value.trim()    || creds.github;
+  const u = document.getElementById("setup-ghuser").value.trim()    || creds.ghuser;
+  const r = document.getElementById("setup-ghrepo").value.trim()    || creds.ghrepo;
   if (!a||!g||!u||!r) { alert("Please fill in all four fields."); return; }
   localStorage.setItem("cred_anthropic",a);
   localStorage.setItem("cred_github",g);
@@ -1274,7 +1286,9 @@ Rules:
 
   } catch(err) {
     typing.remove();
-    addBubble("claude", `⚠️ ${err.message || "Something went wrong — please try again."}`);
+    const msg = err.message || "Something went wrong — please try again.";
+    const isAuthErr = /api.key|invalid.x-api|auth|401/i.test(msg);
+    addBubble("claude", `⚠️ ${msg}${isAuthErr ? ' — <a onclick="openSetupModal()" style="color:inherit;text-decoration:underline">update your API key</a>' : ""}`, true);
     console.error(err);
   } finally {
     btn.disabled = false;
@@ -1491,6 +1505,8 @@ function applyMode() {
   if (fab) fab.textContent = mode === "guest" ? "＋ Add Note" : "＋ Add Plans";
   const ind = document.getElementById("mode-indicator");
   if (ind) ind.textContent = mode === "owner" ? "Full access (Pete)" : "Guest view";
+  const keysLink = document.getElementById("keys-link");
+  if (keysLink) keysLink.style.display = mode === "owner" ? "" : "none";
   updateSendButton();
 }
 
