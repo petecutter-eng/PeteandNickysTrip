@@ -1346,8 +1346,14 @@ async function doPublish(message) {
     { headers: { Authorization: `token ${creds.github}`, Accept: "application/vnd.github.v3+json" } }
   );
   const meta = await metaRes.json();
+  if (!meta.sha) throw new Error(meta.message || "GitHub API error — could not fetch file metadata");
   const sha  = meta.sha;
+  // Snapshot DOM with publish button in resting state so it doesn't bake as "Publishing…"
+  const publishBtn = document.getElementById("publish-bar-btn");
+  const savedText = publishBtn?.textContent; const savedDisabled = publishBtn?.disabled;
+  if (publishBtn) { publishBtn.textContent = "🚀 Publish Live"; publishBtn.disabled = false; }
   const updatedHTML = buildPublishableHTML();
+  if (publishBtn) { publishBtn.textContent = savedText; publishBtn.disabled = savedDisabled; }
   const encoded     = btoa(unescape(encodeURIComponent(updatedHTML)));
   const putRes = await fetch(
     `https://api.github.com/repos/${creds.ghuser}/${creds.ghrepo}/contents/index.html`,
@@ -1839,6 +1845,10 @@ function init() {
   seedBakedRemoved();
   // Defensive: never start with the ingester open (a publish-while-open can bake it open).
   closeIngester();
+  // Reset publish button in case a prior publish baked it in a transitional state.
+  const publishBtn = document.getElementById("publish-bar-btn");
+  if (publishBtn) { publishBtn.disabled = false; publishBtn.textContent = "🚀 Publish Live"; publishBtn.style.background = ""; }
+  document.getElementById("publish-bar")?.classList.remove("visible");
   applyMode();
   renderCalendar();
   updateChecklistLaunchCount();
