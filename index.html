@@ -1006,6 +1006,16 @@ function openDetail(dateKey) {
       </div></div>`;
   }
 
+  if (d.calEvents&&d.calEvents.length && !(d.flights&&d.flights.length)) {
+    html += `<div class="detail-section"><div class="detail-section-header">✈ Travel</div><div class="detail-section-body">`;
+    d.calEvents.forEach((ev,i) => {
+      const cls = (d.calClasses||[])[i]||"";
+      const icon = cls==="ev-flight" ? "✈️" : "🛬";
+      html += `<div class="detail-flight-row"><div class="flight-icon">${icon}</div><div class="flight-info"><div class="flight-route">${ev}</div></div></div>`;
+    });
+    html += `</div></div>`;
+  }
+
   if (d.flights&&d.flights.length) {
     html += `<div class="detail-section"><div class="detail-section-header">✈ Flights</div><div class="detail-section-body">`;
     d.flights.forEach(f => {
@@ -1234,6 +1244,10 @@ Rules:
     });
 
     const data = await res.json();
+    if (!res.ok) {
+      const apiMsg = data?.error?.message || `API error ${res.status}`;
+      throw new Error(apiMsg);
+    }
     const fullText = data.content.filter(b=>b.type==="text").map(b=>b.text).join("");
 
     // Add to history
@@ -1260,7 +1274,7 @@ Rules:
 
   } catch(err) {
     typing.remove();
-    addBubble("claude", "⚠️ Something went wrong — please try again.");
+    addBubble("claude", `⚠️ ${err.message || "Something went wrong — please try again."}`);
     console.error(err);
   } finally {
     btn.disabled = false;
