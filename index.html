@@ -229,20 +229,32 @@
     }
   }
 
-  /* ══ FAB — Add Plans button ══ */
+  /* ══ Calendar tool row (checklist pill + add-plans pill) ══ */
+  .cal-tools-row { display: flex; gap: 10px; margin-bottom: 16px; }
+  .cal-tools-row .checklist-launch { flex: 1; margin: 0; }
+  /* ══ FAB — now a pill that sits beside the checklist button ══ */
   .fab {
-    display: flex; align-items: center; gap: 8px;
-    margin: 16px auto 0; width: fit-content;
+    flex: 1; display: flex; align-items: center; justify-content: center; gap: 8px;
     background: #1a3a4a; color: #fff;
-    border: none; border-radius: 28px;
-    padding: 14px 22px; font-family: 'Inter', sans-serif;
-    font-size: 0.88rem; font-weight: 700; letter-spacing: 0.03em;
-    cursor: pointer; box-shadow: 0 4px 20px rgba(26,58,74,0.35);
+    border: 1.5px solid #1a3a4a; border-radius: 24px;
+    padding: 10px 20px; font-family: 'Inter', sans-serif;
+    font-size: 0.82rem; font-weight: 600; letter-spacing: 0.03em;
+    cursor: pointer; box-shadow: 0 2px 10px rgba(26,58,74,0.18);
     transition: transform 0.15s, box-shadow 0.15s;
+    -webkit-tap-highlight-color: transparent;
   }
-  .fab:hover  { transform: translateY(-2px); box-shadow: 0 6px 24px rgba(26,58,74,0.45); }
+  .fab:hover  { transform: translateY(-1px); box-shadow: 0 4px 14px rgba(26,58,74,0.3); }
   .fab:active { transform: translateY(0); }
   .fab.hidden { display: none; }
+  /* ══ Below-calendar hint + publish link row ══ */
+  .cal-hint-row { display: flex; align-items: center; justify-content: space-between; margin-top: 12px; }
+  .cal-hint-row .tap-hint { margin-top: 0; }
+  .cal-publish-link {
+    font-size: 0.68rem; font-family: 'Inter', sans-serif; font-weight: 700;
+    color: #1a3a4a; cursor: pointer; text-decoration: none; letter-spacing: 0.03em;
+  }
+  .cal-publish-link:hover { text-decoration: underline; }
+  body.guest-mode .cal-publish-link { display: none; }
   /* Detail view Add Plans button */
   .detail-add-btn {
     display: flex; align-items: center; gap: 8px;
@@ -555,8 +567,9 @@
     border: 1.5px solid #c5bfb5; border-radius: 7px; padding: 8px;
     margin-bottom: 12px; resize: vertical; min-height: 56px; color: #444; background: #f7f4ef;
   }
-  .mode-footer { text-align: center; font-size: 0.62rem; color: #aaa; margin-top: 18px; letter-spacing: 0.04em; }
-  .mode-footer a { color: #3d7dbf; text-decoration: none; cursor: pointer; }
+  .mode-footer { text-align: center; font-size: 0.62rem; color: #6b7c8a; margin-top: 18px; letter-spacing: 0.04em; }
+  .mode-footer a { color: #1a3a4a; text-decoration: none; cursor: pointer; font-weight: 600; }
+  .mode-footer a:hover { text-decoration: underline; }
   .add-custom-item {
     width: 100%; padding: 10px; border: 1.5px dashed #b9b3a8; border-radius: 8px;
     background: #fff; color: #1a3a4a; font-family: 'Inter', sans-serif;
@@ -809,9 +822,12 @@ Does that work? Want me to add a "Leave home" reminder for **4:00am on July 1** 
       <div class="legend-item"><div class="legend-dot" style="background:#4caf50"></div>Notes saved</div>
       <div class="legend-item"><div class="legend-dot" style="background:#e8b800"></div>Holiday</div>
     </div>
-    <button class="checklist-launch" onclick="openChecklist()">
-      📋 Packing Checklist <span class="cl-count" id="checklist-launch-count">3/46</span>
-    </button>
+    <div class="cal-tools-row">
+      <button class="checklist-launch" onclick="openChecklist()">
+        📋 Packing Checklist <span class="cl-count" id="checklist-launch-count">3/46</span>
+      </button>
+      <button class="fab" id="fab" onclick="onFabClick()">＋ Add Plans</button>
+    </div>
     <button class="send-to-pete" id="send-to-pete-btn" onclick="openSend()">📤 Send my additions to Pete</button>
     <button class="owner-publish" id="owner-publish-btn" onclick="publishAdditions()">🚀 Publish my changes to the live page</button>
     <div class="calendar">
@@ -821,8 +837,10 @@ Does that work? Want me to add a "Leave home" reminder for **4:00am on July 1** 
       </div>
       <div class="cal-grid" id="cal-grid"><div class="week-label">Week 1 · 1–7 July 2026</div><div class="cal-cell flight-day has-data"><div class="date-num">1 Jul</div><div class="cal-event ev-flight">✈ BKK→NRT JL708 07:55</div><div class="cal-event ev-flight">✈ NRT→BOS JL008 18:25</div><div class="cal-event ev-user">📝 Leave home 4:00am</div><div class="has-notes-dot"></div><div class="strip strip-boston"></div></div><div class="cal-cell "><div class="date-num">2 Jul</div><div class="cal-event ev-note">🛬 Arr BOS 18:15 local</div><div class="strip strip-boston"></div></div><div class="cal-cell "><div class="date-num">3 Jul</div><div class="strip strip-boston"></div></div><div class="cal-cell "><div class="date-num">4 Jul</div><span class="holiday-tag">🎆 Independence Day</span><div class="strip strip-boston"></div></div><div class="cal-cell "><div class="date-num">5 Jul</div><div class="strip strip-boston"></div></div><div class="cal-cell "><div class="date-num">6 Jul</div><div class="strip strip-boston"></div></div><div class="cal-cell "><div class="date-num">7 Jul</div><span class="multiday-badge multiday-start">▶ Gallagher Cottage</span><div class="cal-event ev-note">🏡 Check-in: Gallagher Cottage</div><div class="strip strip-cottage"></div></div><div class="week-label">Week 2 · 8–14 July 2026</div><div class="cal-cell "><div class="date-num">8 Jul</div><span class="multiday-badge multiday-mid">— Gallagher Cottage</span><div class="strip strip-cottage"></div></div><div class="cal-cell "><div class="date-num">9 Jul</div><span class="multiday-badge multiday-mid">— Gallagher Cottage</span><div class="strip strip-cottage"></div></div><div class="cal-cell "><div class="date-num">10 Jul</div><span class="multiday-badge multiday-end">◀ Gallagher Cottage</span><div class="cal-event ev-note">🏡 Check-out: Gallagher Cottage</div><div class="strip strip-cottage"></div></div><div class="cal-cell "><div class="date-num">11 Jul</div><div class="strip strip-boston"></div></div><div class="cal-cell "><div class="date-num">12 Jul</div><div class="strip strip-boston"></div></div><div class="cal-cell "><div class="date-num">13 Jul</div><div class="strip strip-boston"></div></div><div class="cal-cell "><div class="date-num">14 Jul</div><div class="strip strip-boston"></div></div><div class="week-label">Week 3 · 15–17 July — Return</div><div class="cal-cell "><div class="date-num">15 Jul</div><div class="strip strip-boston"></div></div><div class="cal-cell flight-day"><div class="date-num">16 Jul</div><div class="cal-event ev-flight">✈ BOS→NRT JL007 13:15</div><div class="strip strip-boston"></div></div><div class="cal-cell flight-day"><div class="date-num">17 Jul</div><div class="cal-event ev-flight">✈ NRT→BKK JL707 18:25</div><div class="cal-event ev-note">🛬 Arr BKK 23:00</div></div><div class="cal-cell inactive"><div class="date-num">18</div></div><div class="cal-cell inactive"><div class="date-num">19</div></div><div class="cal-cell inactive"><div class="date-num">20</div></div><div class="cal-cell inactive"><div class="date-num">21</div></div></div>
     </div>
-    <p class="tap-hint">Tap any day to view details</p>
-    <button class="fab" id="fab" onclick="onFabClick()">＋ Add Plans</button>
+    <div class="cal-hint-row">
+      <p class="tap-hint">Tap any day to view details</p>
+      <a class="cal-publish-link" id="cal-publish-link" onclick="publishFromCalendar(this)">Publish</a>
+    </div>
     <div class="summary">
       <strong>✈ Flight Details — Peter Guild &amp; Nicholas Boonsuan</strong>
       <b>Out (1 Jul):</b> BKK→NRT JL708 07:55 · NRT→BOS JL008 18:25 · Economy V · 2 bags<br>
@@ -1377,6 +1395,26 @@ async function doPublish(message) {
     throw new Error(putData.message || `GitHub API ${putRes.status}`);
   }
   return true;
+}
+
+async function publishFromCalendar(el) {
+  const creds = getCreds();
+  if (!creds.github||!creds.ghuser||!creds.ghrepo) { document.getElementById("setup-modal").classList.add("active"); return; }
+  const prev = el.textContent;
+  el.style.pointerEvents = "none";
+  el.textContent = "Publishing…";
+  try {
+    await doPublish("Manual publish");
+    el.textContent = "Live in ~60s";
+    setTimeout(() => { el.textContent = prev; el.style.pointerEvents = ""; }, 4000);
+  } catch(err) {
+    console.error(err);
+    el.textContent = "Failed";
+    setTimeout(() => { el.textContent = prev; el.style.pointerEvents = ""; }, 4000);
+    const isAuthErr = /401|403|credential|token|bad credentials/i.test(err.message);
+    if (isAuthErr) openSetupModal();
+    else alert(`Publish failed: ${err.message}`);
+  }
 }
 
 async function publishToGitHub() {
