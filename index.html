@@ -1373,7 +1373,7 @@ async function doPublish(message) {
     { headers: { Authorization: `token ${creds.github}`, Accept: "application/vnd.github.v3+json" } }
   );
   const meta = await metaRes.json();
-  if (!meta.sha) throw new Error(meta.message || "GitHub API error — could not fetch file metadata");
+  if (!meta.sha) throw new Error(`${meta.message || "Not Found"} (repo: ${creds.ghuser}/${creds.ghrepo}, token starts: ${creds.github ? creds.github.slice(0,8)+"…" : "none"})`);
   const sha  = meta.sha;
   // Snapshot DOM with publish button in resting state so it doesn't bake as "Publishing…"
   const publishBtn = document.getElementById("publish-bar-btn");
