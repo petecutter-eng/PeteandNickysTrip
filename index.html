@@ -25,7 +25,7 @@
   .view { width: 50%; min-height: 100vh; }
 
   /* ══ Calendar view ══ */
-  #calendar-view { padding: 20px 14px 100px; }
+  #calendar-view { padding: 20px 14px 32px; }
 
   header { text-align: center; margin-bottom: 18px; }
   header h1 {
@@ -121,7 +121,7 @@
     position: absolute; top: 5px; right: 6px;
     width: 6px; height: 6px; border-radius: 50%; background: #4caf50;
   }
-  .tap-hint { text-align: center; font-size: 0.68rem; color: #9aacb8; margin-top: 12px; }
+  .tap-hint { text-align: left; font-size: 0.68rem; color: #9aacb8; margin-top: 12px; }
   .summary {
     margin-top: 18px; background: #fff; border: 1.5px solid #c5bfb5;
     border-radius: 10px; padding: 14px 16px;
@@ -231,18 +231,31 @@
 
   /* ══ FAB — Add Plans button ══ */
   .fab {
-    position: fixed; bottom: 24px; right: 24px; z-index: 50;
+    display: flex; align-items: center; gap: 8px;
+    margin: 16px auto 0; width: fit-content;
     background: #1a3a4a; color: #fff;
     border: none; border-radius: 28px;
     padding: 14px 22px; font-family: 'Inter', sans-serif;
     font-size: 0.88rem; font-weight: 700; letter-spacing: 0.03em;
     cursor: pointer; box-shadow: 0 4px 20px rgba(26,58,74,0.35);
-    display: flex; align-items: center; gap: 8px;
     transition: transform 0.15s, box-shadow 0.15s;
   }
   .fab:hover  { transform: translateY(-2px); box-shadow: 0 6px 24px rgba(26,58,74,0.45); }
   .fab:active { transform: translateY(0); }
   .fab.hidden { display: none; }
+  /* Detail view Add Plans button */
+  .detail-add-btn {
+    display: flex; align-items: center; gap: 8px;
+    margin: 20px auto 8px; width: fit-content;
+    background: #1a3a4a; color: #fff;
+    border: none; border-radius: 28px;
+    padding: 12px 20px; font-family: 'Inter', sans-serif;
+    font-size: 0.85rem; font-weight: 700; letter-spacing: 0.03em;
+    cursor: pointer; box-shadow: 0 4px 16px rgba(26,58,74,0.25);
+    transition: transform 0.15s, box-shadow 0.15s;
+  }
+  .detail-add-btn:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(26,58,74,0.35); }
+  .guest-mode .detail-add-btn { display: none; }
 
   /* ══ Ingester panel (slides up from bottom) ══ */
   .ingester-overlay {
@@ -491,15 +504,14 @@
   }
 
   @media (orientation: landscape) and (max-width: 900px) {
-    #calendar-view { padding: 12px 10px 80px; }
+    #calendar-view { padding: 12px 10px 32px; }
     .cal-cell { min-height: clamp(60px, 10vw, 100px); }
     .ingester-panel { max-height: 95vh; }
   }
   @media (min-width: 700px) {
-    #calendar-view { padding: 32px 32px 100px; }
+    #calendar-view { padding: 32px 32px 40px; }
     .ingester-panel { max-width: 560px; left: 50%; transform: translateX(-50%) translateY(100%); right: auto; border-radius: 20px 20px 0 0; }
     .ingester-panel.active { transform: translateX(-50%) translateY(0); }
-    .fab { right: calc(50% - 260px); }
   }
 
   /* ══ Mode chooser & guest features ══ */
@@ -781,9 +793,6 @@ Does that work? Want me to add a "Leave home" reminder for **4:00am on July 1** 
   </div>
 </div>
 
-<!-- ══ FAB ══ -->
-<button class="fab" id="fab" onclick="onFabClick()">＋ Add Plans</button>
-
 <!-- ══ App Shell ══ -->
 <div class="app-shell" id="app-shell">
 
@@ -813,6 +822,7 @@ Does that work? Want me to add a "Leave home" reminder for **4:00am on July 1** 
       <div class="cal-grid" id="cal-grid"><div class="week-label">Week 1 · 1–7 July 2026</div><div class="cal-cell flight-day has-data"><div class="date-num">1 Jul</div><div class="cal-event ev-flight">✈ BKK→NRT JL708 07:55</div><div class="cal-event ev-flight">✈ NRT→BOS JL008 18:25</div><div class="cal-event ev-user">📝 Leave home 4:00am</div><div class="has-notes-dot"></div><div class="strip strip-boston"></div></div><div class="cal-cell "><div class="date-num">2 Jul</div><div class="cal-event ev-note">🛬 Arr BOS 18:15 local</div><div class="strip strip-boston"></div></div><div class="cal-cell "><div class="date-num">3 Jul</div><div class="strip strip-boston"></div></div><div class="cal-cell "><div class="date-num">4 Jul</div><span class="holiday-tag">🎆 Independence Day</span><div class="strip strip-boston"></div></div><div class="cal-cell "><div class="date-num">5 Jul</div><div class="strip strip-boston"></div></div><div class="cal-cell "><div class="date-num">6 Jul</div><div class="strip strip-boston"></div></div><div class="cal-cell "><div class="date-num">7 Jul</div><span class="multiday-badge multiday-start">▶ Gallagher Cottage</span><div class="cal-event ev-note">🏡 Check-in: Gallagher Cottage</div><div class="strip strip-cottage"></div></div><div class="week-label">Week 2 · 8–14 July 2026</div><div class="cal-cell "><div class="date-num">8 Jul</div><span class="multiday-badge multiday-mid">— Gallagher Cottage</span><div class="strip strip-cottage"></div></div><div class="cal-cell "><div class="date-num">9 Jul</div><span class="multiday-badge multiday-mid">— Gallagher Cottage</span><div class="strip strip-cottage"></div></div><div class="cal-cell "><div class="date-num">10 Jul</div><span class="multiday-badge multiday-end">◀ Gallagher Cottage</span><div class="cal-event ev-note">🏡 Check-out: Gallagher Cottage</div><div class="strip strip-cottage"></div></div><div class="cal-cell "><div class="date-num">11 Jul</div><div class="strip strip-boston"></div></div><div class="cal-cell "><div class="date-num">12 Jul</div><div class="strip strip-boston"></div></div><div class="cal-cell "><div class="date-num">13 Jul</div><div class="strip strip-boston"></div></div><div class="cal-cell "><div class="date-num">14 Jul</div><div class="strip strip-boston"></div></div><div class="week-label">Week 3 · 15–17 July — Return</div><div class="cal-cell "><div class="date-num">15 Jul</div><div class="strip strip-boston"></div></div><div class="cal-cell flight-day"><div class="date-num">16 Jul</div><div class="cal-event ev-flight">✈ BOS→NRT JL007 13:15</div><div class="strip strip-boston"></div></div><div class="cal-cell flight-day"><div class="date-num">17 Jul</div><div class="cal-event ev-flight">✈ NRT→BKK JL707 18:25</div><div class="cal-event ev-note">🛬 Arr BKK 23:00</div></div><div class="cal-cell inactive"><div class="date-num">18</div></div><div class="cal-cell inactive"><div class="date-num">19</div></div><div class="cal-cell inactive"><div class="date-num">20</div></div><div class="cal-cell inactive"><div class="date-num">21</div></div></div>
     </div>
     <p class="tap-hint">Tap any day to view details</p>
+    <button class="fab" id="fab" onclick="onFabClick()">＋ Add Plans</button>
     <div class="summary">
       <strong>✈ Flight Details — Peter Guild &amp; Nicholas Boonsuan</strong>
       <b>Out (1 Jul):</b> BKK→NRT JL708 07:55 · NRT→BOS JL008 18:25 · Economy V · 2 bags<br>
@@ -834,6 +844,7 @@ Does that work? Want me to add a "Leave home" reminder for **4:00am on July 1** 
       </div>
     </div>
     <div class="detail-body" id="detail-body"></div>
+    <button class="detail-add-btn" onclick="onFabClick()">＋ Add Plans</button>
   </div>
 
 </div>
