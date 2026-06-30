@@ -174,10 +174,30 @@
   .checklist-header-sub { font-size: 0.62rem; color: #6b7c8a; margin-top: 2px; letter-spacing: 0.04em; }
   .checklist-close { background: none; border: none; font-size: 1.4rem; color: #aaa; cursor: pointer; padding: 0 4px; line-height: 1; flex-shrink: 0; }
 
-  .checklist-progress-wrap { padding: 10px 18px; background: #fff; border-bottom: 1px solid #f0ede8; }
-  .checklist-progress-track { height: 6px; background: #e8e3da; border-radius: 3px; overflow: hidden; }
-  .checklist-progress-fill { height: 100%; background: #4caf50; width: 0%; transition: width 0.25s; }
-  .checklist-progress-label { font-size: 0.64rem; color: #6b7c8a; font-weight: 600; margin-top: 6px; }
+  .checklist-progress-wrap { padding: 8px 18px; background: #fff; border-bottom: 1px solid #f0ede8; }
+  .checklist-progress-row { display: flex; align-items: center; gap: 10px; margin-bottom: 5px; }
+  .checklist-progress-row:last-child { margin-bottom: 0; }
+  .prog-name { font-size: 0.62rem; font-weight: 700; width: 36px; flex-shrink: 0; letter-spacing: 0.03em; }
+  .prog-name.pete { color: #2e7d32; }
+  .prog-name.nicky { color: #1565c0; }
+  .prog-count { font-size: 0.62rem; color: #6b7c8a; font-weight: 600; width: 36px; flex-shrink: 0; text-align: right; }
+  .checklist-progress-track { flex: 1; height: 6px; background: #e8e3da; border-radius: 3px; overflow: hidden; }
+  .checklist-progress-fill { height: 100%; width: 0%; transition: width 0.25s; }
+  .pete-fill { background: #4caf50; }
+  .nicky-fill { background: #5aaad8; }
+  .checklist-names-bar {
+    display: flex; align-items: center;
+    padding: 7px 16px 5px; background: #f0ede8;
+    border-bottom: 1px solid #e3ddd2;
+  }
+  .checklist-person-label {
+    width: 50px; text-align: center;
+    font-size: 0.68rem; font-weight: 700;
+    letter-spacing: 0.07em; text-transform: uppercase;
+  }
+  .checklist-person-label.pete { color: #2e7d32; }
+  .checklist-person-label.nicky { color: #1565c0; }
+  .checklist-names-spacer { flex: 1; }
 
   .checklist-body { flex: 1; overflow-y: auto; padding: 14px 16px 16px; }
   .checklist-section { margin-bottom: 18px; }
@@ -187,27 +207,30 @@
     color: #1a3a4a; margin-bottom: 8px; padding-left: 2px;
   }
   .checklist-item {
-    display: flex; align-items: center; gap: 12px;
+    display: flex; align-items: center; gap: 8px;
     background: #fff; border: 1.5px solid #e3ddd2; border-radius: 10px;
-    padding: 11px 13px; margin-bottom: 7px; cursor: pointer;
+    padding: 10px 12px; margin-bottom: 7px;
+    position: relative;
     transition: background 0.12s, border-color 0.12s;
     -webkit-tap-highlight-color: transparent;
   }
   .checklist-item:hover { border-color: #c5bfb5; }
-  .checklist-item.checked { background: #f0f7f0; border-color: #a5d6a7; }
+  .checklist-item.both-checked { background: #f0f7f0; border-color: #a5d6a7; }
   .checklist-box {
-    width: 22px; height: 22px; border-radius: 6px; flex-shrink: 0;
+    width: 26px; height: 26px; border-radius: 7px; flex-shrink: 0;
     border: 2px solid #c5bfb5; background: #fff;
     display: flex; align-items: center; justify-content: center;
     font-size: 0.82rem; color: #fff; line-height: 1;
     transition: background 0.12s, border-color 0.12s;
+    cursor: pointer;
   }
-  .checklist-item.checked .checklist-box { background: #4caf50; border-color: #4caf50; }
-  .checklist-text { flex: 1; line-height: 1.3; }
+  .checklist-item.pete-checked .pete-box { background: #4caf50; border-color: #4caf50; }
+  .checklist-item.nicky-checked .nicky-box { background: #5aaad8; border-color: #5aaad8; }
+  .checklist-text { flex: 1; line-height: 1.3; text-align: center; }
   .checklist-en { font-size: 0.84rem; font-weight: 500; color: #1a1a1a; }
   .checklist-th { font-size: 0.72rem; color: #6b7c8a; margin-top: 1px; }
-  .checklist-item.checked .checklist-en { text-decoration: line-through; color: #8a9a8a; }
-  .checklist-item.checked .checklist-th { text-decoration: line-through; color: #aab4ba; }
+  .checklist-item.both-checked .checklist-en { text-decoration: line-through; color: #8a9a8a; }
+  .checklist-item.both-checked .checklist-th { text-decoration: line-through; color: #aab4ba; }
 
   .checklist-footer { padding: 12px 16px; border-top: 1px solid #e3ddd2; background: #fff; }
   .btn-clear-checklist {
@@ -219,14 +242,8 @@
   .btn-clear-checklist:hover { background: #fdf0ee; }
 
   @media (min-width: 700px) {
-    .checklist-panel { width: 900px; max-width: 94vw; left: 50%; right: auto; transform: translateX(-50%) translateY(100%); }
+    .checklist-panel { width: 680px; max-width: 94vw; left: 50%; right: auto; transform: translateX(-50%) translateY(100%); }
     .checklist-panel.active { transform: translateX(-50%) translateY(0); }
-    /* Flow the sections into as many parallel columns as fit the wider panel */
-    .checklist-body { columns: 260px; column-gap: 20px; }
-    .checklist-section {
-      break-inside: avoid; -webkit-column-break-inside: avoid;
-      display: inline-block; width: 100%; vertical-align: top;
-    }
   }
 
   /* ══ Calendar tool row (checklist pill + add-plans pill) ══ */
@@ -577,9 +594,12 @@
   }
   .add-custom-item:active { opacity: 0.85; }
   .checklist-custom-del {
-    margin-left: auto; border: none; background: none; color: #c0392b;
-    font-size: 0.85rem; cursor: pointer; padding: 0 4px;
+    position: absolute; top: 3px; right: 5px;
+    border: none; background: none; color: #c0392b;
+    font-size: 0.72rem; cursor: pointer; padding: 2px 3px;
+    opacity: 0; transition: opacity 0.15s; line-height: 1;
   }
+  .checklist-item:hover .checklist-custom-del { opacity: 1; }
   .import-day-group { margin-bottom: 12px; }
   .import-day-group > b { font-size: 0.78rem; color: #1a3a4a; }
   .import-item { font-size: 0.72rem; color: #555; padding: 4px 0 4px 12px; line-height: 1.4; }
@@ -779,13 +799,26 @@ Does that work? Want me to add a "Leave home" reminder for **4:00am on July 1** 
   <div class="checklist-header">
     <div>
       <h2>📋 Packing Checklist</h2>
-      <div class="checklist-header-sub">Tap an item to check it off · saved on this device</div>
+      <div class="checklist-header-sub">Each person taps their own side · saved on this device</div>
     </div>
     <button class="checklist-close" onclick="closeChecklist()">✕</button>
   </div>
   <div class="checklist-progress-wrap">
-    <div class="checklist-progress-track"><div class="checklist-progress-fill" id="checklist-progress-fill"></div></div>
-    <div class="checklist-progress-label" id="checklist-progress-label">0 of 0 packed</div>
+    <div class="checklist-progress-row">
+      <span class="prog-name pete">Pete</span>
+      <div class="checklist-progress-track"><div class="checklist-progress-fill pete-fill" id="checklist-progress-pete"></div></div>
+      <span class="prog-count" id="checklist-count-pete">0/0</span>
+    </div>
+    <div class="checklist-progress-row">
+      <span class="prog-name nicky">Nicky</span>
+      <div class="checklist-progress-track"><div class="checklist-progress-fill nicky-fill" id="checklist-progress-nicky"></div></div>
+      <span class="prog-count" id="checklist-count-nicky">0/0</span>
+    </div>
+  </div>
+  <div class="checklist-names-bar">
+    <span class="checklist-person-label pete">Pete</span>
+    <span class="checklist-names-spacer"></span>
+    <span class="checklist-person-label nicky">Nicky</span>
   </div>
   <div class="checklist-body" id="checklist-body"></div>
   <div class="checklist-footer">
@@ -1696,8 +1729,8 @@ function saveGuestItem() {
 }
 function deleteCustomItem(id) {
   saveCustomItems(getCustomItems().filter(i => i.id !== id));
-  const state = getChecklistState();
-  if (state[id]) { delete state[id]; saveChecklistState(state); }
+  const ps = getPeteState();  if (ps[id])  { delete ps[id];  savePeteState(ps); }
+  const ns = getNickyState(); if (ns[id])  { delete ns[id];  saveNickyState(ns); }
   renderChecklist();
   updateChecklistLaunchCount();
   updateSendButton();
@@ -1986,10 +2019,10 @@ const CHECKLIST_DATA = {
   ]
 };
 
-function getChecklistState() {
-  try { return JSON.parse(localStorage.getItem("checklist_checked")||"{}"); } catch { return {}; }
-}
-function saveChecklistState(s) { localStorage.setItem("checklist_checked", JSON.stringify(s)); }
+function getPeteState()  { try { return JSON.parse(localStorage.getItem("checklist_pete") ||"{}"); } catch { return {}; } }
+function getNickyState() { try { return JSON.parse(localStorage.getItem("checklist_nicky")||"{}"); } catch { return {}; } }
+function savePeteState(s)  { localStorage.setItem("checklist_pete",  JSON.stringify(s)); }
+function saveNickyState(s) { localStorage.setItem("checklist_nicky", JSON.stringify(s)); }
 
 // Custom (family-added) checklist items — live locally, baked & published like notes.
 function getCustomItems() {
@@ -2039,48 +2072,63 @@ function removeBuiltinItem(id) {
   if (!confirm(`Remove “${name}” from the packing list?\n\nIt disappears for everyone once you publish.`)) return;
   const removed = getRemovedItems();
   if (!removed.includes(id)) { removed.push(id); saveRemovedItems(removed); }
-  const state = getChecklistState();
-  if (state[id]) { delete state[id]; saveChecklistState(state); }
+  const ps = getPeteState();  if (ps[id])  { delete ps[id];  savePeteState(ps); }
+  const ns = getNickyState(); if (ns[id])  { delete ns[id];  saveNickyState(ns); }
   renderChecklist();
   updateChecklistLaunchCount();
   updateSendButton();
 }
 
 function checklistCounts() {
-  const state = getChecklistState();
+  const pete = getPeteState(), nicky = getNickyState();
   const removed = new Set(getRemovedItems());
-  let total = 0, done = 0;
+  let total = 0, peteDone = 0, nickyDone = 0;
   CHECKLIST_DATA.sections.forEach(sec => sec.items.forEach(it => {
     if (removed.has(it.id)) return;
-    total++; if (state[it.id]) done++;
+    total++;
+    if (pete[it.id])  peteDone++;
+    if (nicky[it.id]) nickyDone++;
   }));
-  getCustomItems().forEach(it => { total++; if (state[it.id]) done++; });
-  return { total, done };
+  getCustomItems().forEach(it => {
+    total++;
+    if (pete[it.id])  peteDone++;
+    if (nicky[it.id]) nickyDone++;
+  });
+  return { total, peteDone, nickyDone };
 }
 
 function escapeHtml(s) {
   return String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;");
 }
 
+function itemClasses(id, pete, nicky) {
+  const pc = !!pete[id], nc = !!nicky[id];
+  let cls = "checklist-item";
+  if (pc) cls += " pete-checked";
+  if (nc) cls += " nicky-checked";
+  if (pc && nc) cls += " both-checked";
+  return cls;
+}
+
 function renderChecklist() {
-  const state = getChecklistState();
+  const pete = getPeteState(), nicky = getNickyState();
   const removed = new Set(getRemovedItems());
   const owner = isOwner();
   let html = "";
   CHECKLIST_DATA.sections.forEach(sec => {
     const items = sec.items.filter(it => !removed.has(it.id));
-    if (!items.length) return;   // whole section emptied by removals
+    if (!items.length) return;
     html += `<div class="checklist-section">
       <div class="checklist-section-title">${escapeHtml(sec.title)}</div>`;
     items.forEach(it => {
-      const on = !!state[it.id];
       const del = owner ? `<button class="checklist-custom-del" title="Remove from everyone's list" onclick="event.stopPropagation(); removeBuiltinItem('${it.id}')">✕</button>` : "";
-      html += `<div class="checklist-item${on?" checked":""}" id="chk-${it.id}" onclick="toggleChecklistItem('${it.id}')">
-        <div class="checklist-box">${on?"✓":""}</div>
+      html += `<div class="${itemClasses(it.id,pete,nicky)}" id="chk-${it.id}">
+        <div class="checklist-box pete-box" onclick="toggleChecklistItem('${it.id}','pete')">${pete[it.id]?"✓":""}</div>
         <div class="checklist-text">
           <div class="checklist-en">${escapeHtml(it.en)}</div>
           <div class="checklist-th">${escapeHtml(it.th)}</div>
         </div>
+        <div class="checklist-box nicky-box" onclick="toggleChecklistItem('${it.id}','nicky')">${nicky[it.id]?"✓":""}</div>
         ${del}
       </div>`;
     });
@@ -2091,13 +2139,13 @@ function renderChecklist() {
   html += `<div class="checklist-section">
     <div class="checklist-section-title">Added by the family</div>`;
   custom.forEach(it => {
-    const on = !!state[it.id];
-    html += `<div class="checklist-item${on?" checked":""}" id="chk-${it.id}">
-      <div class="checklist-box" onclick="toggleChecklistItem('${it.id}')">${on?"✓":""}</div>
-      <div class="checklist-text" onclick="toggleChecklistItem('${it.id}')">
+    html += `<div class="${itemClasses(it.id,pete,nicky)}" id="chk-${it.id}">
+      <div class="checklist-box pete-box" onclick="toggleChecklistItem('${it.id}','pete')">${pete[it.id]?"✓":""}</div>
+      <div class="checklist-text">
         <div class="checklist-en">${escapeHtml(it.en)}</div>
         ${it.th?`<div class="checklist-th">${escapeHtml(it.th)}</div>`:""}
       </div>
+      <div class="checklist-box nicky-box" onclick="toggleChecklistItem('${it.id}','nicky')">${nicky[it.id]?"✓":""}</div>
       <button class="checklist-custom-del" title="Remove" onclick="deleteCustomItem('${it.id}')">✕</button>
     </div>`;
   });
@@ -2112,29 +2160,36 @@ function renderChecklist() {
 }
 
 function updateChecklistProgress() {
-  const { total, done } = checklistCounts();
-  const pct = total ? Math.round((done/total)*100) : 0;
-  const fill = document.getElementById("checklist-progress-fill");
-  const label = document.getElementById("checklist-progress-label");
-  if (fill)  fill.style.width = pct + "%";
-  if (label) label.textContent = `${done} of ${total} packed`;
+  const { total, peteDone, nickyDone } = checklistCounts();
+  const petePct  = total ? Math.round((peteDone/total)*100)  : 0;
+  const nickyPct = total ? Math.round((nickyDone/total)*100) : 0;
+  const pFill = document.getElementById("checklist-progress-pete");
+  const nFill = document.getElementById("checklist-progress-nicky");
+  const pCount = document.getElementById("checklist-count-pete");
+  const nCount = document.getElementById("checklist-count-nicky");
+  if (pFill)  pFill.style.width  = petePct  + "%";
+  if (nFill)  nFill.style.width  = nickyPct + "%";
+  if (pCount) pCount.textContent = `${peteDone}/${total}`;
+  if (nCount) nCount.textContent = `${nickyDone}/${total}`;
 }
 
 function updateChecklistLaunchCount() {
-  const { total, done } = checklistCounts();
+  const { total, peteDone, nickyDone } = checklistCounts();
   const el = document.getElementById("checklist-launch-count");
-  if (el) el.textContent = `${done}/${total}`;
+  if (el) el.textContent = `P:${peteDone} N:${nickyDone}/${total}`;
 }
 
-function toggleChecklistItem(id) {
-  const state = getChecklistState();
+function toggleChecklistItem(id, person) {
+  const isPete = person === "pete";
+  const state = isPete ? getPeteState() : getNickyState();
   if (state[id]) delete state[id]; else state[id] = true;
-  saveChecklistState(state);
+  isPete ? savePeteState(state) : saveNickyState(state);
   const el = document.getElementById("chk-"+id);
   if (el) {
-    const on = !!state[id];
-    el.classList.toggle("checked", on);
-    el.querySelector(".checklist-box").textContent = on ? "✓" : "";
+    const pete = getPeteState(), nicky = getNickyState();
+    el.className = itemClasses(id, pete, nicky);
+    const box = el.querySelector(isPete ? ".pete-box" : ".nicky-box");
+    if (box) box.textContent = state[id] ? "✓" : "";
   }
   updateChecklistProgress();
   updateChecklistLaunchCount();
@@ -2157,7 +2212,7 @@ function openClearConfirm()  { document.getElementById("checklist-confirm").clas
 function closeClearConfirm() { document.getElementById("checklist-confirm").classList.remove("active"); }
 
 function doClearChecklist() {
-  saveChecklistState({});
+  savePeteState({}); saveNickyState({});
   closeClearConfirm();
   renderChecklist();
   updateChecklistLaunchCount();
