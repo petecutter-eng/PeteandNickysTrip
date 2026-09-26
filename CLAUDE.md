@@ -77,6 +77,13 @@ A device can hold several trips. The built-in trip (`DEFAULT_TRIP`, id `trip_def
 - Publish, Send-to-Pete and `?import=` always operate on the built-in trip; those buttons are hidden while a user trip is open.
 - Trip switcher: footer **🧳 trips** link → new / open / edit / duplicate / rename / delete.
 
+### Trip import / export / share (`trip-planner/v1`)
+One portable JSON format (spec + AI prompt: `TRIP_IMPORT_FORMAT.md`) is used for AI import, file export/backup and share links. Places are referenced by name, and `days[].plans` become notes.
+- **Import:** Trips → 📥 Import trip → *Copy AI prompt* (`buildAiPrompt()`) → paste the AI's JSON or upload a file → `extractJson()` → `draftFromImport()` → preview (`tiRender()`) → **Import as new trip** / **Replace** / **Fix in the trip editor** (opens the wizard on the draft at the failing step).
+- **Export:** `tripToPortable(tripId, includeNotes)` → `.json` download. Custom checklist items are folded into a section; removed items are dropped.
+- **Share link:** `?trip=` + `z` + base64url(deflate-raw JSON) via the browser's `CompressionStream` (no dependency; `j` = uncompressed fallback). Opening one shows the import preview; `checkTripParam()` runs from `init()`.
+- Wizard and import share `wizValidate(key, draft)`, `wizBuildTrip(draft)` and `commitDraft(draft)`.
+
 ### Trip wizard (create / edit)
 `openWizard("create" | "edit", tripId)` opens a 5-step panel — Basics (name, emoji, dates, travelers, checklist second language), Places (regions + colour + home base), Stays, Flights, Checklist (standard 46-item template or blank; sections/items editable). It edits a deep-copied draft; `wizSave()` validates every step, then `wizBuildTrip()` folds flights back into `trip.days` (other per-day overrides — location, holiday, events — are preserved). Only user trips are editable; the built-in trip must be duplicated first. Entry points: example banner "Create my trip", Trips → ＋ New trip / Edit, footer "✏️ edit trip" (own trips only).
 
@@ -224,7 +231,7 @@ Two separate WhatsApp rules break the unattended 7am send on the sandbox:
 2. **Delivery channel** — now defaults to Telegram (no roaming/business dependency); set `TELEGRAM_BOT_TOKEN` + `TELEGRAM_CHAT_ID` to activate (see "Telegram"). WhatsApp/Twilio remains as a fallback, including an optional approved-template production path via `TWILIO_CONTENT_SID`.
 3. **Favicon** — not yet added
 4. **Multi-day event ingestion** — ingester can add multi-day notes but doesn't yet add a `stays` entry to the trip; only adds notes to each day individually
-5. **In-app trip customization** — in progress. Phase 0 (done): all rendering reads from the Trip model. Phase 1 (done): multi-trip storage + switcher. Phase 2 (done): create/edit wizard. Until the wizard lands, a new trip means editing `DEFAULT_TRIP` + `trip-config.json`.
+5. **In-app trip customization** — in progress. Phase 0 (done): all rendering reads from the Trip model. Phase 1 (done): multi-trip storage + switcher. Phase 2 (done): create/edit wizard. Phase 3 (done): import/export/share (`trip-planner/v1`), generic welcome screen. Until the wizard lands, a new trip means editing `DEFAULT_TRIP` + `trip-config.json`.
 
 ---
 
