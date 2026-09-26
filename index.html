@@ -654,6 +654,16 @@
     font-family: 'Inter', sans-serif; font-weight: 700; font-size: 0.76rem; cursor: pointer; white-space: nowrap;
   }
   .trip-switch:active, .new-trip-btn:active { opacity: 0.85; }
+  .setup-steps { background: #f7f4ef; border-radius: 10px; padding: 10px 12px; margin-bottom: 14px; }
+  .setup-step-title { font-size: 0.72rem; font-weight: 700; color: #1a3a4a; margin-bottom: 6px; }
+  .setup-steps ol, .setup-github ol { padding-left: 18px; font-size: 0.72rem; color: #333; line-height: 1.55; }
+  .setup-steps li, .setup-github li { margin-bottom: 6px; }
+  #setup-modal a { color: #1a5b8a; font-weight: 600; }
+  #setup-modal code { font-size: 0.7rem; background: #efeae1; padding: 0 3px; border-radius: 3px; }
+  .setup-github { border: 1.5px solid #e3ddd2; border-radius: 10px; padding: 8px 12px; margin-bottom: 4px; }
+  .setup-github summary { font-size: 0.72rem; font-weight: 600; color: #1a3a4a; cursor: pointer; }
+  .setup-github p { margin: 8px 0; }
+  .mode-choice-btn span br + b, .mode-choice-btn span b { display: inline; color: #1a3a4a; font-size: inherit; margin: 0; }
   .briefing-launch {
     width: 100%; margin: 0 0 14px; padding: 11px; border: 1.5px solid #f0d78c; border-radius: 10px;
     background: #fff8e1; color: #5a3e00; font-family: 'Inter', sans-serif; font-weight: 600; font-size: 0.8rem; cursor: pointer;
@@ -702,22 +712,53 @@
 
 <!-- ══ Setup Modal ══ -->
 <div class="modal-overlay" id="setup-modal">
-  <div class="modal">
-    <h2>⚙️ Keys</h2>
-    <p>The Anthropic key powers the AI assistant. The GitHub fields are only needed by the site owner to publish to the live page. Keys are stored only in this browser.</p>
-    <div class="modal-note">
-      <b>Anthropic API key:</b> console.anthropic.com → API Keys<br>
-      <b>GitHub token:</b> github.com → Settings → Developer settings → Personal access tokens (classic) → Generate → tick <b>repo</b>
+  <div class="modal" style="max-width:460px">
+    <h2>✨ Set up the AI helpers</h2>
+    <p>The AI helpers run on <b>Claude</b>, made by Anthropic. To use them you need your own <b>API key</b> — a long password that lets this app use Claude on your behalf, billed to your Anthropic account. It takes about 5 minutes.</p>
+
+    <div class="setup-steps">
+      <div class="setup-step-title">How to get your Anthropic API key</div>
+      <ol>
+        <li><b>Create an account.</b> Open the <a href="https://console.anthropic.com" target="_blank" rel="noopener">Anthropic Console</a> and sign up with your email or Google account. (This is separate from a Claude.ai chat subscription — you need a Console account even if you already use Claude.)</li>
+        <li><b>Add some credit.</b> In the Console, go to <b>Settings → Billing</b> and buy credits (the minimum is about US$5). Keys don't work until the account has credit. $5 covers a whole trip's worth of briefings and plan-adding for most people.</li>
+        <li><b>Optional but wise: set a spending limit.</b> Under <b>Settings → Limits</b> you can cap monthly spend (e.g. $10) so there are never surprises.</li>
+        <li><b>Create the key.</b> Go to <b>Settings → API keys</b> (<a href="https://console.anthropic.com/settings/keys" target="_blank" rel="noopener">direct link</a>) → <b>Create Key</b> → name it something like “Trip Planner” → <b>Create</b>.</li>
+        <li><b>Copy it straight away.</b> It starts with <code>sk-ant-</code> and is shown <b>only once</b>. Tap the copy button next to it, come back here and paste it below. If you lose it, just create a new one.</li>
+      </ol>
     </div>
-    <label>Anthropic API Key</label>
-    <input type="password" id="setup-anthropic" placeholder="sk-ant-..." autocomplete="off">
-    <label>GitHub Personal Access Token</label>
-    <input type="password" id="setup-github" placeholder="ghp_..." autocomplete="off">
-    <label>GitHub Username</label>
-    <input type="text" id="setup-ghuser" placeholder="your-github-username" autocomplete="off">
-    <label>GitHub Repo Name</label>
-    <input type="text" id="setup-ghrepo" placeholder="your-repo-name" autocomplete="off">
-    <button class="btn btn-primary" onclick="saveSetup()" style="width:100%">Save &amp; Continue</button>
+
+    <label>Anthropic API key</label>
+    <input type="password" id="setup-anthropic" placeholder="sk-ant-…" autocomplete="off" oninput="document.getElementById('setup-test').style.display='none'">
+    <button class="btn btn-secondary" style="width:100%; margin:-4px 0 10px" onclick="testAnthropicKey()">Check this key</button>
+    <div class="br-status" id="setup-test" style="display:none"></div>
+
+    <div class="modal-note">
+      <b>About cost:</b> a daily briefing is roughly 2–3 US cents; adding plans from an email or photo is usually a few cents. You're billed by Anthropic, not by this app.<br>
+      <b>About safety:</b> the key is saved only in this browser on this device and is only ever sent to Anthropic. Anyone using this browser could use it, so don't set it up on a shared computer. You can delete the key in the Console at any time.
+    </div>
+
+    <details class="setup-github">
+      <summary>Publishing to the live website (site owner only — most people skip this)</summary>
+      <p>Only needed if you run this website yourself and want to publish the built-in trip for everyone. It uses a GitHub “personal access token”.</p>
+      <ol>
+        <li>Sign in to <a href="https://github.com" target="_blank" rel="noopener">GitHub</a> with the account that owns the website's repository.</li>
+        <li>Open <a href="https://github.com/settings/tokens/new?scopes=repo&amp;description=Trip%20Planner" target="_blank" rel="noopener">New personal access token (classic)</a> — or go to your profile picture → <b>Settings</b> → <b>Developer settings</b> → <b>Personal access tokens</b> → <b>Tokens (classic)</b> → <b>Generate new token (classic)</b>.</li>
+        <li>Give it a note like “Trip Planner”, choose an expiry (e.g. 90 days), tick the <b>repo</b> box, then <b>Generate token</b>.</li>
+        <li>Copy the token (starts with <code>ghp_</code>, shown only once) and paste it below.</li>
+        <li><b>Username</b> and <b>repository</b> are the two parts of your repository's address: github.com/<b>username</b>/<b>repository</b>.</li>
+      </ol>
+      <label>GitHub token</label>
+      <input type="password" id="setup-github" placeholder="ghp_…" autocomplete="off">
+      <label>GitHub username</label>
+      <input type="text" id="setup-ghuser" placeholder="your-github-username" autocomplete="off">
+      <label>Repository name</label>
+      <input type="text" id="setup-ghrepo" placeholder="your-repo-name" autocomplete="off">
+    </details>
+
+    <div style="display:flex; gap:10px; margin-top:12px">
+      <button class="btn btn-secondary" onclick="document.getElementById('setup-modal').classList.remove('active')">Not now</button>
+      <button class="btn btn-primary" onclick="saveSetup()">Save</button>
+    </div>
   </div>
 </div>
 
@@ -728,12 +769,16 @@
     <p>How would you like to use the trip planner?</p>
     <button class="mode-choice-btn" onclick="chooseMode('guest')">
       <b>🧳 Plan &amp; view trips</b>
-      <span>Create or import trips, see the calendar and day details, add notes and use the packing checklist. Everything is saved on this device. No keys needed.</span>
+      <span>Everything you need to plan a trip: create or import trips, see the calendar and each day's details, add notes, tick off the packing list and share trips. Free, nothing to set up.</span>
     </button>
     <button class="mode-choice-btn" onclick="chooseMode('owner')">
-      <b>🔑 Full access</b>
-      <span>Everything above, plus the in-app AI assistant (needs an Anthropic API key) and, for the site owner, publishing to the live page (needs a GitHub token).</span>
+      <b>✨ Add the built-in AI helpers</b>
+      <span>Everything above, plus two time-savers that use Claude (an AI) right inside the app:
+        <br>• <b>Add plans without typing</b> — paste a booking email or snap a photo of a ticket and it's put on the right day.
+        <br>• <b>A daily briefing</b> — a friendly summary of the day, ready to send by email or WhatsApp.
+        <br>Needs your own Anthropic API key (a one-time, 5-minute setup; you pay Anthropic directly, usually a few cents per use). We'll walk you through it.</span>
     </button>
+    <div class="modal-note" style="margin:4px 0 0">Not sure? Start with the first option — you can switch any time from the link at the bottom of the calendar. Importing a trip with ChatGPT, Claude or Gemini works in both.</div>
   </div>
 </div>
 
@@ -2540,13 +2585,34 @@ function openSetupModal() {
   document.getElementById("setup-modal").classList.add("active");
 }
 
+// Verifies a key without spending credit (listing models is free).
+async function testAnthropicKey() {
+  const key = document.getElementById("setup-anthropic").value.trim() || getCreds().anthropic;
+  const out = document.getElementById("setup-test");
+  const show = (msg, bad) => { out.textContent = msg; out.className = "br-status" + (bad ? " error" : ""); out.style.display = "block"; };
+  if (!key) return show("Paste your key in the box first.", true);
+  if (!key.startsWith("sk-ant-")) return show("That doesn't look like an Anthropic API key — they start with “sk-ant-”. Check you copied the whole thing.", true);
+  show("Checking with Anthropic…");
+  try {
+    const res = await fetch("https://api.anthropic.com/v1/models?limit=1", { headers: {
+      "x-api-key": key, "anthropic-version": "2023-06-01", "anthropic-dangerous-direct-browser-access": "true" } });
+    if (res.ok) show("✅ This key works. Tap Save. (If a helper later says your credit balance is too low, add credit under Settings → Billing in the Console.)");
+    else if (res.status === 401) show("❌ Anthropic didn't accept this key. Check you copied all of it, or create a new one in the Console.", true);
+    else if (res.status === 403) show("❌ This key isn't allowed to use the API. Create a new key under Settings → API keys.", true);
+    else show(`⚠️ Anthropic replied with an error (${res.status}). The key may still be fine — try Save and use a helper.`, true);
+  } catch {
+    show("Couldn't reach Anthropic to check the key from here. You can still save it and try a helper.", true);
+  }
+}
+
 function saveSetup() {
   const creds = getCreds();
   const a = document.getElementById("setup-anthropic").value.trim() || creds.anthropic;
   const g = document.getElementById("setup-github").value.trim()    || creds.github;
   const u = document.getElementById("setup-ghuser").value.trim()    || creds.ghuser;
   const r = document.getElementById("setup-ghrepo").value.trim()    || creds.ghrepo;
-  if (!a) { alert("Please enter your Anthropic API key."); return; }
+  if (!a) { alert("Please paste your Anthropic API key — or tap “Not now” to set it up later."); return; }
+  if (!a.startsWith("sk-ant-") && !confirm("That doesn't look like an Anthropic API key (they start with “sk-ant-”). Save it anyway?")) return;
   localStorage.setItem("cred_anthropic",a);
   if (g) localStorage.setItem("cred_github",g);
   if (u) localStorage.setItem("cred_ghuser",u);
