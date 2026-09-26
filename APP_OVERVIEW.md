@@ -38,10 +38,10 @@ It's a single web page hosted for free on GitHub Pages: **no server, no database
 ### ☀️ 5. Daily briefing, on demand
 - Tap **Daily briefing** and Claude writes a short, friendly morning summary. It covers today's location, stay, flights and plans, a "Don't forget" list, and a look at tomorrow.
 - Edit the text if you like, then send it by **email** or **WhatsApp** with one tap. You can also share or copy it.
-- Uses your own Anthropic API key, at a few cents per briefing.
+- Uses your own Claude, ChatGPT or Gemini API key — free on Gemini's free tier, otherwise a few cents per briefing.
 
-### 🤖 6. AI plan assistant ("Add Plans")
-- With an Anthropic API key, you can chat with an assistant: paste a booking email, attach a PDF or photo, or just speak.
+### 🤖 6. AI plan assistant ("Add to this trip")
+- With your own Claude, ChatGPT or Gemini API key, you can chat with an assistant: paste a booking email, attach a PDF or photo, or just speak. The setup screen walks you through getting a key.
 - It works out which day each plan belongs to and shows a **preview** before anything is saved.
 
 ### 🧳 7. Packing checklist for the whole group
@@ -76,6 +76,6 @@ It's a single web page hosted for free on GitHub Pages: **no server, no database
 
 - **One file, no build step.** The whole app is `index.html`. The only external dependency is Google Fonts; share links use the browser's built-in compression.
 - **Storage:** the browser's `localStorage`, with each trip's data kept separately.
-- **AI:** the Anthropic Claude API, called directly from the browser with the user's own key, powers the plan assistant and the daily briefing. AI import works with any AI, because the user copies a prompt into it.
+- **AI:** Claude, ChatGPT or Gemini (the user's choice), called directly from the browser with the user's own key, powers the plan assistant and the daily briefing. AI import works with any AI, because the user copies a prompt into it.
 - **Portable format:** `trip-planner/v1` JSON, documented in `TRIP_IMPORT_FORMAT.md`.
 - **Hosting:** GitHub Pages. The site owner can publish the built-in trip through the GitHub API.

@@ -1,7 +1,7 @@
 <html lang="en"><head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
-<title>Nicky &amp; Pete — US Trip July 2026</title>
+<title>Trip Planner</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&amp;display=swap" rel="stylesheet">
 <style>
@@ -555,15 +555,15 @@
   }
   .modal textarea { resize: vertical; min-height: 70px; line-height: 1.5; }
   .modal select:focus, .modal textarea:focus { border-color: #3d7dbf; }
-  .send-to-pete {
+  .send-additions {
     display: none; width: 100%; margin: 0 0 14px; padding: 12px;
     border: none; border-radius: 10px; background: #1a3a4a; color: #fff;
     font-family: 'Inter', sans-serif; font-weight: 600; font-size: 0.8rem; cursor: pointer;
   }
-  .send-to-pete:active { opacity: 0.85; }
-  body.guest-mode .send-to-pete.has-items { display: block; }
-  body.owner-mode .send-to-pete { display: none !important; }
-  /* Owner-only "publish additions" button (mirrors send-to-pete, but publishes directly) */
+  .send-additions:active { opacity: 0.85; }
+  body.guest-mode .send-additions.has-items { display: block; }
+  body.owner-mode .send-additions { display: none !important; }
+  /* Owner-only "publish additions" button (mirrors send-additions, but publishes directly) */
   .owner-publish {
     display: none; width: 100%; margin: 0 0 14px; padding: 12px;
     border: none; border-radius: 10px; background: #1b5e20; color: #fff;
@@ -643,6 +643,35 @@
   .wizard-error.visible { display: block; }
   .wizard-footer { display: flex; gap: 10px; padding: 12px 18px; background: #fff; border-top: 1px solid #e3ddd2; }
 
+  .trip-bar { display: flex; gap: 8px; justify-content: space-between; align-items: center; margin-bottom: 14px; }
+  .trip-switch {
+    border: 1.5px solid #d8d2c7; background: #fff; color: #1a3a4a; border-radius: 999px; padding: 8px 14px;
+    font-family: 'Inter', sans-serif; font-weight: 600; font-size: 0.74rem; cursor: pointer; white-space: nowrap;
+  }
+  .trip-count { color: #6b7c8a; font-weight: 500; }
+  .new-trip-btn {
+    border: none; background: #1a3a4a; color: #fff; border-radius: 999px; padding: 9px 16px;
+    font-family: 'Inter', sans-serif; font-weight: 700; font-size: 0.76rem; cursor: pointer; white-space: nowrap;
+  }
+  .trip-switch:active, .new-trip-btn:active { opacity: 0.85; }
+  .ai-pick { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; margin-bottom: 12px; }
+  .ai-pick label { border: 1.5px solid #d8d2c7; border-radius: 8px; padding: 8px 6px; text-align: center; cursor: pointer;
+    text-transform: none; letter-spacing: 0; margin: 0; background: #fff; }
+  .ai-pick label:has(input:checked) { border-color: #1a3a4a; background: #f0f6ff; }
+  .ai-pick input { display: none; }
+  .ai-pick b { display: block; font-size: 0.8rem; color: #1a3a4a; }
+  .ai-pick span { display: block; font-size: 0.6rem; color: #6b7c8a; font-weight: 500; margin-top: 2px; }
+  .setup-cost { font-size: 0.68rem; color: #5a3e00; background: #fff8e1; border-radius: 6px; padding: 6px 8px; margin-top: 4px; }
+  .setup-steps { background: #f7f4ef; border-radius: 10px; padding: 10px 12px; margin-bottom: 14px; }
+  .setup-step-title { font-size: 0.72rem; font-weight: 700; color: #1a3a4a; margin-bottom: 6px; }
+  .setup-steps ol, .setup-github ol { padding-left: 18px; font-size: 0.72rem; color: #333; line-height: 1.55; }
+  .setup-steps li, .setup-github li { margin-bottom: 6px; }
+  #setup-modal a { color: #1a5b8a; font-weight: 600; }
+  #setup-modal code { font-size: 0.7rem; background: #efeae1; padding: 0 3px; border-radius: 3px; }
+  .setup-github { border: 1.5px solid #e3ddd2; border-radius: 10px; padding: 8px 12px; margin-bottom: 4px; }
+  .setup-github summary { font-size: 0.72rem; font-weight: 600; color: #1a3a4a; cursor: pointer; }
+  .setup-github p { margin: 8px 0; }
+  .mode-choice-btn span br + b, .mode-choice-btn span b { display: inline; color: #1a3a4a; font-size: inherit; margin: 0; }
   .briefing-launch {
     width: 100%; margin: 0 0 14px; padding: 11px; border: 1.5px solid #f0d78c; border-radius: 10px;
     background: #fff8e1; color: #5a3e00; font-family: 'Inter', sans-serif; font-weight: 600; font-size: 0.8rem; cursor: pointer;
@@ -667,7 +696,7 @@
   body.own-trip .builtin-only { display: none; }
 
   /* Send/publish/import only apply to the built-in (published) trip */
-  body.own-trip .send-to-pete, body.own-trip .owner-publish,
+  body.own-trip .send-additions, body.own-trip .owner-publish,
   body.own-trip .cal-publish-link, body.own-trip #publish-bar { display: none !important; }
   .add-custom-item {
     width: 100%; padding: 10px; border: 1.5px dashed #b9b3a8; border-radius: 8px;
@@ -691,22 +720,89 @@
 
 <!-- ══ Setup Modal ══ -->
 <div class="modal-overlay" id="setup-modal">
-  <div class="modal">
-    <h2>⚙️ Keys</h2>
-    <p>The Anthropic key powers the AI assistant. The GitHub fields are only needed by the site owner to publish to the live page. Keys are stored only in this browser.</p>
-    <div class="modal-note">
-      <b>Anthropic API key:</b> console.anthropic.com → API Keys<br>
-      <b>GitHub token:</b> github.com → Settings → Developer settings → Personal access tokens (classic) → Generate → tick <b>repo</b>
+  <div class="modal" style="max-width:460px">
+    <h2>✨ Set up the AI helpers</h2>
+    <p>The AI helpers can run on <b>Claude</b>, <b>ChatGPT</b> or <b>Gemini</b> — pick whichever you prefer. You'll need an <b>API key</b> from that company: a long password that lets this app use their AI on your behalf, billed (if at all) to your own account. It takes about 5 minutes.</p>
+
+    <label>Which AI?</label>
+    <div class="ai-pick">
+      <label><input type="radio" name="ai-pick" value="anthropic" onchange="setupPick(this.value)"><b>Claude</b><span>Anthropic</span></label>
+      <label><input type="radio" name="ai-pick" value="openai" onchange="setupPick(this.value)"><b>ChatGPT</b><span>OpenAI</span></label>
+      <label><input type="radio" name="ai-pick" value="gemini" onchange="setupPick(this.value)"><b>Gemini</b><span>Google · free tier</span></label>
     </div>
-    <label>Anthropic API Key</label>
-    <input type="password" id="setup-anthropic" placeholder="sk-ant-..." autocomplete="off">
-    <label>GitHub Personal Access Token</label>
-    <input type="password" id="setup-github" placeholder="ghp_..." autocomplete="off">
-    <label>GitHub Username</label>
-    <input type="text" id="setup-ghuser" placeholder="petecutter-eng" autocomplete="off">
-    <label>GitHub Repo Name</label>
-    <input type="text" id="setup-ghrepo" placeholder="PeteandNickysTrip" autocomplete="off">
-    <button class="btn btn-primary" onclick="saveSetup()" style="width:100%">Save &amp; Continue</button>
+
+    <div class="setup-steps" data-provider="anthropic">
+      <div class="setup-step-title">How to get a Claude (Anthropic) API key</div>
+      <ol>
+        <li><b>Create an account.</b> Open the <a href="https://console.anthropic.com" target="_blank" rel="noopener">Anthropic Console</a> and sign up with your email or Google account. (This is separate from a Claude.ai chat subscription — you need a Console account even if you already use Claude.)</li>
+        <li><b>Add some credit.</b> In the Console, go to <b>Settings → Billing</b> and buy credits (the minimum is about US$5). Keys don't work until the account has credit. $5 covers a whole trip's worth of briefings and plan-adding for most people.</li>
+        <li><b>Optional but wise: set a spending limit.</b> Under <b>Settings → Limits</b> you can cap monthly spend (e.g. $10).</li>
+        <li><b>Create the key.</b> Go to <b>Settings → API keys</b> (<a href="https://console.anthropic.com/settings/keys" target="_blank" rel="noopener">direct link</a>) → <b>Create Key</b> → name it “Trip Planner” → <b>Create</b>.</li>
+        <li><b>Copy it straight away.</b> It starts with <code>sk-ant-</code> and is shown <b>only once</b>. Paste it below. If you lose it, just create a new one.</li>
+      </ol>
+      <div class="setup-cost">Cost: a daily briefing is roughly 2–3 US cents; adding plans from an email or photo is usually a few cents. Billed by Anthropic.</div>
+    </div>
+
+    <div class="setup-steps" data-provider="openai">
+      <div class="setup-step-title">How to get a ChatGPT (OpenAI) API key</div>
+      <ol>
+        <li><b>Create a developer account.</b> Open the <a href="https://platform.openai.com" target="_blank" rel="noopener">OpenAI Platform</a> and sign up or log in. (A ChatGPT Plus or Pro subscription does <b>not</b> include API use — the Platform is billed separately, even with the same login.)</li>
+        <li><b>Add some credit.</b> Go to <b>Settings → Billing</b> and add a payment method and credit (the minimum is about US$5). Keys don't work until there's credit.</li>
+        <li><b>Optional but wise: set a budget.</b> Under <b>Settings → Limits</b> you can set a monthly budget.</li>
+        <li><b>Create the key.</b> Go to <b>API keys</b> (<a href="https://platform.openai.com/api-keys" target="_blank" rel="noopener">direct link</a>) → <b>Create new secret key</b> → name it “Trip Planner” → <b>Create secret key</b>.</li>
+        <li><b>Copy it straight away.</b> It starts with <code>sk-</code> and is shown <b>only once</b>. Paste it below.</li>
+      </ol>
+      <div class="setup-cost">Cost: usually well under a cent to a few cents per briefing or plan. Billed by OpenAI.</div>
+    </div>
+
+    <div class="setup-steps" data-provider="gemini">
+      <div class="setup-step-title">How to get a Gemini (Google) API key</div>
+      <ol>
+        <li><b>Open Google AI Studio.</b> Go to <a href="https://aistudio.google.com" target="_blank" rel="noopener">Google AI Studio</a> and sign in with your Google account. Accept the terms if asked.</li>
+        <li><b>Create the key.</b> Click <b>Get API key</b> → <b>Create API key</b> (<a href="https://aistudio.google.com/app/apikey" target="_blank" rel="noopener">direct link</a>). If it asks for a Google Cloud project, let it create one for you.</li>
+        <li><b>Copy the key.</b> It starts with <code>AIza</code>. Paste it below. (You can come back to AI Studio to copy it again later.)</li>
+        <li><b>Free or paid — your choice.</b> Gemini currently has a <b>free tier</b> with daily limits, so no card is needed to start. On the free tier Google may use what you send to improve its products; turning on billing in AI Studio avoids that and raises the limits.</li>
+      </ol>
+      <div class="setup-cost">Cost: free on the free tier (within Google's limits); otherwise typically well under a cent per briefing or plan.</div>
+    </div>
+
+    <label id="setup-key-label">API key</label>
+    <input type="password" id="setup-key" autocomplete="off" oninput="document.getElementById('setup-test').style.display='none'">
+    <button class="btn btn-secondary" style="width:100%; margin:-4px 0 10px" onclick="testAiKey()">Check this key</button>
+    <div class="br-status" id="setup-test" style="display:none"></div>
+
+    <div class="modal-note">
+      <b>About safety:</b> the key is saved only in this browser on this device and is only ever sent to the company that issued it. Anyone using this browser could use it, so don't set it up on a shared computer. You can delete the key on the company's website at any time.
+    </div>
+
+    <details class="setup-github">
+      <summary>Advanced: model name (optional)</summary>
+      <p>Leave blank to use the default (<code id="setup-model-default"></code>). Only change this if the AI company has retired that model or you prefer another one.</p>
+      <input type="text" id="setup-model" autocomplete="off" placeholder="default">
+    </details>
+
+    <details class="setup-github">
+      <summary>Publishing to the live website (site owner only — most people skip this)</summary>
+      <p>Only needed if you run this website yourself and want to publish the built-in trip for everyone. It uses a GitHub “personal access token”.</p>
+      <ol>
+        <li>Sign in to <a href="https://github.com" target="_blank" rel="noopener">GitHub</a> with the account that owns the website's repository.</li>
+        <li>Open <a href="https://github.com/settings/tokens/new?scopes=repo&amp;description=Trip%20Planner" target="_blank" rel="noopener">New personal access token (classic)</a> — or go to your profile picture → <b>Settings</b> → <b>Developer settings</b> → <b>Personal access tokens</b> → <b>Tokens (classic)</b> → <b>Generate new token (classic)</b>.</li>
+        <li>Give it a note like “Trip Planner”, choose an expiry (e.g. 90 days), tick the <b>repo</b> box, then <b>Generate token</b>.</li>
+        <li>Copy the token (starts with <code>ghp_</code>, shown only once) and paste it below.</li>
+        <li><b>Username</b> and <b>repository</b> are the two parts of your repository's address: github.com/<b>username</b>/<b>repository</b>.</li>
+      </ol>
+      <label>GitHub token</label>
+      <input type="password" id="setup-github" placeholder="ghp_…" autocomplete="off">
+      <label>GitHub username</label>
+      <input type="text" id="setup-ghuser" placeholder="your-github-username" autocomplete="off">
+      <label>Repository name</label>
+      <input type="text" id="setup-ghrepo" placeholder="your-repo-name" autocomplete="off">
+    </details>
+
+    <div style="display:flex; gap:10px; margin-top:12px">
+      <button class="btn btn-secondary" onclick="document.getElementById('setup-modal').classList.remove('active')">Not now</button>
+      <button class="btn btn-primary" onclick="saveSetup()">Save</button>
+    </div>
   </div>
 </div>
 
@@ -717,12 +813,16 @@
     <p>How would you like to use the trip planner?</p>
     <button class="mode-choice-btn" onclick="chooseMode('guest')">
       <b>🧳 Plan &amp; view trips</b>
-      <span>Create or import trips, see the calendar and day details, add notes and use the packing checklist. Everything is saved on this device. No keys needed.</span>
+      <span>Everything you need to plan a trip: create or import trips, see the calendar and each day's details, add notes, tick off the packing list and share trips. Free, nothing to set up.</span>
     </button>
     <button class="mode-choice-btn" onclick="chooseMode('owner')">
-      <b>🔑 Full access</b>
-      <span>Everything above, plus the in-app AI assistant (needs an Anthropic API key) and, for the site owner, publishing to the live page (needs a GitHub token).</span>
+      <b>✨ Add the built-in AI helpers</b>
+      <span>Everything above, plus two time-savers that use an AI — Claude, ChatGPT or Gemini, your choice — right inside the app:
+        <br>• <b>Add plans without typing</b> — paste a booking email or snap a photo of a ticket and it's put on the right day.
+        <br>• <b>A daily briefing</b> — a friendly summary of the day, ready to send by email or WhatsApp.
+        <br>Needs your own API key from that AI company (a one-time, 5-minute setup). Gemini has a free tier; the others cost a few cents per use, paid to them directly. We'll walk you through it.</span>
     </button>
+    <div class="modal-note" style="margin:4px 0 0">Not sure? Start with the first option — you can switch any time from the link at the bottom of the calendar. Importing a trip with ChatGPT, Claude or Gemini works in both.</div>
   </div>
 </div>
 
@@ -731,10 +831,7 @@
   <div class="modal" style="max-width:420px">
     <h2>🧳 Your trips</h2>
     <p>Trips are saved on this device — use <b>Export</b> to keep a backup file. Create a trip from scratch, import one your AI prepared, or duplicate an existing trip.</p>
-    <div style="display:flex; gap:8px">
-      <button class="add-custom-item" onclick="closeTrips(); openWizard('create')">＋ New trip</button>
-      <button class="add-custom-item" onclick="openTripImport()">📥 Import trip</button>
-    </div>
+    <button class="new-trip-btn" style="width:100%; margin-bottom:12px" onclick="closeTrips(); openNewTrip()">＋ Start a new trip</button>
     <div id="trips-list"></div>
     <div class="modal-note" id="trips-example-note" style="display:none">
       The example trip is only here to show how the app works. When you create your own trip, the example and anything you added to it is deleted from this device.
@@ -767,11 +864,11 @@
 <div class="modal-overlay" id="briefing-modal">
   <div class="modal" style="max-width:460px">
     <h2>☀️ Daily briefing</h2>
-    <p>A short morning summary of the day — flights, stay, plans and reminders — plus a look at tomorrow. Written by Claude from this trip.</p>
+    <p>A short morning summary of the day — flights, stay, plans and reminders — plus a look at tomorrow. Written by your AI helper from this trip.</p>
     <label>Day</label>
     <select id="br-day" onchange="brShowDay()"></select>
     <div class="modal-note" id="br-nokey" style="display:none">
-      Briefings are written by Claude and need your own Anthropic API key (a few cents per briefing).
+      Briefings are written by an AI helper — Claude, ChatGPT or Gemini — using your own API key (free on Gemini's free tier; otherwise a few cents per briefing).
       <a onclick="closeBriefing(); openSetupModal()" style="color:#1a3a4a; font-weight:700; cursor:pointer; text-decoration:underline">Add a key</a>
     </div>
     <button class="btn btn-primary" id="br-gen" style="width:100%; margin-bottom:10px" onclick="brGenerate()">☀️ Generate briefing</button>
@@ -792,6 +889,27 @@
     </div>
     <div style="display:flex; gap:10px; margin-top:12px">
       <button class="btn btn-secondary" onclick="closeBriefing()">Close</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══ Start a New Trip (chooser) ══ -->
+<div class="modal-overlay" id="new-trip-modal">
+  <div class="modal" style="max-width:420px">
+    <h2>🧳 Start a new trip</h2>
+    <p>How would you like to set it up?</p>
+    <button class="mode-choice-btn" onclick="closeNewTrip(); openTripImport()">
+      <b>📥 Import from my bookings</b>
+      <span>Recommended. Paste your booking emails, PDFs, screenshots or notes into ChatGPT, Claude or Gemini with our prompt, then paste the result back here. Takes a couple of minutes.</span>
+    </button>
+    <button class="mode-choice-btn" onclick="closeNewTrip(); openWizard('create')">
+      <b>✏️ Build it step by step</b>
+      <span>Enter the dates, travelers, places, stays and flights yourself in a short guided form.</span>
+    </button>
+    <div id="nt-copy"></div>
+    <div class="modal-note" id="nt-example" style="display:none">Your example trip — and anything you added to it — will be removed from this device once your new trip is created.</div>
+    <div style="display:flex; gap:10px">
+      <button class="btn btn-secondary" onclick="closeNewTrip()">Cancel</button>
     </div>
   </div>
 </div>
@@ -839,7 +957,7 @@
 <div class="modal-overlay" id="guest-note-modal">
   <div class="modal" style="max-width:400px">
     <h2>📝 Add a note</h2>
-    <p>Saved on this device.<span class="builtin-only"> When you're ready, tap <b>Send to Pete</b> on the calendar and he'll publish it for everyone.</span></p>
+    <p>Saved on this device.<span class="builtin-only"> When you're ready, tap <b>Send my additions</b> on the calendar and the trip owner can publish it for everyone.</span></p>
     <label>Which day</label>
     <select id="guest-note-day"></select>
     <label>Your note</label>
@@ -856,8 +974,8 @@
   <div class="modal" style="max-width:400px">
     <h2>✍️ Journal entry</h2>
     <p id="journal-day-label" style="font-weight:600; color:#1a3a4a; margin-bottom:6px">—</p>
-    <p>Jot down a memory, a highlight, or what happened on this day. Saved on this device<span class="builtin-only"> — then send it to Pete (or publish it, if you're Pete) to share it with everyone</span>.</p>
-    <textarea id="journal-text" style="min-height:120px" placeholder="e.g. Walked the Freedom Trail — Nicky loved the duck boats and we got ice cream at Faneuil Hall."></textarea>
+    <p>Jot down a memory, a highlight, or what happened on this day. Saved on this device<span class="builtin-only"> — then send it to the trip owner (or publish it, if that's you) to share it with everyone</span>.</p>
+    <textarea id="journal-text" style="min-height:120px" placeholder="e.g. Walked the old town, found a great gelato place and watched the sunset from the harbour."></textarea>
     <div style="display:flex; gap:10px">
       <button class="btn btn-secondary" onclick="closeJournal()">Cancel</button>
       <button class="btn btn-primary" onclick="saveJournal()">Save entry</button>
@@ -869,7 +987,7 @@
 <div class="modal-overlay" id="guest-item-modal">
   <div class="modal" style="max-width:400px">
     <h2>➕ Add a packing item</h2>
-    <p>Added to the checklist on this device.<span class="builtin-only"> Send it to Pete to publish it to everyone's list.</span></p>
+    <p>Added to the checklist on this device.<span class="builtin-only"> Send it to the trip owner to publish it to everyone's list.</span></p>
     <label>Item (English)</label>
     <input type="text" id="guest-item-en" placeholder="e.g. Fishing rod" autocomplete="off">
     <label>Thai (optional)</label>
@@ -881,14 +999,14 @@
   </div>
 </div>
 
-<!-- ══ Send-to-Pete Modal ══ -->
+<!-- ══ Send-to-owner Modal ══ -->
 <div class="modal-overlay" id="send-modal">
   <div class="modal" style="max-width:420px">
-    <h2>📤 Send to Pete</h2>
+    <h2>📤 Send to the trip owner</h2>
     <p id="send-summary">—</p>
     <label>Your name (optional)</label>
     <input type="text" id="send-name" placeholder="e.g. Auntie Jane" autocomplete="off">
-    <div class="modal-note">Pete opens the link in his app, reviews your additions, and publishes them to the live page. Nothing goes live until he approves it.</div>
+    <div class="modal-note">The trip owner opens the link, reviews your additions and publishes them to the live page. Nothing goes live until they approve it.</div>
     <button class="btn btn-primary" style="width:100%; margin-bottom:8px" onclick="shareToPhone()">📲 Share link…</button>
     <button class="btn btn-secondary" style="width:100%; margin-bottom:12px" onclick="copyShareLink()">📋 Copy link</button>
     <label>Or copy this code</label>
@@ -897,10 +1015,10 @@
   </div>
 </div>
 
-<!-- ══ Import Review Modal (Pete) ══ -->
+<!-- ══ Import Review Modal (trip owner) ══ -->
 <div class="modal-overlay" id="import-modal">
   <div class="modal" style="max-width:440px">
-    <h2 id="import-title">📥 Family additions</h2>
+    <h2 id="import-title">📥 Additions to review</h2>
     <p id="import-summary">—</p>
     <div id="import-body" style="max-height:40vh; overflow-y:auto; margin-bottom:16px"></div>
     <div id="import-status" style="font-size:0.72rem; color:#1b5e20; margin-bottom:10px; display:none"></div>
@@ -923,41 +1041,7 @@
     <button class="ingester-close" onclick="closeIngester()">✕</button>
   </div>
 
-  <div class="chat-thread" id="chat-thread"><div class="chat-bubble claude">Hi! Drop in a booking confirmation, paste an itinerary, or just tell me what's planned — I'll figure out what goes where. You can also attach a PDF or image. 📋</div><div class="chat-bubble system">🎤 Listening — speak now. Tap ⏹ to stop and send.</div><div class="chat-bubble user">on on the on the on the on the first on the first day on the first day on the first day when on the first day when we on the first day when we leave on the first day when we leave on the first day when we leave on the first day when we leave Bangkok on the first day when we leave Bangkok on the first day when we leave Bangkok on the first day when we leave Bangkok on the first day when we leave Bangkok on the first day when we leave Bangkok on the first day when we leave Bangkok calculate on the first day when we leave Bangkok calculate on the first day when we leave Bangkok calculate the on the first day when we leave Bangkok calculate the on the first day when we leave Bangkok calculate the time on the first day when we leave Bangkok calculate the time that on the first day when we leave Bangkok calculate the time that on the first day when we leave Bangkok calculate the time that we on the first day when we leave Bangkok calculate the time that we need on the first day when we leave Bangkok calculate the time that we need on the first day when we leave Bangkok calculate the time that we need to on the first day when we leave Bangkok calculate the time that we need to leave on the first day when we leave Bangkok calculate the time that we need to leave the on the first day when we leave Bangkok calculate the time that we need to leave the house on the first day when we leave Bangkok calculate the time that we need to leave the house add add it add it to add it to the add it to the calendar</div><div class="chat-bubble claude">Sounds like you're voice-dictating — got it! 😄
-
-So you want to figure out what time you need to leave home in Bangkok on **July 1**, and add that to the calendar.
-
-To calculate that, I need a few details:
-
-1. **What flight are you taking out of Bangkok?** (airline, flight number, or departure time?)
-2. **Which Bangkok airport?** Suvarnabhumi (BKK) or Don Mueang (DMK)?
-3. **How far is your home from the airport?** (or roughly which area of Bangkok?)
-
-Once I have those I can work backwards and give you a "leave the house by" time! 🏠✈️</div><div class="chat-bubble user">you you you have you have you have all you have all of you have all of the you have all of the you have all of the information you have all of the information you have all of the information about you have all of the information about you have all of the information about the you have all of the information about the flight you have all of the information about the flight already</div><div class="chat-bubble claude">You're right, I'm sorry — but I actually *don't* have your flight details yet! This is a fresh conversation and no booking info has been shared with me yet.
-
-Could you paste your flight confirmation for **July 1**? Even just the key details:
-
-- ✈️ Airline &amp; flight number
-- 🕐 Departure time
-- 🛫 Airport (BKK or DMK?)
-
-Then I'll calculate your leave-home time and add it! 🙂</div><div class="chat-bubble user">📎 E-Ticket_PETER GUILD MR.pdf</div><div class="chat-bubble claude">Got it — I have all your flights now! ✈️
-
-**July 1: JL 708 departs Suvarnabhumi at 07:55**
-
-For an international flight, you'll want to be at the airport **2.5–3 hours early** → so at BKK by **5:00am**.
-
-One question: **roughly where in Bangkok do you live?** That'll let me calculate your leave-home time accurately (e.g. Sukhumvit vs. outskirts can be very different at 4am!).</div><div class="chat-bubble user">La Perla apt</div><div class="chat-bubble claude">I'm not familiar with exactly where La Perla apartment is in Bangkok — do you know which area/neighborhood it's in, or the nearest BTS/MRT station? 🙏</div><div class="chat-bubble user">Near Ari BTS station</div><div class="chat-bubble claude">Perfect! Ari to Suvarnabhumi at ~4:30am — traffic will be very light, so about **45–60 minutes** by taxi/Grab.
-
-So I'd suggest:
-
-- 🛫 Be at BKK airport by **5:00am**
-- 🚗 **Leave home by 4:00am**
-
-Does that work? Want me to add a "Leave home" reminder for **4:00am on July 1** to the calendar?</div><div class="chat-bubble user">Yes</div><div class="chat-bubble claude">Here's what I'll add to July 1 👆 — looks good?</div><div class="preview-card"><div class="preview-card-header">📋 Ready to add — 1 item</div><div class="preview-card-item"><b>1 Jul</b> · <b>Reminder</b><br><b>🚗 Leave home for airport</b> · 4:00am · Grab/taxi from La Perla (Ari) → Suvarnabhumi · JL 708 departs 07:55 · Conf: FQ5ZSK</div><div class="preview-confirm-row">
-    <button class="btn btn-confirm" onclick="confirmPreview()">✓ Add to calendar</button>
-    <button class="btn btn-revise" onclick="revisePreview()">Edit</button>
-  </div></div><div class="chat-bubble claude">✅ Done! Added to your calendar. Hit "Publish Live" to update the live page.</div></div>
+  <div class="chat-thread" id="chat-thread"><div class="chat-bubble claude">Hi! Drop in a booking confirmation, paste an itinerary, or just tell me what's planned — I'll figure out what goes where. You can also attach a PDF or image. 📋</div></div>
 
   <div class="publish-bar" id="publish-bar">
     <span class="publish-bar-text">✅ Changes ready to publish</span>
@@ -1020,29 +1104,28 @@ Does that work? Want me to add a "Leave home" reminder for **4:00am on July 1** 
 
   <!-- Calendar View -->
   <div class="view" id="calendar-view">
-    <header>
-      <h1 id="trip-title">Nicky &amp; Pete's US Trip ✈️</h1>
-      <p id="trip-subtitle">1 July – 17 July 2026 &nbsp;·&nbsp; Japan Airlines &nbsp;·&nbsp; Ref: FQ5ZSK</p>
-    </header>
-    <div class="legend" id="trip-legend">
-      <div class="legend-item"><div class="legend-dot" style="background:#5aaad8"></div>Boston</div>
-      <div class="legend-item"><div class="legend-dot" style="background:#3d7dbf"></div>Flight</div>
-      <div class="legend-item"><div class="legend-dot" style="background:#7cb87a"></div>Gallagher Cottage</div>
-      <div class="legend-item"><div class="legend-dot" style="background:#4caf50"></div>Notes saved</div>
-      <div class="legend-item"><div class="legend-dot" style="background:#e8b800"></div>Holiday</div>
+    <div class="trip-bar">
+      <button class="trip-switch" onclick="openTrips()">🧳 My trips <span class="trip-count" id="trip-count"></span> ▾</button>
+      <button class="new-trip-btn" onclick="openNewTrip()">＋ Start a new trip</button>
     </div>
+    <header>
+      <h1 id="trip-title">Trip Planner</h1>
+      <p id="trip-subtitle"></p>
+    </header>
+    <div class="legend" id="trip-legend"></div>
     <div class="cal-tools-row">
       <button class="checklist-launch" onclick="openChecklist()">
         📋 Packing Checklist <span class="cl-count" id="checklist-launch-count">3/46</span>
       </button>
-      <button class="fab" id="fab" onclick="onFabClick()">＋ Add Plans</button>
+      <button class="fab" id="fab" onclick="onFabClick()">＋ Add to this trip</button>
     </div>
     <div class="example-banner" id="example-banner" style="display:none">
-      👋 <b>This is an example trip.</b> <a onclick="openTripImport()">Import my trip</a> from any AI (paste your bookings, get a file), <a onclick="openWizard('create')">create one by hand</a>, or open <a onclick="openTrips()">Trips</a> to copy this one.
+      👋 <b>This is an example trip</b> to show how the app works.
+      <button class="new-trip-btn" style="display:block; width:100%; margin:8px 0" onclick="openNewTrip()">＋ Start my own trip</button>
       Once you have your own trip, this example — and anything you've added to it — is deleted from this device.
     </div>
     <button class="briefing-launch" onclick="openBriefing()">☀️ Daily briefing</button>
-    <button class="send-to-pete" id="send-to-pete-btn" onclick="openSend()">📤 Send my additions to Pete</button>
+    <button class="send-additions" id="send-additions-btn" onclick="openSend()">📤 Send my additions to the trip owner</button>
     <button class="owner-publish" id="owner-publish-btn" onclick="publishAdditions()">🚀 Publish my changes to the live page</button>
     <div class="calendar">
       <div class="cal-header" id="cal-header">
@@ -1055,12 +1138,7 @@ Does that work? Want me to add a "Leave home" reminder for **4:00am on July 1** 
       <p class="tap-hint">Tap any day to view details</p>
       <a class="cal-publish-link" id="cal-publish-link" onclick="publishFromCalendar(this)">Publish</a>
     </div>
-    <div class="summary" id="trip-summary">
-      <strong>✈ Flight Details — Peter Guild &amp; Nicholas Boonsuan</strong>
-      <b>Out (1 Jul):</b> BKK→NRT JL708 07:55 · NRT→BOS JL008 18:25 · Economy V · 2 bags<br>
-      <b>Return (16–17 Jul):</b> BOS→NRT JL007 13:15 · NRT→BKK JL707 18:25 · Economy N · 2 bags<br>
-      <b>Ref:</b> FQ5ZSK · Satguru Travel &amp; Tours, Bangkok
-    </div>
+    <div class="summary" id="trip-summary" style="display:none"></div>
     <div class="mode-footer">
       <a onclick="openTrips()">🧳 trips</a><span class="own-trip-only"> · <a onclick="openWizard('edit', activeTripId())">✏️ edit trip</a></span> · <span id="mode-indicator"></span> · <a onclick="reopenModeChooser()">switch mode</a><span id="keys-link" style="display:none"> · <a onclick="openSetupModal()">update keys</a></span>
     </div>
@@ -1076,7 +1154,7 @@ Does that work? Want me to add a "Leave home" reminder for **4:00am on July 1** 
       </div>
     </div>
     <div class="detail-body" id="detail-body"></div>
-    <button class="detail-add-btn" onclick="onFabClick()">＋ Add Plans</button>
+    <button class="detail-add-btn" onclick="onFabClick()">＋ Add to this day</button>
   </div>
 
 </div>
@@ -1355,6 +1433,8 @@ function switchTrip(id) {
 // Re-render everything that depends on which trip is active.
 function applyTripContext() {
   document.body.classList.toggle("own-trip", !isBuiltinActive());
+  const n = listTrips().length, count = document.getElementById("trip-count");
+  if (count) count.textContent = n > 1 ? `(${n})` : "";
   const banner = document.getElementById("example-banner");
   if (banner) banner.style.display = (isBuiltinActive() && builtinStatus() === "example") ? "block" : "none";
   renderTripChrome();
@@ -1948,7 +2028,7 @@ function tripToPortable(tripId, includeNotes = true) {
     items: sec.items.filter(it => !removed.has(it.id)).map(it => clean({ id: it.id, en: it.en, alt: it.alt })) }))
     .filter(sec => sec.items.length);
   const custom = getCustomItems(tripId);
-  if (custom.length) sections.push({ id: "custom", section: "Added by the family", items: custom.map(c => clean({ id: c.id, en: c.en, alt: c.th })) });
+  if (custom.length) sections.push({ id: "custom", section: "Added items", items: custom.map(c => clean({ id: c.id, en: c.en, alt: c.th })) });
   out.checklist = sections.length ? sections : "none";
   const booking = clean({ ref: m.bookingRef, via: m.bookedVia, passengers: (m.passengers || []).slice() });
   if (Object.keys(booking).length) out.booking = booking;
@@ -2136,13 +2216,113 @@ async function checkTripParam() {
 }
 
 // ══════════════════════════════════════════════════════
+//  AI PROVIDERS — Claude (Anthropic), ChatGPT (OpenAI), Gemini (Google)
+// ══════════════════════════════════════════════════════
+// The AI helpers (plan assistant + daily briefing) call whichever provider the
+// user picked, with their own key, straight from the browser. aiChat() takes a
+// provider-neutral conversation and returns plain text:
+//   messages: [{ role: "user" | "assistant", parts: [{ text } | { file: { name, mime, base64 } }] }]
+// Keys: cred_anthropic / cred_openai / cred_gemini · ai_provider · ai_model_<provider> (optional override).
+const AI_PROVIDERS = {
+  anthropic: { label: "Claude",  company: "Anthropic", keyPrefix: "sk-ant-", models: { chat: "claude-sonnet-4-6", briefing: "claude-opus-5" } },
+  openai:    { label: "ChatGPT", company: "OpenAI",    keyPrefix: "sk-",     models: { chat: "gpt-5-mini",        briefing: "gpt-5-mini" } },
+  gemini:    { label: "Gemini",  company: "Google",    keyPrefix: "AIza",    models: { chat: "gemini-flash-latest", briefing: "gemini-flash-latest" } }
+};
+function aiProvider() { const p = localStorage.getItem("ai_provider"); return AI_PROVIDERS[p] ? p : "anthropic"; }
+function aiKey(p = aiProvider()) { return localStorage.getItem("cred_" + p) || ""; }
+function hasAiKey() { return !!aiKey(); }
+function aiModel(p, purpose) { return (localStorage.getItem("ai_model_" + p) || "").trim() || AI_PROVIDERS[p].models[purpose]; }
+function aiLabel(p = aiProvider()) { return AI_PROVIDERS[p].label; }
+
+class AiError extends Error { constructor(message, kind) { super(message); this.kind = kind; } }   // kind: auth | refusal | quota | other
+
+async function aiChat({ system, messages, purpose, maxTokens = 16000 }) {
+  const p = aiProvider(), key = aiKey(p), model = aiModel(p, purpose), who = AI_PROVIDERS[p];
+  if (!key) throw new AiError(`Add your ${who.company} API key first.`, "auth");
+  let res, data = {};
+  const call = async (url, init) => { res = await fetch(url, init); try { data = await res.json(); } catch { data = {}; } };
+  const fail = (msg) => {
+    const m = msg || `HTTP ${res.status}`;
+    if (res.status === 401 || /api key not valid|api_key_invalid|invalid.*api.?key|incorrect api key/i.test(m))
+      throw new AiError(`${who.company} didn't accept your API key — check it under “update keys”.`, "auth");
+    if (res.status === 429 || /quota|credit balance|billing/i.test(m))
+      throw new AiError(`${who.company} says: ${m} (usually a usage limit or missing credit on your ${who.company} account).`, "quota");
+    if (res.status === 404 || /model/i.test(m) && res.status === 400)
+      throw new AiError(`${who.company} says: ${m} — if the model name is out of date, change it under “update keys” → Advanced.`, "other");
+    throw new AiError(`${who.company} says: ${m}`, "other");
+  };
+
+  if (p === "anthropic") {
+    const content = parts => parts.map(pt => pt.file
+      ? (pt.file.mime === "application/pdf"
+          ? { type: "document", source: { type: "base64", media_type: "application/pdf", data: pt.file.base64 } }
+          : { type: "image", source: { type: "base64", media_type: pt.file.mime, data: pt.file.base64 } })
+      : { type: "text", text: pt.text });
+    const body = { model, max_tokens: maxTokens, system,
+      messages: messages.map(m => ({ role: m.role, content: m.role === "assistant" ? m.parts.map(pt => pt.text).join("") : content(m.parts) })) };
+    const headers = { "Content-Type": "application/json", "x-api-key": key, "anthropic-version": "2023-06-01", "anthropic-dangerous-direct-browser-access": "true" };
+    if (model === "claude-opus-5") {   // briefing default: low effort + server-side refusal fallback
+      body.output_config = { effort: "low" };
+      body.fallbacks = "default";
+      headers["anthropic-beta"] = "server-side-fallback-2026-07-01";
+    }
+    await call("https://api.anthropic.com/v1/messages", { method: "POST", headers, body: JSON.stringify(body) });
+    if (!res.ok || data.type === "error") fail(data.error && data.error.message);
+    if (data.stop_reason === "refusal") throw new AiError("Claude declined this request.", "refusal");
+    return (data.content || []).filter(b => b.type === "text").map(b => b.text).join("").trim();
+  }
+
+  if (p === "openai") {
+    const content = parts => parts.map(pt => pt.file
+      ? (pt.file.mime === "application/pdf"
+          ? { type: "file", file: { filename: pt.file.name || "document.pdf", file_data: `data:application/pdf;base64,${pt.file.base64}` } }
+          : { type: "image_url", image_url: { url: `data:${pt.file.mime};base64,${pt.file.base64}` } })
+      : { type: "text", text: pt.text });
+    const body = { model, max_completion_tokens: maxTokens,
+      messages: [{ role: "system", content: system }].concat(messages.map(m =>
+        ({ role: m.role, content: m.role === "assistant" ? m.parts.map(pt => pt.text).join("") : content(m.parts) }))) };
+    await call("https://api.openai.com/v1/chat/completions", { method: "POST",
+      headers: { "Content-Type": "application/json", "Authorization": "Bearer " + key }, body: JSON.stringify(body) });
+    if (!res.ok || data.error) fail(data.error && data.error.message);
+    const choice = (data.choices || [])[0] || {}, msg = choice.message || {};
+    if (msg.refusal || choice.finish_reason === "content_filter") throw new AiError("ChatGPT declined this request.", "refusal");
+    return String(msg.content || "").trim();
+  }
+
+  // gemini
+  const body = {
+    systemInstruction: { parts: [{ text: system }] },
+    contents: messages.map(m => ({ role: m.role === "assistant" ? "model" : "user",
+      parts: m.parts.map(pt => pt.file ? { inline_data: { mime_type: pt.file.mime, data: pt.file.base64 } } : { text: pt.text }) })),
+    generationConfig: { maxOutputTokens: maxTokens }
+  };
+  await call(`https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(model)}:generateContent?key=${encodeURIComponent(key)}`,
+    { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) });
+  if (!res.ok || data.error) fail(data.error && data.error.message);
+  const cand = (data.candidates || [])[0];
+  if (!cand) throw new AiError(data.promptFeedback && data.promptFeedback.blockReason ? "Gemini declined this request." : "Gemini returned nothing — try again.", "refusal");
+  if (["SAFETY", "PROHIBITED_CONTENT", "BLOCKLIST", "RECITATION"].includes(cand.finishReason)) throw new AiError("Gemini declined this request.", "refusal");
+  return ((cand.content && cand.content.parts) || []).filter(pt => pt.text && !pt.thought).map(pt => pt.text).join("").trim();
+}
+
+// Free check that a key works (every provider lists its models at no cost).
+async function aiCheckKey(p, key) {
+  const req = {
+    anthropic: ["https://api.anthropic.com/v1/models?limit=1", { headers: { "x-api-key": key, "anthropic-version": "2023-06-01", "anthropic-dangerous-direct-browser-access": "true" } }],
+    openai:    ["https://api.openai.com/v1/models", { headers: { "Authorization": "Bearer " + key } }],
+    gemini:    [`https://generativelanguage.googleapis.com/v1beta/models?pageSize=1&key=${encodeURIComponent(key)}`, {}]
+  }[p];
+  const res = await fetch(req[0], req[1]);
+  return res.status;
+}
+
+// ══════════════════════════════════════════════════════
 //  DAILY BRIEFING (on demand) — replaces the GitHub Actions cron for any trip
 // ══════════════════════════════════════════════════════
 // Builds today + tomorrow + day-after context from the active trip (the shape
 // the old GitHub Actions briefing used), asks Claude for a short plain-text briefing, then hands it
 // to mail / WhatsApp / the share sheet. Recipients are per device, per trip
 // (briefing_to_<tripId>) so they never travel in exports or share links.
-const BRIEFING_MODEL = "claude-opus-5";
 const DOW_LONG = ["Sunday","Monday","Tuesday","Wednesday","Thursday","Friday","Saturday"];
 const MAILTO_SOFT_LIMIT = 1800;   // chars; some mail apps truncate longer mailto: bodies
 function friendlyDate(k) { const dt = parseDateKey(k); return `${DOW_LONG[dt.getUTCDay()]}, ${dt.getUTCDate()} ${MONTHS_LONG[dt.getUTCMonth()]}`; }
@@ -2196,38 +2376,18 @@ Format: plain text that reads well in WhatsApp or email. No markdown (no #, no *
 Length: 150–250 words.`;
 }
 
-// Calls the Messages API from the browser with the user's own key.
+// Asks the user's chosen AI (see aiChat) for the briefing text.
 async function generateBriefing(dateKey) {
-  const key = getCreds().anthropic;
-  if (!key) throw new Error("Add your Anthropic API key first.");
   const ctx = briefingContext(dateKey);
-  const res = await fetch("https://api.anthropic.com/v1/messages", {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      "x-api-key": key,
-      "anthropic-version": "2023-06-01",
-      "anthropic-beta": "server-side-fallback-2026-07-01",
-      "anthropic-dangerous-direct-browser-access": "true"
-    },
-    body: JSON.stringify({
-      model: BRIEFING_MODEL,
-      max_tokens: 16000,
-      output_config: { effort: "low" },
-      fallbacks: "default",
-      system: briefingSystemPrompt(ctx),
-      messages: [{ role: "user", content: `Here is the trip context as JSON. Write the briefing for ${friendlyDate(dateKey)}:\n\n${JSON.stringify(ctx, null, 2)}` }]
-    })
-  });
-  let data = {};
-  try { data = await res.json(); } catch {}
-  if (!res.ok || data.type === "error") {
-    const msg = (data.error && data.error.message) || `HTTP ${res.status}`;
-    throw new Error(res.status === 401 ? "Your Anthropic API key was rejected — check it under “update keys”." : msg);
+  let text;
+  try {
+    text = await aiChat({ purpose: "briefing", system: briefingSystemPrompt(ctx),
+      messages: [{ role: "user", parts: [{ text: `Here is the trip context as JSON. Write the briefing for ${friendlyDate(dateKey)}:\n\n${JSON.stringify(ctx, null, 2)}` }] }] });
+  } catch (e) {
+    if (e.kind === "refusal") throw new Error(`${aiLabel()} declined to write this briefing. Try again, or check the day's notes.`);
+    throw e;
   }
-  if (data.stop_reason === "refusal") throw new Error("Claude declined to write this briefing. Try again, or check the day's notes.");
-  const text = (data.content || []).filter(b => b.type === "text").map(b => b.text).join("").trim();
-  if (!text) throw new Error("Claude returned an empty briefing — try again.");
+  if (!text) throw new Error(`${aiLabel()} returned an empty briefing — try again.`);
   return text;
 }
 
@@ -2252,7 +2412,7 @@ function closeBriefing() { document.getElementById("briefing-modal").classList.r
 
 // Show the cached briefing for the selected day, or the Generate prompt.
 function brShowDay() {
-  const hasKey = !!getCreds().anthropic;
+  const hasKey = hasAiKey();
   const text = briefingCache[activeTripId() + "|" + document.getElementById("br-day").value] || "";
   document.getElementById("br-nokey").style.display = hasKey ? "none" : "block";
   const gen = document.getElementById("br-gen");
@@ -2278,7 +2438,7 @@ async function brGenerate() {
     brShowDay();
   } catch (e) {
     brStatus("⚠️ " + e.message, true);
-    gen.disabled = !getCreds().anthropic;
+    gen.disabled = !hasAiKey();
   }
 }
 function brUpdateLengthNote() {
@@ -2318,6 +2478,19 @@ async function brCopy() {
   try { await navigator.clipboard.writeText(el.value); brStatus("📋 Copied."); }
   catch { el.select(); brStatus("Select the text and copy it."); }
 }
+
+// ── Start a new trip: one entry point for import / build / copy ──
+function openNewTrip() {
+  const trips = listTrips();
+  document.getElementById("nt-copy").innerHTML = trips.map(t =>
+    `<button class="mode-choice-btn" onclick="closeNewTrip(); onDuplicateTrip('${t.id}')">
+      <b>📄 Copy “${escapeHtml(t.name)}”</b>
+      <span>Start from this trip — handy for a repeat trip. You can edit the copy.</span>
+    </button>`).join("");
+  document.getElementById("nt-example").style.display = builtinStatus() === "example" ? "block" : "none";
+  document.getElementById("new-trip-modal").classList.add("active");
+}
+function closeNewTrip() { document.getElementById("new-trip-modal").classList.remove("active"); }
 
 // ── Trip switcher UI ──
 function openTrips() { renderTripsList(); document.getElementById("trips-modal").classList.add("active"); }
@@ -2525,29 +2698,70 @@ function getCreds() {
     ghrepo:    localStorage.getItem("cred_ghrepo")||""
   };
 }
+let setupProvider = "anthropic";
 function openSetupModal() {
   const creds = getCreds();
-  // Pre-populate only if already set (shows masked placeholder so user knows it's saved)
-  const el = (id, val) => { const e = document.getElementById(id); if (val) e.placeholder = "••••••••" + val.slice(-4); };
-  el("setup-anthropic", creds.anthropic);
-  el("setup-github",    creds.github);
+  setupPick(aiProvider());
+  const gh = document.getElementById("setup-github");
+  gh.value = ""; gh.placeholder = creds.github ? "••••••••" + creds.github.slice(-4) : "ghp_…";
   document.getElementById("setup-ghuser").value = creds.ghuser || "";
   document.getElementById("setup-ghrepo").value = creds.ghrepo || "";
   document.getElementById("setup-modal").classList.add("active");
 }
 
+// Show the chosen provider's steps; a saved key shows as a masked placeholder.
+function setupPick(p) {
+  setupProvider = p;
+  const info = AI_PROVIDERS[p], saved = aiKey(p);
+  document.querySelectorAll('input[name="ai-pick"]').forEach(r => { r.checked = r.value === p; });
+  document.querySelectorAll("#setup-modal .setup-steps").forEach(el => { el.style.display = el.dataset.provider === p ? "" : "none"; });
+  document.getElementById("setup-key-label").textContent = `${info.label} (${info.company}) API key`;
+  const input = document.getElementById("setup-key");
+  input.value = "";
+  input.placeholder = saved ? "Saved: ••••••••" + saved.slice(-4) + " (paste a new one to replace it)" : info.keyPrefix + "…";
+  document.getElementById("setup-model").value = localStorage.getItem("ai_model_" + p) || "";
+  document.getElementById("setup-model-default").textContent = info.models.chat + (info.models.briefing !== info.models.chat ? " / " + info.models.briefing : "");
+  document.getElementById("setup-test").style.display = "none";
+}
+
+async function testAiKey() {
+  const p = setupProvider, info = AI_PROVIDERS[p];
+  const key = document.getElementById("setup-key").value.trim() || aiKey(p);
+  const out = document.getElementById("setup-test");
+  const show = (msg, bad) => { out.textContent = msg; out.className = "br-status" + (bad ? " error" : ""); out.style.display = "block"; };
+  if (!key) return show("Paste your key in the box first.", true);
+  if (!key.startsWith(info.keyPrefix)) return show(`That doesn't look like a ${info.company} API key — they start with “${info.keyPrefix}”. Check you copied the whole thing.`, true);
+  show(`Checking with ${info.company}…`);
+  try {
+    const status = await aiCheckKey(p, key);
+    if (status >= 200 && status < 300) show(`✅ This key works. Tap Save.${p === "gemini" ? "" : ` (If a helper later mentions credit or quota, add credit in your ${info.company} account's billing settings.)`}`);
+    else if (status === 401 || status === 400) show(`❌ ${info.company} didn't accept this key. Check you copied all of it, or create a new one.`, true);
+    else if (status === 403) show(`❌ This key isn't allowed to use the API. Create a new key and try again.`, true);
+    else show(`⚠️ ${info.company} replied with an error (${status}). The key may still be fine — try Save and use a helper.`, true);
+  } catch {
+    show(`Couldn't reach ${info.company} to check the key from here. You can still save it and try a helper.`, true);
+  }
+}
+
 function saveSetup() {
-  const creds = getCreds();
-  const a = document.getElementById("setup-anthropic").value.trim() || creds.anthropic;
-  const g = document.getElementById("setup-github").value.trim()    || creds.github;
-  const u = document.getElementById("setup-ghuser").value.trim()    || creds.ghuser;
-  const r = document.getElementById("setup-ghrepo").value.trim()    || creds.ghrepo;
-  if (!a) { alert("Please enter your Anthropic API key."); return; }
-  localStorage.setItem("cred_anthropic",a);
-  if (g) localStorage.setItem("cred_github",g);
-  if (u) localStorage.setItem("cred_ghuser",u);
-  if (r) localStorage.setItem("cred_ghrepo",r);
+  const p = setupProvider, info = AI_PROVIDERS[p];
+  const typed = document.getElementById("setup-key").value.trim();
+  const key = typed || aiKey(p);
+  if (!key) { alert(`Please paste your ${info.company} API key — or tap “Not now” to set it up later.`); return; }
+  if (typed && !typed.startsWith(info.keyPrefix) &&
+      !confirm(`That doesn't look like a ${info.company} API key (they start with “${info.keyPrefix}”). Save it anyway?`)) return;
+  localStorage.setItem("cred_" + p, key);
+  localStorage.setItem("ai_provider", p);
+  const model = document.getElementById("setup-model").value.trim();
+  if (model) localStorage.setItem("ai_model_" + p, model); else localStorage.removeItem("ai_model_" + p);
+  const g = document.getElementById("setup-github").value.trim();
+  const u = document.getElementById("setup-ghuser").value.trim();
+  const r = document.getElementById("setup-ghrepo").value.trim();
+  if (g) localStorage.setItem("cred_github", g);
+  if (u) localStorage.setItem("cred_ghuser", u);
+  if (r) localStorage.setItem("cred_ghrepo", r);
   document.getElementById("setup-modal").classList.remove("active");
+  ingesterHistory = [];   // a different AI starts a fresh conversation
   renderCalendar();
 }
 
@@ -2709,13 +2923,13 @@ function deleteNote(dateKey, index) {
 // ══════════════════════════════════════════════════════
 //  INGESTER
 // ══════════════════════════════════════════════════════
-let ingesterHistory = [];   // Claude conversation history
+let ingesterHistory = [];   // AI conversation history (provider-neutral, see aiChat)
 let pendingItems    = [];   // parsed items awaiting confirmation
 let attachedFile    = null; // { name, type, base64 or text }
 
 function openIngester() {
   const creds = getCreds();
-  if (!creds.anthropic) { document.getElementById("setup-modal").classList.add("active"); return; }
+  if (!hasAiKey()) { openSetupModal(); return; }
   document.getElementById("ingester-overlay").classList.add("active");
   document.getElementById("ingester-panel").classList.add("active");
   if (!ingesterHistory.length) resetIngester();
@@ -2748,7 +2962,7 @@ function addBubble(role, html, isHTML=false) {
 }
 
 function addTyping() {
-  return addBubble("system", "Claude is thinking…");
+  return addBubble("system", `${aiLabel()} is thinking…`);
 }
 
 function handleIngesterKey(e) {
@@ -2795,7 +3009,6 @@ async function sendIngesterMessage() {
   const raw = input.value.trim();
   if (!raw && !attachedFile) return;
 
-  const creds = getCreds();
   const btn   = document.getElementById("ingester-send");
   btn.disabled = true;
 
@@ -2805,24 +3018,19 @@ async function sendIngesterMessage() {
   if (userLabel) addBubble("user", userLabel);
   input.value = "";
 
-  // Build message content for Claude
-  const userContent = [];
-
+  // Build the (provider-neutral) message: attachment first, then the typed text
+  const parts = [];
   if (attachedFile) {
-    if (attachedFile.type === "application/pdf") {
-      userContent.push({ type: "document", source: { type: "base64", media_type: "application/pdf", data: attachedFile.base64 } });
-    } else if (attachedFile.type.startsWith("image/")) {
-      userContent.push({ type: "image", source: { type: "base64", media_type: attachedFile.type, data: attachedFile.base64 } });
+    if (attachedFile.type === "application/pdf" || attachedFile.type.startsWith("image/")) {
+      parts.push({ file: { name: attachedFile.name, mime: attachedFile.type, base64: attachedFile.base64 } });
     } else {
-      userContent.push({ type: "text", text: `[Attached file: ${attachedFile.name}]\n${attachedFile.text}` });
+      parts.push({ text: `[Attached file: ${attachedFile.name}]\n${attachedFile.text}` });
     }
     resetFileZone();
   }
-
-  if (raw) userContent.push({ type: "text", text: raw });
-  if (!userContent.length) { btn.disabled=false; return; }
-
-  ingesterHistory.push({ role: "user", content: userContent });
+  if (raw) parts.push({ text: raw });
+  if (!parts.length) { btn.disabled=false; return; }
+  ingesterHistory.push({ role: "user", parts });
 
   const typing = addTyping();
 
@@ -2830,18 +3038,8 @@ async function sendIngesterMessage() {
   const tripDays = tripDateKeys().map(k => `${k}: ${getDay(k).location}`).join("\n");
 
   try {
-    const res = await fetch("https://api.anthropic.com/v1/messages", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "x-api-key": creds.anthropic,
-        "anthropic-version": "2023-06-01",
-        "anthropic-dangerous-direct-browser-access": "true"
-      },
-      body: JSON.stringify({
-        model: "claude-sonnet-4-6",
-        max_tokens: 2000,
-        system: `You are a travel planning assistant helping plan the trip "${getActiveTrip().meta.name}" (${formatTripRange(getActiveTrip().meta.startDate, getActiveTrip().meta.endDate)}) for ${getActiveTrip().meta.travelers.join(", ")}. You help parse bookings, reservations, and plans and slot them into the right days.
+    const fullText = await aiChat({ purpose: "chat", maxTokens: 2000, messages: ingesterHistory,
+      system: `You are a travel planning assistant helping plan the trip "${getActiveTrip().meta.name}" (${formatTripRange(getActiveTrip().meta.startDate, getActiveTrip().meta.endDate)}) for ${getActiveTrip().meta.travelers.join(", ")}. You help parse bookings, reservations, and plans and slot them into the right days.
 
 TRIP DAYS:
 ${tripDays}
@@ -2871,20 +3069,10 @@ Rules:
 - For multi-day stays, create one entry per day
 - If unsure about a date, ASK before outputting <PREVIEW>
 - Never guess confirmation numbers or addresses — ask if not provided
-- Be warm and brief in your conversational text`,
-        messages: ingesterHistory
-      })
-    });
-
-    const data = await res.json();
-    if (!res.ok) {
-      const apiMsg = data?.error?.message || `API error ${res.status}`;
-      throw new Error(apiMsg);
-    }
-    const fullText = data.content.filter(b=>b.type==="text").map(b=>b.text).join("");
+- Be warm and brief in your conversational text` });
 
     // Add to history
-    ingesterHistory.push({ role: "assistant", content: fullText });
+    ingesterHistory.push({ role: "assistant", parts: [{ text: fullText }] });
 
     // Check for PREVIEW block
     const previewMatch = fullText.match(/<PREVIEW>([\s\S]*?)<\/PREVIEW>/);
@@ -2907,8 +3095,8 @@ Rules:
 
   } catch(err) {
     typing.remove();
-    const msg = err.message || "Something went wrong — please try again.";
-    const isAuthErr = /api.key|invalid.x-api|auth|401/i.test(msg);
+    const msg = escapeHtml(err.message || "Something went wrong — please try again.");
+    const isAuthErr = err.kind === "auth";
     addBubble("claude", `⚠️ ${msg}${isAuthErr ? ' — <a onclick="openSetupModal()" style="color:inherit;text-decoration:underline">update your API key</a>' : ""}`, true);
     console.error(err);
   } finally {
@@ -3155,7 +3343,7 @@ function applyMode() {
   document.body.classList.toggle("guest-mode", mode === "guest");
   document.body.classList.toggle("owner-mode", mode === "owner");
   const fab = document.getElementById("fab");
-  if (fab) fab.textContent = mode === "guest" ? "＋ Add Note" : "＋ Add Plans";
+  if (fab) fab.textContent = mode === "guest" ? "＋ Add a note" : "＋ Add to this trip";
   const ind = document.getElementById("mode-indicator");
   if (ind) ind.textContent = mode === "owner" ? "Full access" : "Guest view";
   const keysLink = document.getElementById("keys-link");
@@ -3170,7 +3358,7 @@ function chooseMode(mode) {
   applyMode();
   if (mode === "owner") {
     const creds = getCreds();
-    if (!creds.anthropic) document.getElementById("setup-modal").classList.add("active");
+    if (!hasAiKey()) openSetupModal();
   }
 }
 
@@ -3222,7 +3410,7 @@ function saveGuestNote() {
 // ══════════════════════════════════════════════════════
 // Journal entries are saved like guest notes (guest:true) so they flow through
 // the exact same pipeline: collected by collectAdditions(), shareable via
-// "Send to Pete", and published on approval — or, for the owner, via the
+// "Send my additions", and published on approval — or, for the owner, via the
 // "Publish my additions" button. Works in both owner and guest mode.
 function openJournal() {
   const d = getDay(currentDateKey);
@@ -3247,7 +3435,7 @@ function saveJournal() {
 // ══════════════════════════════════════════════════════
 //  OWNER — publish additions directly (notes/journal + packing items)
 // ══════════════════════════════════════════════════════
-// One-tap publish for Pete: bakes the current notes + custom checklist items
+// One-tap publish for the trip owner: bakes the current notes + custom checklist items
 // into index.html and commits via the GitHub API (same path as the ingester).
 async function publishAdditions() {
   const creds = getCreds();
@@ -3300,7 +3488,7 @@ function deleteCustomItem(id) {
 }
 
 // ══════════════════════════════════════════════════════
-//  OUTBOX — share guest additions to Pete
+//  OUTBOX — share guest additions with the trip owner
 // ══════════════════════════════════════════════════════
 function collectAdditions() {
   const notes = {};
@@ -3318,7 +3506,7 @@ function hasAdditions() {
 }
 function updateSendButton() {
   const has = hasAdditions();
-  const btn = document.getElementById("send-to-pete-btn");
+  const btn = document.getElementById("send-additions-btn");
   if (btn) btn.classList.toggle("has-items", has);
   // Owner-mode publish buttons light up for any unpublished change — added notes/items OR removed items.
   const ownerHas = has || getRemovedItems(BUILTIN_TRIP_ID).length > 0;
@@ -3348,7 +3536,7 @@ function openSend() {
   const a = collectAdditions();
   const noteCount = Object.values(a.notes).reduce((s,arr)=>s+arr.length,0);
   document.getElementById("send-summary").textContent =
-    `You're sending ${noteCount} note${noteCount!==1?"s":""} and ${a.items.length} packing item${a.items.length!==1?"s":""} to Pete.`;
+    `You're sending ${noteCount} note${noteCount!==1?"s":""} and ${a.items.length} packing item${a.items.length!==1?"s":""} to the trip owner.`;
   document.getElementById("send-name").value = localStorage.getItem("guest_name") || "";
   refreshShareCode();
   document.getElementById("send-modal").classList.add("active");
@@ -3359,9 +3547,9 @@ async function shareToPhone() {
   if (by) localStorage.setItem("guest_name", by);
   refreshShareCode();
   const link = document.getElementById("send-code").value;
-  const text = (by ? by + " added" : "Additions") + " to Nicky & Pete's trip — open to review & publish:";
+  const text = (by ? by + " added" : "Additions") + ` to “${DEFAULT_TRIP.meta.name}” — open to review & publish:`;
   if (navigator.share) {
-    try { await navigator.share({ title: "Trip additions for Pete", text, url: link }); } catch(e) {}
+    try { await navigator.share({ title: "Trip additions", text, url: link }); } catch(e) {}
   } else {
     copyShareLink();
   }
@@ -3373,15 +3561,15 @@ async function copyShareLink() {
   const link = document.getElementById("send-code").value;
   try {
     await navigator.clipboard.writeText(link);
-    alert("Link copied! Paste it to Pete via WhatsApp, Telegram or email.");
+    alert("Link copied! Send it to the trip owner by WhatsApp, Telegram or email.");
   } catch(e) {
     document.getElementById("send-code").select();
-    alert("Select the link below and copy it to send to Pete.");
+    alert("Select the link below and copy it to send to the trip owner.");
   }
 }
 
 // ══════════════════════════════════════════════════════
-//  IMPORT — Pete reviews & publishes family additions
+//  IMPORT — trip owner reviews & publishes guest additions
 // ══════════════════════════════════════════════════════
 let importPayload = null;
 
@@ -3401,7 +3589,7 @@ function showImportReview(p) {
   const notes = p.notes || {};
   const items = p.items || [];
   const noteCount = Object.values(notes).reduce((s,arr)=>s+arr.length,0);
-  document.getElementById("import-title").textContent = p.by ? `📥 Additions from ${escapeHtml(p.by)}` : "📥 Family additions";
+  document.getElementById("import-title").textContent = p.by ? `📥 Additions from ${p.by}` : "📥 Additions to review";
   document.getElementById("import-summary").textContent =
     `${noteCount} note${noteCount!==1?"s":""} and ${items.length} packing item${items.length!==1?"s":""} to review.`;
   let html = "";
@@ -3468,7 +3656,7 @@ async function publishImported() {
   const status = document.getElementById("import-status");
   btn.disabled = true; btn.textContent = "⏳ Publishing…";
   try {
-    await doPublish("Add family submissions via import link");
+    await doPublish("Add guest submissions via import link");
     status.textContent = "🚀 Published — live on the page in about 60 seconds.";
     btn.textContent = "✅ Published";
   } catch(e) {
@@ -3507,7 +3695,7 @@ function init() {
   applyMode();
   applyTripContext();
 
-  // An incoming family submission (?import=...) or shared trip (?trip=...) takes priority.
+  // An incoming guest submission (?import=...) or shared trip (?trip=...) takes priority.
   if (checkImportParam()) return;
   if (new URLSearchParams(location.search).get("trip")) { checkTripParam(); return; }
 
@@ -3518,8 +3706,8 @@ function init() {
   }
   if (mode === "owner") {
     const creds = getCreds();
-    if (!creds.anthropic) {
-      document.getElementById("setup-modal").classList.add("active");
+    if (!hasAiKey()) {
+      openSetupModal();
     }
   }
 }
@@ -3530,7 +3718,7 @@ function init() {
 // One tick column per traveler in trip.meta.travelers (up to MAX_TRAVELERS).
 // Boxes sit either side of the item text: first half left, rest right, so two
 // travelers keep the original one-each-side layout.
-// Storage key = lowercased name ("Pete" → checklist_<tripId>_by_pete).
+// Storage key = lowercased name ("Ana" → checklist_<tripId>_by_ana).
 const MAX_TRAVELERS = 6;
 const TRAVELER_COLORS = [
   { fill: "#4caf50", label: "#2e7d32" }, { fill: "#5aaad8", label: "#1565c0" },
@@ -3553,7 +3741,7 @@ function uncheckEverywhere(id) {
 }
 function checklistSections() { return getActiveTrip().checklist.sections; }
 
-// Custom (family-added) checklist items — live locally, baked & published like notes.
+// Custom (user-added) checklist items — live locally, baked & published like notes.
 function getCustomItems(tripId = activeTripId()) { return lsGet(customItemsKey(tripId), []); }
 function saveCustomItems(arr, tripId = activeTripId()) { lsSet(customItemsKey(tripId), arr); }
 
@@ -3680,7 +3868,7 @@ function renderChecklist() {
   // Custom items keep their stored "th" field until the Phase 1 storage migration.
   const custom = getCustomItems();
   html += `<div class="checklist-section">
-    <div class="checklist-section-title">Added by the family</div>`;
+    <div class="checklist-section-title">Added items</div>`;
   custom.forEach(it => {
     html += checklistRow(it, states, it.th, `<button class="checklist-custom-del" title="Remove" onclick="deleteCustomItem('${it.id}')">✕</button>`);
   });
