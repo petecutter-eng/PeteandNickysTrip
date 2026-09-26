@@ -2,7 +2,7 @@
 
 **Goal:** Turn the trip from hardcoded source into runtime data, so any user can create and edit a trip *inside the app* — no GitHub fork, no code edits. Plus: decouple the daily briefing from the single-repo GitHub Actions cron and replace it with an **on-demand briefing** the user can generate in-app and send to **email or WhatsApp**; and let a user **import trip data from an Excel/CSV spreadsheet**, with a column-mapping step when the columns can't be auto-detected.
 
-**Status:** Phase 0 ✅ merged (PR #13) — the trip now lives in `DEFAULT_TRIP` and all rendering goes through `getActiveTrip()` / `getDay()`. Phase 1 ✅ — multi-trip storage, migration and a basic switcher; the built-in trip is an *example* on fresh devices and is deleted once the user creates their own trip. Next up: Phase 2.
+**Status:** Phase 0 ✅ merged (PR #13) — the trip now lives in `DEFAULT_TRIP` and all rendering goes through `getActiveTrip()` / `getDay()`. Phase 1 ✅ — multi-trip storage, migration and a basic switcher; the built-in trip is an *example* on fresh devices and is deleted once the user creates their own trip. Phase 2 ✅ — create/edit wizard; checklist supports 1–6 travelers. Next up: Phase 3.
 
 **Approach:** Pure client-side. Stays a single static `index.html` on GitHub Pages — no backend, no database, no accounts. Trips live in the browser and travel via share links / file export.
 
@@ -201,7 +201,7 @@ Purpose: bulk-populate a trip from a spreadsheet the user already has (an itiner
 
 - **Phase 0 — Model extraction.** ✅ *Done (PR #13).* Introduce the `Trip` schema; seed it from the current hardcoded trip; make all rendering read from `getActiveTrip()`. *No visible change* — pure refactor + safety net.
 - **Phase 1 — Multi-trip storage.** ✅ *Done.* `trips_index`, per-trip namespacing, migration of existing keys, a basic trip switcher.
-- **Phase 2 — Create/Edit wizard.** Full trip authoring UI.
+- **Phase 2 — Create/Edit wizard.** ✅ *Done.* Full trip authoring UI.
 - **Phase 3 — Share/backup.** Export/import JSON, compressed `?trip=` link, optional QR; hide/repurpose GitHub publish.
 - **Phase 4 — On-demand briefing + delivery.** In-app generation; `mailto` + `wa.me`/Web Share tap-to-send; optional EmailJS.
 - **Phase 5 — Spreadsheet import.** SheetJS parse, auto-detect + column-mapping UI, preview/confirm, optional AI-assisted mapping.

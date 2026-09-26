@@ -175,14 +175,10 @@
   .checklist-progress-wrap { padding: 8px 18px; background: #fff; border-bottom: 1px solid #f0ede8; }
   .checklist-progress-row { display: flex; align-items: center; gap: 10px; margin-bottom: 5px; }
   .checklist-progress-row:last-child { margin-bottom: 0; }
-  .prog-name { font-size: 0.62rem; font-weight: 700; width: 36px; flex-shrink: 0; letter-spacing: 0.03em; }
-  .prog-name.pete { color: #2e7d32; }
-  .prog-name.nicky { color: #1565c0; }
+  .prog-name { font-size: 0.62rem; font-weight: 700; width: 36px; flex-shrink: 0; letter-spacing: 0.03em; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
   .prog-count { font-size: 0.62rem; color: #6b7c8a; font-weight: 600; width: 36px; flex-shrink: 0; text-align: right; }
   .checklist-progress-track { flex: 1; height: 6px; background: #e8e3da; border-radius: 3px; overflow: hidden; }
   .checklist-progress-fill { height: 100%; width: 0%; transition: width 0.25s; }
-  .pete-fill { background: #4caf50; }
-  .nicky-fill { background: #5aaad8; }
   .checklist-names-bar {
     display: flex; align-items: center;
     padding: 7px 16px 5px; background: #f0ede8;
@@ -193,8 +189,9 @@
     font-size: 0.68rem; font-weight: 700;
     letter-spacing: 0.07em; text-transform: uppercase;
   }
-  .checklist-person-label.pete { color: #2e7d32; }
-  .checklist-person-label.nicky { color: #1565c0; }
+  /* >2 travelers: one 34px label per box (26px box + 8px gap), inset to box centres */
+  .checklist-names-bar.compact { padding-left: 25.5px; padding-right: 25.5px; }
+  .checklist-names-bar.compact .checklist-person-label { width: 34px; font-size: 0.6rem; letter-spacing: 0.02em; }
   .checklist-names-spacer { flex: 1; }
 
   .checklist-body { flex: 1; overflow-y: auto; padding: 14px 16px 16px; }
@@ -222,8 +219,7 @@
     transition: background 0.12s, border-color 0.12s;
     cursor: pointer;
   }
-  .checklist-item.pete-checked .pete-box { background: #4caf50; border-color: #4caf50; }
-  .checklist-item.nicky-checked .nicky-box { background: #5aaad8; border-color: #5aaad8; }
+  .checklist-box.on { background: var(--c); border-color: var(--c); }
   .checklist-text { flex: 1; line-height: 1.3; text-align: center; }
   .checklist-en { font-size: 0.84rem; font-weight: 500; color: #1a1a1a; }
   .checklist-th { font-size: 0.72rem; color: #6b7c8a; margin-top: 1px; }
@@ -605,6 +601,48 @@
     letter-spacing: 0.06em; padding: 1px 6px; border-radius: 4px; vertical-align: middle; margin-left: 4px; }
   .trip-badge-active  { background: #e4edf9; color: #0f2e45; }
   .trip-badge-example { background: #fde8a0; color: #6b4600; }
+  .own-trip-only { display: none; }
+  body.own-trip .own-trip-only { display: inline; }
+
+  /* ══ Trip wizard ══ */
+  .wizard-overlay { display: none; position: fixed; inset: 0; z-index: 110; background: rgba(0,0,0,0.55); }
+  .wizard-overlay.active { display: flex; align-items: stretch; justify-content: center; }
+  .wizard-panel { background: #f7f4ef; width: 100%; max-width: 580px; display: flex; flex-direction: column; }
+  @media (min-width: 700px) { .wizard-overlay.active { align-items: center; } .wizard-panel { height: 90vh; border-radius: 14px; overflow: hidden; } }
+  .wizard-header { display: flex; align-items: center; justify-content: space-between; padding: 14px 18px 8px; background: #fff; }
+  .wizard-header h2 { font-family: 'Inter', sans-serif; font-size: 1.05rem; color: #1a3a4a; }
+  .wizard-steps { display: flex; gap: 4px; padding: 6px 12px 10px; background: #fff; border-bottom: 1px solid #e3ddd2; overflow-x: auto; }
+  .wizard-steps button {
+    flex: 1; min-width: 64px; border: none; background: #efeae1; color: #6b7c8a; border-radius: 6px; padding: 6px 4px;
+    font-family: 'Inter', sans-serif; font-size: 0.64rem; font-weight: 700; letter-spacing: 0.04em; text-transform: uppercase; cursor: pointer;
+  }
+  .wizard-steps button.current { background: #1a3a4a; color: #fff; }
+  .wizard-body { flex: 1; overflow-y: auto; padding: 16px 18px 24px; }
+  .wizard-body h3 { font-family: 'Inter', sans-serif; font-size: 0.72rem; font-weight: 700; color: #1a3a4a; text-transform: uppercase; letter-spacing: 0.06em; margin: 16px 0 6px; }
+  .wizard-body h3:first-child { margin-top: 0; }
+  .wizard-body .hint { font-size: 0.7rem; color: #6b7c8a; line-height: 1.5; margin-bottom: 10px; }
+  .wizard-body label { display: block; font-size: 0.66rem; font-weight: 600; color: #1a3a4a; margin: 0 0 3px; text-transform: uppercase; letter-spacing: 0.05em; }
+  .wizard-body input[type=text], .wizard-body input[type=date], .wizard-body select {
+    width: 100%; border: 1.5px solid #c5bfb5; border-radius: 7px; padding: 8px 10px; font-size: 0.82rem;
+    font-family: 'Inter', sans-serif; background: #fff; color: #1a1a1a; margin-bottom: 10px; outline: none;
+  }
+  .wizard-body input:focus, .wizard-body select:focus { border-color: #3d7dbf; }
+  .wiz-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 0 10px; }
+  .wiz-card { background: #fff; border: 1.5px solid #e3ddd2; border-radius: 10px; padding: 10px 12px 2px; margin-bottom: 10px; position: relative; }
+  .wiz-row { display: flex; gap: 8px; align-items: center; margin-bottom: 8px; }
+  .wiz-row input[type=text] { margin-bottom: 0; }
+  .wiz-row input[type=color] { width: 38px; height: 34px; border: 1.5px solid #c5bfb5; border-radius: 7px; padding: 2px; background: #fff; flex-shrink: 0; }
+  .wiz-del { border: none; background: none; color: #c0392b; font-size: 0.9rem; cursor: pointer; padding: 4px 6px; flex-shrink: 0; }
+  .wiz-card > .wiz-del { position: absolute; top: 4px; right: 4px; }
+  .wiz-home { display: flex; align-items: center; gap: 4px; font-size: 0.64rem; color: #6b7c8a; white-space: nowrap; flex-shrink: 0; }
+  .wiz-choice { display: flex; gap: 8px; margin-bottom: 12px; }
+  .wiz-choice label { flex: 1; border: 1.5px solid #d8d2c7; border-radius: 8px; padding: 9px; background: #fff; cursor: pointer; text-transform: none; letter-spacing: 0; font-size: 0.74rem; }
+  .wiz-choice input { margin-right: 6px; }
+  .wiz-section-items { padding-left: 10px; border-left: 2px solid #e3ddd2; margin: 4px 0 8px; }
+  .wizard-error { display: none; background: #fdecea; color: #a8321e; font-size: 0.72rem; padding: 8px 18px; line-height: 1.5; }
+  .wizard-error.visible { display: block; }
+  .wizard-footer { display: flex; gap: 10px; padding: 12px 18px; background: #fff; border-top: 1px solid #e3ddd2; }
+
   /* Send/publish/import only apply to the built-in (published) trip */
   body.own-trip .send-to-pete, body.own-trip .owner-publish,
   body.own-trip .cal-publish-link, body.own-trip #publish-bar { display: none !important; }
@@ -669,13 +707,32 @@
 <div class="modal-overlay" id="trips-modal">
   <div class="modal" style="max-width:420px">
     <h2>🧳 Your trips</h2>
-    <p>Trips are saved on this device. Duplicate a trip to start a new one from it.</p>
+    <p>Trips are saved on this device. Create one from scratch, or duplicate an existing trip and edit the copy.</p>
+    <button class="add-custom-item" onclick="closeTrips(); openWizard('create')">＋ New trip</button>
     <div id="trips-list"></div>
     <div class="modal-note" id="trips-example-note" style="display:none">
       The example trip is only here to show how the app works. When you create your own trip, the example and anything you added to it is deleted from this device.
     </div>
     <div style="display:flex; gap:10px">
       <button class="btn btn-secondary" onclick="closeTrips()">Close</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══ Trip Wizard (create / edit) ══ -->
+<div class="wizard-overlay" id="wizard">
+  <div class="wizard-panel">
+    <div class="wizard-header">
+      <h2 id="wiz-title">New trip</h2>
+      <button class="checklist-close" onclick="closeWizard()">✕</button>
+    </div>
+    <div class="wizard-steps" id="wiz-steps"></div>
+    <div class="wizard-body" id="wiz-body"></div>
+    <div class="wizard-error" id="wiz-error"></div>
+    <div class="wizard-footer">
+      <button class="btn btn-secondary" id="wiz-back" onclick="wizBack()">Back</button>
+      <button class="btn btn-secondary" id="wiz-save-now" onclick="wizSave()">Save</button>
+      <button class="btn btn-primary" id="wiz-next" onclick="wizNext()">Next</button>
     </div>
   </div>
 </div>
@@ -839,23 +896,8 @@ Does that work? Want me to add a "Leave home" reminder for **4:00am on July 1** 
     </div>
     <button class="checklist-close" onclick="closeChecklist()">✕</button>
   </div>
-  <div class="checklist-progress-wrap">
-    <div class="checklist-progress-row">
-      <span class="prog-name pete">Pete</span>
-      <div class="checklist-progress-track"><div class="checklist-progress-fill pete-fill" id="checklist-progress-pete"></div></div>
-      <span class="prog-count" id="checklist-count-pete">0/0</span>
-    </div>
-    <div class="checklist-progress-row">
-      <span class="prog-name nicky">Nicky</span>
-      <div class="checklist-progress-track"><div class="checklist-progress-fill nicky-fill" id="checklist-progress-nicky"></div></div>
-      <span class="prog-count" id="checklist-count-nicky">0/0</span>
-    </div>
-  </div>
-  <div class="checklist-names-bar">
-    <span class="checklist-person-label pete">Pete</span>
-    <span class="checklist-names-spacer"></span>
-    <span class="checklist-person-label nicky">Nicky</span>
-  </div>
+  <div class="checklist-progress-wrap" id="checklist-progress-wrap"></div>
+  <div class="checklist-names-bar" id="checklist-names-bar"></div>
   <div class="checklist-body" id="checklist-body"></div>
   <div class="checklist-footer">
     <button class="owner-publish" id="checklist-publish-btn" onclick="publishAdditions()" style="margin-bottom:10px">🚀 Publish checklist changes to everyone</button>
@@ -898,7 +940,7 @@ Does that work? Want me to add a "Leave home" reminder for **4:00am on July 1** 
       <button class="fab" id="fab" onclick="onFabClick()">＋ Add Plans</button>
     </div>
     <div class="example-banner" id="example-banner" style="display:none">
-      👋 <b>This is an example trip.</b> To plan your own, open <a onclick="openTrips()">Trips</a> and tap <b>Duplicate</b>.
+      👋 <b>This is an example trip.</b> <a onclick="openWizard('create')">Create my trip</a> to plan your own (or open <a onclick="openTrips()">Trips</a> to copy this one).
       Once you have your own trip, this example — and anything you've added to it — is deleted from this device.
     </div>
     <button class="send-to-pete" id="send-to-pete-btn" onclick="openSend()">📤 Send my additions to Pete</button>
@@ -921,7 +963,7 @@ Does that work? Want me to add a "Leave home" reminder for **4:00am on July 1** 
       <b>Ref:</b> FQ5ZSK · Satguru Travel &amp; Tours, Bangkok
     </div>
     <div class="mode-footer">
-      <a onclick="openTrips()">🧳 trips</a> · <span id="mode-indicator"></span> · <a onclick="reopenModeChooser()">switch mode</a><span id="keys-link" style="display:none"> · <a onclick="openSetupModal()">update keys</a></span>
+      <a onclick="openTrips()">🧳 trips</a><span class="own-trip-only"> · <a onclick="openWizard('edit', activeTripId())">✏️ edit trip</a></span> · <span id="mode-indicator"></span> · <a onclick="reopenModeChooser()">switch mode</a><span id="keys-link" style="display:none"> · <a onclick="openSetupModal()">update keys</a></span>
     </div>
   </div>
 
@@ -1222,6 +1264,350 @@ function applyTripContext() {
   updateSendButton();
 }
 
+// ══════════════════════════════════════════════════════
+//  TRIP WIZARD (create / edit a user trip)
+// ══════════════════════════════════════════════════════
+// Works on a deep-copied draft; nothing is written until Save. Flights are
+// edited as a flat list and folded back into trip.days on save. Per-day
+// overrides the wizard doesn't expose (location, holiday, events) are kept.
+const WIZ_STEPS = [["basics","Basics"],["places","Places"],["stays","Stays"],["flights","Flights"],["checklist","Checklist"]];
+const WIZ_MAX_DAYS = 120;
+const PLACE_COLORS = ["#5aaad8","#7cb87a","#e0a458","#b98ed6","#e07a7a","#5fb8a8","#a0a0a0"];
+let wiz = null;
+
+function clone(o) { return JSON.parse(JSON.stringify(o)); }
+function randId(prefix) { return prefix + Math.random().toString(36).slice(2, 8); }
+
+function blankTrip() {
+  return {
+    schemaVersion: 1, id: "",
+    meta: { name: "", emoji: "✈️", subtitle: "", startDate: "", endDate: "", travelers: [""], secondLanguage: "",
+            timezoneHome: "", timezoneTrip: "", defaultLocation: "", defaultRegionId: null,
+            passengers: [], bookingRef: "", bookedVia: "" },
+    regions: [], stays: [], days: {},
+    checklist: { sections: clone(DEFAULT_TRIP.checklist.sections) },
+    briefing: { recipientEmail: "", whatsappRecipient: "", tone: "friendly" }
+  };
+}
+
+function openWizard(mode, tripId) {
+  let trip;
+  if (mode === "edit") {
+    trip = loadStoredTrip(tripId);
+    if (!trip) { alert("The built-in trip can't be edited here — duplicate it first and edit the copy."); return; }
+    trip = clone(trip);
+  } else {
+    trip = blankTrip();
+  }
+  const flights = [];
+  Object.keys(trip.days || {}).sort().forEach(date => {
+    (trip.days[date].flights || []).forEach(f => {
+      const [from, to] = String(f.route || "").split("→").map(x => x.trim());
+      flights.push({ ...f, date, from: from || "", to: to || "" });
+    });
+  });
+  wiz = { mode, tripId: tripId || null, trip, flights, step: 0,
+          template: "standard", origHome: trip.meta.defaultRegionId };
+  document.getElementById("wiz-title").textContent = mode === "edit" ? "✏️ Edit trip" : "🧳 New trip";
+  document.getElementById("wizard").classList.add("active");
+  renderWizard();
+}
+function closeWizard() { document.getElementById("wizard").classList.remove("active"); wiz = null; }
+
+function renderWizard() {
+  const t = wiz.trip, m = t.meta;
+  document.getElementById("wiz-steps").innerHTML = WIZ_STEPS.map(([k, label], i) =>
+    `<button class="${i === wiz.step ? "current" : ""}" onclick="wizGo(${i})">${i+1}. ${label}</button>`).join("");
+  const A = escapeAttr;
+  const datesOk = !!(m.startDate && m.endDate && m.startDate <= m.endDate);
+  let h = "";
+  switch (WIZ_STEPS[wiz.step][0]) {
+    case "basics":
+      h += `<label>Trip name</label><input type="text" value="${A(m.name)}" placeholder="e.g. Summer in Portugal" oninput="wiz.trip.meta.name=this.value">
+        <div class="wiz-grid">
+          <div><label>Emoji</label><input type="text" value="${A(m.emoji)}" maxlength="4" oninput="wiz.trip.meta.emoji=this.value"></div>
+          <div></div>
+          <div><label>Start date</label><input type="date" value="${A(m.startDate)}" onchange="wiz.trip.meta.startDate=this.value"></div>
+          <div><label>End date</label><input type="date" value="${A(m.endDate)}" onchange="wiz.trip.meta.endDate=this.value"></div>
+        </div>
+        <label>Subtitle (optional)</label><input type="text" value="${A(m.subtitle)}" placeholder="e.g. TAP Air Portugal · Ref: ABC123" oninput="wiz.trip.meta.subtitle=this.value">
+        <h3>Travelers</h3><div class="hint">Each traveler gets their own tick column in the packing checklist (up to ${MAX_TRAVELERS}).</div>`;
+      m.travelers.forEach((name, i) => {
+        h += `<div class="wiz-row"><input type="text" value="${A(name)}" placeholder="Name" oninput="wiz.trip.meta.travelers[${i}]=this.value">
+          ${m.travelers.length > 1 ? `<button class="wiz-del" title="Remove" onclick="wiz.trip.meta.travelers.splice(${i},1); renderWizard()">✕</button>` : ""}</div>`;
+      });
+      if (m.travelers.length < MAX_TRAVELERS) h += `<button class="add-custom-item" onclick="wiz.trip.meta.travelers.push(''); renderWizard()">＋ Add traveler</button>`;
+      h += `<h3>Checklist second language</h3><div class="hint">Optional. Shows a translation line under each packing item — leave blank for one language.</div>
+        <input type="text" value="${A(m.secondLanguage)}" placeholder="e.g. Thai" oninput="wiz.trip.meta.secondLanguage=this.value">`;
+      break;
+
+    case "places":
+      h += `<div class="hint">Places colour the calendar and legend. Mark one as your <b>home base</b> — days without a stay are shown there.</div>`;
+      t.regions.forEach((r, i) => {
+        h += `<div class="wiz-row">
+          <input type="color" value="${A(safeColor(r.color))}" onchange="wiz.trip.regions[${i}].color=this.value">
+          <input type="text" value="${A(r.name)}" placeholder="e.g. Lisbon" oninput="wiz.trip.regions[${i}].name=this.value">
+          <label class="wiz-home"><input type="radio" name="wiz-home" ${m.defaultRegionId === r.id ? "checked" : ""} onchange="wiz.trip.meta.defaultRegionId='${r.id}'"> home</label>
+          <button class="wiz-del" title="Remove" onclick="wizRemoveRegion(${i})">✕</button></div>`;
+      });
+      if (!t.regions.length) h += `<div class="hint"><i>No places yet — the calendar will have no colour strips.</i></div>`;
+      h += `<button class="add-custom-item" onclick="wizAddRegion()">＋ Add place</button>`;
+      break;
+
+    case "stays":
+      h += `<div class="hint">Multi-night stays (hotel, cottage, friends' place). Shown as a badge across the days, with check-in and check-out.</div>`;
+      if (!datesOk) h += `<div class="hint"><b>Set the trip dates in Basics first.</b></div>`;
+      t.stays.forEach((st, i) => {
+        h += `<div class="wiz-card"><button class="wiz-del" title="Remove" onclick="wiz.trip.stays.splice(${i},1); renderWizard()">✕</button>
+          <label>Name</label><input type="text" value="${A(st.name)}" placeholder="e.g. Casa da Praia" oninput="wiz.trip.stays[${i}].name=this.value">
+          <label>Place (colour)</label><select onchange="wiz.trip.stays[${i}].regionId=this.value">
+            <option value="">— none —</option>
+            ${t.regions.map(r => `<option value="${A(r.id)}" ${st.regionId === r.id ? "selected" : ""}>${escapeHtml(r.name || "(unnamed)")}</option>`).join("")}
+          </select>
+          <div class="wiz-grid">
+            <div><label>Check-in</label><input type="date" value="${A(st.checkin)}" min="${A(m.startDate)}" max="${A(m.endDate)}" onchange="wiz.trip.stays[${i}].checkin=this.value"></div>
+            <div><label>Check-out</label><input type="date" value="${A(st.checkout)}" min="${A(m.startDate)}" max="${A(m.endDate)}" onchange="wiz.trip.stays[${i}].checkout=this.value"></div>
+          </div></div>`;
+      });
+      h += `<button class="add-custom-item" onclick="wiz.trip.stays.push({ regionId: '', name: '', checkin: '', checkout: '' }); renderWizard()">＋ Add stay</button>`;
+      break;
+
+    case "flights": {
+      h += `<div class="hint">Flights show on their day in the calendar and in the flight summary. Only the date and route are required.</div>`;
+      if (!datesOk) h += `<div class="hint"><b>Set the trip dates in Basics first.</b></div>`;
+      const days = datesOk ? tripDateKeys(t) : [];
+      const f2 = (i, key, label, ph) => `<div><label>${label}</label><input type="text" value="${A(wiz.flights[i][key] || "")}" placeholder="${ph}" oninput="wiz.flights[${i}]['${key}']=this.value"></div>`;
+      wiz.flights.forEach((f, i) => {
+        h += `<div class="wiz-card"><button class="wiz-del" title="Remove" onclick="wiz.flights.splice(${i},1); renderWizard()">✕</button>
+          <label>Date</label><select onchange="wiz.flights[${i}].date=this.value">
+            <option value="">— pick a day —</option>
+            ${days.map(k => `<option value="${k}" ${f.date === k ? "selected" : ""}>${formatDayLabel(k)} (${DOW_SHORT[parseDateKey(k).getUTCDay()]})</option>`).join("")}
+            ${f.date && !days.includes(f.date) ? `<option value="${A(f.date)}" selected>${escapeHtml(f.date)} — outside trip dates</option>` : ""}
+          </select>
+          <div class="wiz-grid">
+            ${f2(i,"from","From","e.g. BKK")}${f2(i,"to","To","e.g. LIS")}
+            ${f2(i,"flight","Flight no.","e.g. TP 1234")}${f2(i,"cls","Class","e.g. Economy")}
+            ${f2(i,"dep","Departs","e.g. 07:55")}${f2(i,"arr","Arrives","e.g. 18:15+1")}
+            ${f2(i,"terminalDep","From terminal","optional")}${f2(i,"terminalArr","To terminal","optional")}
+            ${f2(i,"aircraft","Aircraft","optional")}${f2(i,"bags","Bags","e.g. 2PC")}
+            ${f2(i,"conf","Confirmation","optional")}
+          </div></div>`;
+      });
+      h += `<button class="add-custom-item" onclick="wiz.flights.push({ date: '', from: '', to: '' }); renderWizard()">＋ Add flight</button>
+        <h3>Booking (optional)</h3>
+        <div class="wiz-grid">
+          <div><label>Booking reference</label><input type="text" value="${A(m.bookingRef || "")}" oninput="wiz.trip.meta.bookingRef=this.value"></div>
+          <div><label>Booked via</label><input type="text" value="${A(m.bookedVia || "")}" oninput="wiz.trip.meta.bookedVia=this.value"></div>
+        </div>`;
+      break;
+    }
+
+    case "checklist": {
+      if (wiz.mode === "create") {
+        h += `<div class="wiz-choice">
+          <label><input type="radio" name="wiz-tpl" ${wiz.template === "standard" ? "checked" : ""} onchange="wizTemplate('standard')">Standard packing list (${DEFAULT_TRIP.checklist.sections.reduce((n,sc)=>n+sc.items.length,0)} items)</label>
+          <label><input type="radio" name="wiz-tpl" ${wiz.template === "blank" ? "checked" : ""} onchange="wizTemplate('blank')">Start blank</label></div>`;
+      }
+      const alt = !!(m.secondLanguage || "").trim();
+      h += `<div class="hint">Edit sections and items. ${alt ? `Second line: <b>${escapeHtml(m.secondLanguage)}</b> (set in Basics).` : "Add a second language in Basics to show translations."}</div>`;
+      t.checklist.sections.forEach((sec, si) => {
+        h += `<div class="wiz-row"><input type="text" value="${A(sec.title)}" placeholder="Section title" style="font-weight:700" oninput="wiz.trip.checklist.sections[${si}].title=this.value">
+          <button class="wiz-del" title="Remove section" onclick="if(confirm('Remove this section and its items?')){wiz.trip.checklist.sections.splice(${si},1); renderWizard()}">✕</button></div>
+          <div class="wiz-section-items">`;
+        sec.items.forEach((it, ii) => {
+          h += `<div class="wiz-row"><input type="text" value="${A(it.en)}" placeholder="Item" oninput="wiz.trip.checklist.sections[${si}].items[${ii}].en=this.value">
+            ${alt ? `<input type="text" value="${A(it.alt || "")}" placeholder="${A(m.secondLanguage)}" oninput="wiz.trip.checklist.sections[${si}].items[${ii}].alt=this.value">` : ""}
+            <button class="wiz-del" title="Remove" onclick="wiz.trip.checklist.sections[${si}].items.splice(${ii},1); renderWizard()">✕</button></div>`;
+        });
+        h += `<button class="add-custom-item" onclick="wizAddItem(${si})">＋ Add item</button></div>`;
+      });
+      h += `<button class="add-custom-item" onclick="wizAddSection()">＋ Add section</button>`;
+      break;
+    }
+  }
+  document.getElementById("wiz-body").innerHTML = h;
+  const last = wiz.step === WIZ_STEPS.length - 1;
+  document.getElementById("wiz-back").style.visibility = wiz.step ? "visible" : "hidden";
+  document.getElementById("wiz-next").textContent = last ? (wiz.mode === "edit" ? "Save" : "Create trip") : "Next";
+  document.getElementById("wiz-save-now").style.display = (wiz.mode === "edit" && !last) ? "" : "none";
+  wizShowErrors([]);
+}
+
+function wizAddRegion() {
+  const used = new Set(wiz.trip.regions.map(r => r.color));
+  const color = PLACE_COLORS.find(c => !used.has(c)) || PLACE_COLORS[wiz.trip.regions.length % PLACE_COLORS.length];
+  const r = { id: randId("place_"), name: "", color };
+  wiz.trip.regions.push(r);
+  if (!wiz.trip.meta.defaultRegionId) wiz.trip.meta.defaultRegionId = r.id;
+  renderWizard();
+}
+function wizRemoveRegion(i) {
+  const [r] = wiz.trip.regions.splice(i, 1);
+  wiz.trip.stays.forEach(st => { if (st.regionId === r.id) st.regionId = ""; });
+  Object.values(wiz.trip.days).forEach(d => { if (d.regionId === r.id) delete d.regionId; });
+  if (wiz.trip.meta.defaultRegionId === r.id) wiz.trip.meta.defaultRegionId = wiz.trip.regions.length ? wiz.trip.regions[0].id : null;
+  renderWizard();
+}
+function wizTemplate(kind) {
+  wiz.template = kind;
+  wiz.trip.checklist.sections = kind === "standard" ? clone(DEFAULT_TRIP.checklist.sections) : [];
+  wizSyncTemplateAlt();
+  renderWizard();
+}
+function wizAddSection() {
+  wiz.trip.checklist.sections.push({ id: randId("sec_"), title: "", items: [] });
+  renderWizard();
+}
+function wizAddItem(si) {
+  wiz.trip.checklist.sections[si].items.push({ id: randId("item_"), en: "", alt: "" });
+  renderWizard();
+}
+
+// Returns a list of error strings for one step (by key).
+function wizValidate(key) {
+  const t = wiz.trip, m = t.meta, e = [];
+  const datesOk = !!(m.startDate && m.endDate && m.startDate <= m.endDate);
+  const inRange = d => datesOk && d >= m.startDate && d <= m.endDate;
+  if (key === "basics") {
+    if (!m.name.trim()) e.push("Give the trip a name.");
+    if (!m.startDate || !m.endDate) e.push("Set both a start and an end date.");
+    else if (m.startDate > m.endDate) e.push("The end date is before the start date.");
+    else if (daysBetween(m.startDate, m.endDate) + 1 > WIZ_MAX_DAYS) e.push(`Trips can be at most ${WIZ_MAX_DAYS} days.`);
+    const names = m.travelers.map(n => n.trim()).filter(Boolean);
+    if (!names.length) e.push("Add at least one traveler.");
+    const keys = names.map(travelerKey);
+    if (new Set(keys).size !== keys.length) e.push("Traveler names must be different from each other.");
+  }
+  if (key === "places") {
+    t.regions.forEach((r, i) => { if (!r.name.trim()) e.push(`Place ${i+1} needs a name.`); });
+  }
+  if (key === "stays") {
+    t.stays.forEach((st, i) => {
+      const n = `Stay ${i+1}${st.name.trim() ? ` (${st.name.trim()})` : ""}`;
+      if (!st.name.trim()) e.push(`Stay ${i+1} needs a name.`);
+      if (!st.checkin || !st.checkout) e.push(`${n}: set check-in and check-out.`);
+      else if (st.checkin >= st.checkout) e.push(`${n}: check-out must be after check-in.`);
+      else if (!inRange(st.checkin) || !inRange(st.checkout)) e.push(`${n}: dates must be within the trip.`);
+    });
+    const sorted = t.stays.filter(st => st.checkin && st.checkout).slice().sort((a, b) => a.checkin < b.checkin ? -1 : 1);
+    for (let i = 1; i < sorted.length; i++)
+      if (sorted[i].checkin < sorted[i-1].checkout) e.push(`“${sorted[i-1].name || "a stay"}” and “${sorted[i].name || "a stay"}” overlap — one can start on the day the other ends.`);
+  }
+  if (key === "flights") {
+    wiz.flights.forEach((f, i) => {
+      if (!f.date) e.push(`Flight ${i+1}: pick a day.`);
+      else if (!inRange(f.date)) e.push(`Flight ${i+1}: its date is outside the trip.`);
+      if (!(f.from || "").trim() || !(f.to || "").trim()) e.push(`Flight ${i+1}: fill in From and To.`);
+    });
+  }
+  if (key === "checklist") {
+    t.checklist.sections.forEach((sec, i) => { if (!sec.title.trim()) e.push(`Checklist section ${i+1} needs a title.`); });
+  }
+  return e;
+}
+function wizShowErrors(errs) {
+  const box = document.getElementById("wiz-error");
+  box.innerHTML = errs.map(escapeHtml).join("<br>");
+  box.classList.toggle("visible", errs.length > 0);
+}
+function wizGo(i) {
+  wiz.step = i;
+  if (WIZ_STEPS[i][0] === "checklist") wizSyncTemplateAlt();
+  renderWizard();
+  document.getElementById("wiz-body").scrollTop = 0;
+}
+
+// The standard list's translations are Thai. Show them only when the trip's
+// second language is Thai; never touch translations the user typed.
+function wizSyncTemplateAlt() {
+  const thai = /^(th|thai|ไทย|ภาษาไทย)$/i.test((wiz.trip.meta.secondLanguage || "").trim());
+  const tpl = {};
+  DEFAULT_TRIP.checklist.sections.forEach(sec => sec.items.forEach(it => { tpl[it.id] = it.alt; }));
+  wiz.trip.checklist.sections.forEach(sec => sec.items.forEach(it => {
+    if (!(it.id in tpl)) return;
+    if (thai && !it.alt) it.alt = tpl[it.id];
+    else if (!thai && it.alt === tpl[it.id]) it.alt = "";
+  }));
+}
+function wizBack() { if (wiz.step > 0) wizGo(wiz.step - 1); }
+function wizNext() {
+  const errs = wizValidate(WIZ_STEPS[wiz.step][0]);
+  if (errs.length) { wizShowErrors(errs); return; }
+  if (wiz.step < WIZ_STEPS.length - 1) wizGo(wiz.step + 1);
+  else wizSave();
+}
+
+// Fold the draft into a clean Trip object.
+function wizBuildTrip() {
+  const t = clone(wiz.trip), m = t.meta;
+  m.name = m.name.trim();
+  m.emoji = (m.emoji || "").trim();
+  m.subtitle = (m.subtitle || "").trim();
+  m.secondLanguage = (m.secondLanguage || "").trim();
+  m.travelers = m.travelers.map(n => n.trim()).filter(Boolean);
+  t.regions.forEach(r => { r.name = r.name.trim(); r.color = safeColor(r.color); });
+  if (!t.regions.some(r => r.id === m.defaultRegionId)) m.defaultRegionId = t.regions.length ? t.regions[0].id : null;
+  const home = t.regions.find(r => r.id === m.defaultRegionId);
+  if (m.defaultRegionId !== wiz.origHome || !m.defaultLocation) m.defaultLocation = home ? home.name : "";
+  t.stays = t.stays.map(st => ({ regionId: st.regionId || null, name: st.name.trim(), checkin: st.checkin, checkout: st.checkout }));
+  // Rebuild per-day flights; keep other per-day overrides inside the new range.
+  const days = {};
+  Object.keys(t.days || {}).forEach(k => {
+    if (k < m.startDate || k > m.endDate) return;
+    const d = { ...t.days[k] }; delete d.flights;
+    if (Object.keys(d).length) days[k] = d;
+  });
+  const FIELDS = ["flight","dep","arr","terminalDep","terminalArr","aircraft","bags","cls","conf"];
+  wiz.flights.slice().sort((a, b) => (a.date + (a.dep||"")) < (b.date + (b.dep||"")) ? -1 : 1).forEach(f => {
+    const out = { route: `${f.from.trim()} → ${f.to.trim()}` };
+    FIELDS.forEach(k => { const v = (f[k] || "").trim(); if (v) out[k] = v; });
+    (days[f.date] = days[f.date] || {}).flights = (days[f.date].flights || []).concat([out]);
+  });
+  t.days = days;
+  t.checklist.sections = t.checklist.sections.map(sec => ({
+    id: sec.id || randId("sec_"), title: sec.title.trim(),
+    items: sec.items.filter(it => (it.en || "").trim()).map(it => ({ id: it.id || randId("item_"), en: it.en.trim(), alt: (it.alt || "").trim() }))
+  }));
+  return t;
+}
+
+function wizSave() {
+  for (let i = 0; i < WIZ_STEPS.length; i++) {
+    const errs = wizValidate(WIZ_STEPS[i][0]);
+    if (errs.length) { if (wiz.step !== i) wizGo(i); wizShowErrors(errs); return; }
+  }
+  const t = wizBuildTrip();
+  if (wiz.mode === "create") {
+    if (builtinStatus() === "example" &&
+        !confirm("Creating your own trip deletes the example trip — and any notes or checklist ticks you added to it — from this device.\n\nContinue?")) return;
+    t.id = newTripId();
+    lsSet("trip_" + t.id, t);
+    saveTripsIndex(getTripsIndex().concat([{ id: t.id, name: t.meta.name, startDate: t.meta.startDate }]));
+    removeExampleTrip();
+  } else {
+    t.id = wiz.tripId;
+    const hidden = tripNotesOutside(t.id, t.meta.startDate, t.meta.endDate);
+    if (hidden && !confirm(`${hidden} day${hidden !== 1 ? "s" : ""} with notes fall outside the new dates. Those notes will be hidden (not deleted) until the dates include them again.\n\nSave anyway?`)) return;
+    lsSet("trip_" + t.id, t);
+    saveTripsIndex(getTripsIndex().map(e => e.id === t.id ? { ...e, name: t.meta.name, startDate: t.meta.startDate } : e));
+  }
+  closeWizard();
+  switchTrip(t.id);
+}
+
+// How many dates with saved notes fall outside [start, end] for a trip.
+function tripNotesOutside(tripId, start, end) {
+  const prefix = `notes_${tripId}_`;
+  let n = 0;
+  for (let i = 0; i < localStorage.length; i++) {
+    const k = localStorage.key(i);
+    if (!k.startsWith(prefix)) continue;
+    const date = k.slice(prefix.length);
+    if ((date < start || date > end) && lsGet(k, []).length) n++;
+  }
+  return n;
+}
+
 // ── Trip switcher UI ──
 function openTrips() { renderTripsList(); document.getElementById("trips-modal").classList.add("active"); }
 function closeTrips() { document.getElementById("trips-modal").classList.remove("active"); }
@@ -1233,6 +1619,7 @@ function renderTripsList() {
                    (t.example ? `<span class="trip-badge trip-badge-example">Example</span>` : "");
     const actions = [
       t.id !== active ? `<button onclick="onSwitchTrip('${t.id}')">Open</button>` : "",
+      !t.builtin ? `<button onclick="closeTrips(); openWizard('edit','${t.id}')">Edit</button>` : "",
       `<button onclick="onDuplicateTrip('${t.id}')">Duplicate</button>`,
       !t.builtin ? `<button onclick="onRenameTrip('${t.id}')">Rename</button>` : "",
       !t.builtin ? `<button class="trip-del" onclick="onDeleteTrip('${t.id}')">Delete</button>` : ""
@@ -1319,6 +1706,7 @@ function tripDateKeys(trip = getActiveTrip()) {
 function findRegion(trip, id) { return (trip.regions||[]).find(r => r.id === id) || null; }
 function stayForDay(trip, k) { return (trip.stays||[]).find(st => k >= st.checkin && k <= st.checkout) || null; }
 function compactCode(str) { return String(str||"").replace(/\s+/g, ""); }
+function safeColor(c) { return /^#[0-9a-f]{3,8}$/i.test(c||"") ? c : "#9aacb8"; }
 
 // Resolved view of one day — everything the UI needs, computed from the Trip.
 // Returns null for dates outside the trip range.
@@ -1359,7 +1747,7 @@ function renderTripChrome() {
   document.getElementById("trip-subtitle").textContent =
     [formatTripRange(m.startDate, m.endDate), m.subtitle].filter(Boolean).join(" \u00a0·\u00a0 ");
 
-  const dot = (color, label) => `<div class="legend-item"><div class="legend-dot" style="background:${color}"></div>${escapeHtml(label)}</div>`;
+  const dot = (color, label) => `<div class="legend-item"><div class="legend-dot" style="background:${safeColor(color)}"></div>${escapeHtml(label)}</div>`;
   document.getElementById("trip-legend").innerHTML =
     (trip.regions||[]).map(r => dot(r.color, r.name)).join("") +
     dot("#3d7dbf", "Flight") + dot("#4caf50", "Notes saved") + dot("#e8b800", "Holiday");
@@ -1477,15 +1865,15 @@ function renderCalendar() {
       const pos = d.stay.position;
       const cls = pos==="start"?"multiday-start":pos==="end"?"multiday-end":"multiday-mid";
       const icon = pos==="start"?"▶ ":pos==="end"?"◀ ":"— ";
-      inner += `<span class="multiday-badge ${cls}">${icon}${d.stay.name}</span>`;
+      inner += `<span class="multiday-badge ${cls}">${icon}${escapeHtml(d.stay.name)}</span>`;
     }
-    if (d.holiday) inner += `<span class="holiday-tag">${d.holiday}</span>`;
-    d.events.forEach(ev => { inner += `<div class="cal-event ${ev.cls}">${ev.text}</div>`; });
+    if (d.holiday) inner += `<span class="holiday-tag">${escapeHtml(d.holiday)}</span>`;
+    d.events.forEach(ev => { inner += `<div class="cal-event ${ev.cls}">${escapeHtml(ev.text)}</div>`; });
     if (notes.length) {
       inner += `<div class="cal-event ev-user">📝 ${notes[0].summary||notes[0].raw}</div>`;
       inner += `<div class="has-notes-dot"></div>`;
     }
-    if (d.region) inner += `<div class="strip" style="background:${d.region.color}"></div>`;
+    if (d.region) inner += `<div class="strip" style="background:${safeColor(d.region.color)}"></div>`;
     cell.innerHTML = inner;
     grid.appendChild(cell);
   });
@@ -1521,7 +1909,7 @@ function openDetail(dateKey) {
         <div class="detail-flight-row">
           <div class="flight-icon">🏡</div>
           <div class="flight-info">
-            <div class="flight-route">${d.stay.name}</div>
+            <div class="flight-route">${escapeHtml(d.stay.name)}</div>
             <div class="flight-meta">${posLabel} · ${d.stay.rangeLabel}</div>
           </div>
         </div>
@@ -1531,7 +1919,7 @@ function openDetail(dateKey) {
   if (d.events.length && !d.flights.length) {
     html += `<div class="detail-section"><div class="detail-section-header">✈ Travel</div><div class="detail-section-body">`;
     d.events.forEach(ev => {
-      html += `<div class="detail-flight-row"><div class="flight-info"><div class="flight-route">${ev.text}</div></div></div>`;
+      html += `<div class="detail-flight-row"><div class="flight-info"><div class="flight-route">${escapeHtml(ev.text)}</div></div></div>`;
     });
     html += `</div></div>`;
   }
@@ -1542,9 +1930,9 @@ function openDetail(dateKey) {
       html += `<div class="detail-flight-row">
         <div class="flight-icon">✈️</div>
         <div class="flight-info">
-          <div class="flight-route">${f.route}</div>
-          <div class="flight-meta">${f.flight} · Dep ${f.dep} → Arr ${f.arr}<br>${f.terminalDep} → ${f.terminalArr}<br>${f.aircraft} · ${f.cls} · Bags: ${f.bags}</div>
-          <span class="flight-conf">Conf: ${f.conf}</span>
+          <div class="flight-route">${escapeHtml(f.route||"")}</div>
+          <div class="flight-meta">${flightMetaLines(f)}</div>
+          ${f.conf ? `<span class="flight-conf">Conf: ${escapeHtml(f.conf)}</span>` : ""}
         </div></div>`;
     });
     html += `</div></div>`;
@@ -1552,7 +1940,7 @@ function openDetail(dateKey) {
 
   if (d.holiday) {
     html += `<div class="detail-section"><div class="detail-section-header">📅 Holiday</div>
-      <div class="detail-section-body" style="font-size:0.85rem;color:#6b4600">${d.holiday}</div></div>`;
+      <div class="detail-section-body" style="font-size:0.85rem;color:#6b4600">${escapeHtml(d.holiday)}</div></div>`;
   }
 
   html += `<div class="detail-section"><div class="detail-section-header">📝 Plans &amp; Notes</div>
@@ -1577,6 +1965,16 @@ function openDetail(dateKey) {
   document.getElementById("app-shell").classList.add("show-detail");
   document.getElementById("fab").classList.add("hidden");
   window.scrollTo(0,0);
+}
+
+// Flight detail lines, skipping anything not filled in (user-entered flights are sparse).
+function flightMetaLines(f) {
+  const lines = [
+    [f.flight, (f.dep || f.arr) ? `Dep ${f.dep || "?"} → Arr ${f.arr || "?"}` : ""],
+    [(f.terminalDep || f.terminalArr) ? `${f.terminalDep || "?"} → ${f.terminalArr || "?"}` : ""],
+    [f.aircraft, f.cls, f.bags ? "Bags: " + f.bags : ""]
+  ];
+  return lines.map(l => l.filter(Boolean).join(" · ")).filter(Boolean).map(escapeHtml).join("<br>");
 }
 
 function closeDetail() {
@@ -2413,13 +2811,24 @@ function init() {
 // ══════════════════════════════════════════════════════
 //  PACKING CHECKLIST
 // ══════════════════════════════════════════════════════
-// Checklist columns come from trip.meta.travelers. The layout still has two
-// fixed slots (CSS classes "pete"/"nicky" = left/right) — N columns is Phase 2.
+// One tick column per traveler in trip.meta.travelers (up to MAX_TRAVELERS).
+// Boxes sit either side of the item text: first half left, rest right, so two
+// travelers keep the original one-each-side layout.
 // Storage key = lowercased name ("Pete" → checklist_<tripId>_by_pete).
+const MAX_TRAVELERS = 6;
+const TRAVELER_COLORS = [
+  { fill: "#4caf50", label: "#2e7d32" }, { fill: "#5aaad8", label: "#1565c0" },
+  { fill: "#ef8a3c", label: "#b45309" }, { fill: "#9c6ade", label: "#6b3fa0" },
+  { fill: "#26a69a", label: "#00695c" }, { fill: "#e05a5a", label: "#b71c1c" }
+];
 function travelerKey(name) { return String(name).toLowerCase().replace(/[^a-z0-9]+/g, "_"); }
 function checklistTravelers() {
-  return getActiveTrip().meta.travelers.slice(0, 2).map((name, i) =>
-    ({ name, key: travelerKey(name), slot: i === 0 ? "pete" : "nicky" }));
+  return getActiveTrip().meta.travelers.slice(0, MAX_TRAVELERS).map((name, i) =>
+    ({ name, key: travelerKey(name), color: TRAVELER_COLORS[i] }));
+}
+function checklistSides(n) {
+  const left = Math.ceil(n / 2), idx = [...Array(n).keys()];
+  return [idx.slice(0, left), idx.slice(left)];
 }
 function getTravelerState(key) { return lsGet(travelerStateKey(key, activeTripId()), {}); }
 function saveTravelerState(key, s) { lsSet(travelerStateKey(key, activeTripId()), s); }
@@ -2493,33 +2902,44 @@ function checklistCounts() {
 function escapeHtml(s) {
   return String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;");
 }
+function escapeAttr(s) { return escapeHtml(s).replace(/"/g,"&quot;").replace(/'/g,"&#39;"); }
 
 function itemClasses(id, states) {
-  const ts = checklistTravelers();
-  let cls = "checklist-item", all = ts.length > 0;
-  ts.forEach((t,i) => { if (states[i][id]) cls += ` ${t.slot}-checked`; else all = false; });
-  if (all && ts.length > 1) cls += " both-checked";
-  return cls;
+  const all = states.length > 0 && states.every(st => st[id]);
+  return "checklist-item" + (all ? " both-checked" : "");
 }
 
 function checklistRow(it, states, altText, trailing) {
   const ts = checklistTravelers();
-  const box = i => `<div class="checklist-box ${ts[i].slot}-box" onclick="toggleChecklistItem('${it.id}',${i})">${states[i][it.id]?"✓":""}</div>`;
+  const [left, right] = checklistSides(ts.length);
+  const box = i => `<div class="checklist-box${states[i][it.id]?" on":""}" data-t="${i}" style="--c:${ts[i].color.fill}" onclick="toggleChecklistItem('${it.id}',${i})">${states[i][it.id]?"✓":""}</div>`;
   return `<div class="${itemClasses(it.id,states)}" id="chk-${it.id}">
-        ${ts[0] ? box(0) : ""}
+        ${left.map(box).join("")}
         <div class="checklist-text">
           <div class="checklist-en">${escapeHtml(it.en)}</div>
           ${altText?`<div class="checklist-th">${escapeHtml(altText)}</div>`:""}
         </div>
-        ${ts[1] ? box(1) : ""}
+        ${right.map(box).join("")}
         ${trailing}
       </div>`;
 }
 
+// Progress bars + the name labels above the tick columns.
 function renderChecklistLabels() {
-  checklistTravelers().forEach(t => {
-    document.querySelectorAll(`.prog-name.${t.slot}, .checklist-person-label.${t.slot}`).forEach(el => el.textContent = t.name);
-  });
+  const ts = checklistTravelers();
+  const [left, right] = checklistSides(ts.length);
+  const compact = ts.length > 2;   // >2 columns: short labels aligned over each box
+  const label = i => `<span class="checklist-person-label" style="color:${ts[i].color.label}" title="${escapeAttr(ts[i].name)}">${escapeHtml(compact ? ts[i].name.slice(0,3) : ts[i].name)}</span>`;
+  const bar = document.getElementById("checklist-names-bar");
+  bar.classList.toggle("compact", compact);
+  bar.innerHTML = left.map(label).join("") + `<span class="checklist-names-spacer"></span>` + right.map(label).join("");
+  const nameW = Math.min(90, Math.max(36, Math.max(0, ...ts.map(t => t.name.length)) * 7));
+  document.getElementById("checklist-progress-wrap").innerHTML = ts.map((t,i) => `
+    <div class="checklist-progress-row">
+      <span class="prog-name" style="color:${t.color.label}; width:${nameW}px">${escapeHtml(t.name)}</span>
+      <div class="checklist-progress-track"><div class="checklist-progress-fill" id="checklist-progress-${i}" style="background:${t.color.fill}"></div></div>
+      <span class="prog-count" id="checklist-count-${i}">0/0</span>
+    </div>`).join("");
 }
 
 function renderChecklist() {
@@ -2562,8 +2982,8 @@ function updateChecklistProgress() {
   const { total, done } = checklistCounts();
   checklistTravelers().forEach((t,i) => {
     const pct = total ? Math.round((done[i]/total)*100) : 0;
-    const fill = document.getElementById("checklist-progress-"+t.slot);
-    const count = document.getElementById("checklist-count-"+t.slot);
+    const fill = document.getElementById("checklist-progress-"+i);
+    const count = document.getElementById("checklist-count-"+i);
     if (fill)  fill.style.width = pct + "%";
     if (count) count.textContent = `${done[i]}/${total}`;
   });
@@ -2585,8 +3005,8 @@ function toggleChecklistItem(id, idx) {
   const el = document.getElementById("chk-"+id);
   if (el) {
     el.className = itemClasses(id, checklistTravelers().map(x => getTravelerState(x.key)));
-    const box = el.querySelector(`.${t.slot}-box`);
-    if (box) box.textContent = state[id] ? "✓" : "";
+    const box = el.querySelector(`.checklist-box[data-t="${idx}"]`);
+    if (box) { box.classList.toggle("on", !!state[id]); box.textContent = state[id] ? "✓" : ""; }
   }
   updateChecklistProgress();
   updateChecklistLaunchCount();
