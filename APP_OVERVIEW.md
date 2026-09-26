@@ -1,70 +1,61 @@
 # Trip Planner — Application Overview
 
-*A live, phone-friendly trip-planning web app with an AI plan assistant, a shared packing checklist, and an automated daily briefing.*
+*A phone-friendly trip planner that runs entirely in your browser. It has a colour-coded trip calendar, an AI plan assistant, a shared packing checklist and an on-demand daily briefing.*
 
-Built for Pete & Nicky's Bangkok → Boston trip (1–17 July 2026), but designed as a **reusable template** any traveller can copy and re-point at their own trip.
+It was built for Pete & Nicky's Bangkok → Boston trip (1–17 July 2026), which ships with the app as an example. Anyone can open the link and plan their own trips. There's nothing to install or fork, and you don't need an account.
 
 ---
 
 ## What it is, in one paragraph
 
-It's a single self-contained web page (`index.html`) hosted for free on GitHub Pages — **no server, no database, no app-store install, no accounts**. Open the link on any phone or computer and you get a colour-coded trip calendar, tappable day-by-day detail, and a bilingual packing checklist. The trip owner gets an **AI assistant** that turns pasted booking confirmations (or a photo of an e-ticket, or spoken words) into calendar entries, and publishes updates to the live page with one tap. A companion script sends an **automated morning briefing** each trip day via Telegram.
+It's a single web page hosted for free on GitHub Pages: **no server, no database, no app-store install, no sign-up**. Open the link on a phone or computer and you get a trip calendar, tappable day-by-day detail and a packing checklist. You can bring your trip in by building it in a step-by-step editor, or by pasting your booking emails into the AI you already use and importing what it returns. Trips are saved on your device. You can export them as a backup file or send them to someone as a link.
 
 ---
 
 ## The big features
 
-### 📅 1. Colour-coded trip calendar
-- Clean multi-week grid, **mobile-first** and responsive, with per-week labels (e.g. *"Week 1 · 1–7 July"*).
-- **Location colour strips** so you can see the shape of the trip at a glance (e.g. Boston vs. the Gallagher Cottage stay).
-- **Multi-day stay badges** that span across days with start / middle / end markers.
-- **Flights shown inline** on the day — flight number and departure time right in the cell.
-- **Holiday tags** (e.g. 🎆 Independence Day) and a green dot on any day that has saved notes.
-- A **legend** and an at-a-glance **flight summary card** (both passengers, outbound & return, cabin class, baggage, booking reference, travel agent).
+### 🧳 1. Your own trips, in the app
+- **Create a trip** in a five-step editor: basics (name, dates, travellers), places, stays, flights and packing list. It checks your work as you go and catches things like overlapping stays or a flight outside the trip dates.
+- **Keep several trips** on one device and switch between them. You can rename, duplicate ("use last summer's trip as a template") or delete them.
+- The built-in July trip appears as an **example** on new devices. It's removed once you create your own.
 
-### 📖 2. Tap-through day detail
-- Tap any day to slide into a full detail view: **flights** (route, times, terminals, aircraft, baggage, cabin, confirmation code), **accommodation**, **notes**, and **holidays**.
-- Add plans or a note directly from the detail screen.
+### 🤖 2. Import any itinerary with your own AI
+- Tap **Import trip → Copy AI prompt**. Paste the prompt into ChatGPT, Claude, Gemini or similar, followed by whatever you have: booking emails, PDFs, screenshots, a spreadsheet or rough notes.
+- Paste the AI's reply back into the app. You see a preview first: travellers, places, stays, flights and day-by-day plans, plus anything the AI had to assume.
+- If something needs fixing, the trip editor opens at the right step with everything already filled in.
+- Train tickets, car hire, dinner bookings, door codes and similar details become that day's plans.
 
-### 🤖 3. AI plan assistant ("Add Plans")
-This is the standout feature. Instead of hand-entering everything, the owner opens a chat and:
-- **Pastes a booking email or itinerary**, or just describes plans in plain English.
-- **Attaches a PDF, photo, or text file** — a flight e-ticket, a hotel confirmation, a screenshot — and the assistant reads it directly (it understands both images and PDFs).
-- **Speaks instead of typing** — built-in voice dictation via the phone's microphone.
-- The assistant (powered by Claude) figures out **what goes on which day**, then shows a **preview card** so you can **confirm or edit before anything is saved**. It remembers the conversation, so you can refine ("actually make that 4am") back and forth.
+### 📅 3. Colour-coded trip calendar
+- Mobile-first week grid built from your trip's dates, with week labels.
+- **Colour strips per place**, so you can see the shape of the trip at a glance.
+- **Stay badges** span the nights of each hotel or rental, marking check-in and check-out.
+- **Flights inline** on the day, a **flight summary card**, **holiday tags**, and a green dot on days with notes.
 
-### 🧳 4. Shared bilingual packing checklist
-- **46 items across 5 sections** — Absolute essentials, Health & hygiene, Outdoor & safety, Clothing & gear, and Food/drinks/fun.
-- **Every item is in both English and Thai.**
-- **Two independent columns** — e.g. one traveller per side — each with its own tick-boxes, **progress bar, and count**, saved on that person's device.
-- **Add your own custom items** (with an optional Thai translation), delete items, or clear the whole list (with a confirmation guard).
+### 📖 4. Tap-through day detail
+- Tap any day for its accommodation, flights (times, terminals, aircraft, baggage, confirmation code), holidays, plans and notes.
+- Add a note or a **journal entry** ("Walked the Freedom Trail, Nicky loved the duck boats…").
 
-### ✍️ 5. Notes & journal
-- Add quick **notes** to any day.
-- Add a **journal entry** per day — a running memory log of what actually happened ("Walked the Freedom Trail, Nicky loved the duck boats…").
+### ☀️ 5. Daily briefing, on demand
+- Tap **Daily briefing** and Claude writes a short, friendly morning summary. It covers today's location, stay, flights and plans, a "Don't forget" list, and a look at tomorrow.
+- Edit the text if you like, then send it by **email** or **WhatsApp** with one tap. You can also share or copy it.
+- Uses your own Anthropic API key, at a few cents per briefing.
 
-### 👥 6. Two modes: Owner and Guest
-On first open, the app asks how you're using it:
-- **Guest (family/friends, no keys needed):** browse the whole calendar, day details, and packing list; add their own notes and packing items (saved to their device); then send those additions to the owner.
-- **Owner:** everything above, **plus** the AI plan assistant and the ability to publish changes to the live page.
+### 🤖 6. AI plan assistant ("Add Plans")
+- With an Anthropic API key, you can chat with an assistant: paste a booking email, attach a PDF or photo, or just speak.
+- It works out which day each plan belongs to and shows a **preview** before anything is saved.
 
-### 📤 7. Family hand-off with no backend
-A clever, server-free collaboration flow:
-- A guest taps **"Send my additions"** → the app packages their notes and packing items into a **shareable link / code**.
-- They send it however they like — WhatsApp, Telegram, email, native share sheet.
-- The owner opens the link, sees a **review screen**, and approves. **Nothing goes live until the owner publishes it.**
+### 🧳 7. Packing checklist for the whole group
+- **One tick column per traveller** (up to six), each with its own progress bar.
+- Start from the **standard 46-item list** or a blank one. Edit sections and items, and add an optional **second-language** line under each item.
 
-### 🚀 8. One-tap publishing
-- The owner **publishes straight to the live page** — the app commits the update through GitHub and the site refreshes in about a minute.
-- Published notes and checklist changes are **baked into the page**, so every device picks them up the next time it loads. Publish buttons are available from the calendar, the AI panel, and the checklist.
+### 🔗 8. Backup and sharing, without a server
+- **Export** saves a trip, with its notes and plans, as a file you can keep or re-import on another device.
+- A **share link** packs the whole trip into the link itself. Whoever opens it gets a preview and can add the trip to their own device.
+- To change a trip with AI, export it, ask your AI for the change, then import the result with **Replace**.
 
-### 📨 9. Automated daily briefing
-A companion script (`briefing.js`), run automatically by a scheduled GitHub Action:
-- Fires **each morning during the trip window**.
-- Assembles the context for **today, tomorrow, and the day after** — location, flights, accommodation, holidays, and reminders.
-- Uses Claude to write a friendly, natural-language **morning briefing** with a **"Don't forget"** section of specific, practical reminders.
-- **Delivered over Telegram** (works on wifi or data, no roaming, no SMS, no business setup) with **WhatsApp as a fallback**.
-- Trip-timezone aware, so it behaves correctly before, during, and after the trip.
+### 👥 9. Family additions and publishing (the built-in trip)
+- For the original July trip, family members could add notes and packing items and send them to Pete as a link.
+- Pete reviewed the additions and **published** them to the live page, so every device picked them up.
 
 ---
 
@@ -74,23 +65,17 @@ A companion script (`briefing.js`), run automatically by a scheduled GitHub Acti
 |---|---|
 | **No install, no accounts** | Just a link. Opens on any phone or laptop browser. |
 | **Free to host** | Runs on GitHub Pages at zero cost. |
-| **Private by design** | Notes and checkboxes live in your own browser; API keys are stored only on your device, never in the code. No tracking, no third-party server. |
+| **Private by design** | Trips, notes and ticks stay in your browser. Your API key is stored only on your device. Share links carry the trip itself, and nothing is uploaded anywhere. |
+| **Bring your own AI** | Use any AI to turn messy booking emails into a trip. |
 | **Works offline-ish** | Once loaded, the calendar and checklist keep working from local storage. |
-| **AI does the tedious part** | Booking confirmations become calendar entries without manual typing. |
-| **Collaborative without a server** | Family can contribute via a simple share link; the owner stays in control of what goes live. |
-| **Reusable** | Swap in a new trip's dates, cities, and flights and the whole thing works again. |
+| **Reusable** | Duplicate a trip to start the next one, or import a fresh itinerary in a couple of minutes. |
 
 ---
 
 ## Under the hood (for the technically curious)
 
-- **One file, no build step.** The entire app is `index.html`; the only external dependency is Google Fonts.
-- **Hosting:** GitHub Pages (static). **Publishing:** the GitHub API, using a personal access token the owner enters once.
-- **Storage:** the browser's `localStorage` for notes, journal, checklist state, and keys.
-- **AI:** the Anthropic Claude API — in the app for parsing plans, and in `briefing.js` for the daily message.
-- **Automation:** a GitHub Actions cron job runs the briefing on schedule; all secrets live in GitHub, not in the code.
-- **Companion data file:** `trip-config.json` holds the day-by-day data the briefing reads.
-
----
-
-*This document describes the app as built for Pete & Nicky's July 2026 trip. To adapt it for a new trip, edit the `DEFAULT_TRIP` object in `index.html` (dates, travellers, places, stays, flights, checklist) and update `trip-config.json` — the calendar, AI assistant, checklist, publishing, and briefing all carry over unchanged.*
+- **One file, no build step.** The whole app is `index.html`. The only external dependency is Google Fonts; share links use the browser's built-in compression.
+- **Storage:** the browser's `localStorage`, with each trip's data kept separately.
+- **AI:** the Anthropic Claude API, called directly from the browser with the user's own key, powers the plan assistant and the daily briefing. AI import works with any AI, because the user copies a prompt into it.
+- **Portable format:** `trip-planner/v1` JSON, documented in `TRIP_IMPORT_FORMAT.md`.
+- **Hosting:** GitHub Pages. The site owner can publish the built-in trip through the GitHub API.
