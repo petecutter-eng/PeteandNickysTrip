@@ -77,6 +77,9 @@ A device can hold several trips. The built-in trip (`DEFAULT_TRIP`, id `trip_def
 - Publish, Send-to-Pete and `?import=` always operate on the built-in trip; those buttons are hidden while a user trip is open.
 - Trip switcher: footer **🧳 trips** link → new / open / edit / duplicate / rename / delete.
 
+### Daily briefing (on demand, in-app)
+**☀️ Daily briefing** (calendar) or **Briefing for this day** (detail view) opens a panel: pick a day (defaults to today, else the first/last trip day) → **Generate** calls the Messages API from the browser with the user's `cred_anthropic` key — `claude-opus-5`, `output_config.effort: "low"`, `fallbacks: "default"` (beta `server-side-fallback-2026-07-01`), refusal handled. `briefingContext()` sends today + tomorrow + day-after (location, stay, flights, holiday, plans) from the active trip, as `briefing.js` did. The text is editable, then sent with **Email** (`mailto:`), **WhatsApp** (`wa.me/<number>?text=`), **Share…** (Web Share) or **Copy**. Recipients are stored per device per trip in `briefing_to_<tripId>`, never in exports or share links. Nothing is sent automatically — scheduled sends need a backend (see the plan's Option C).
+
 ### Trip import / export / share (`trip-planner/v1`)
 One portable JSON format (spec + AI prompt: `TRIP_IMPORT_FORMAT.md`) is used for AI import, file export/backup and share links. Places are referenced by name, and `days[].plans` become notes.
 - **Import:** Trips → 📥 Import trip → *Copy AI prompt* (`buildAiPrompt()`) → paste the AI's JSON or upload a file → `extractJson()` → `draftFromImport()` → preview (`tiRender()`) → **Import as new trip** / **Replace** / **Fix in the trip editor** (opens the wizard on the draft at the failing step).
@@ -231,7 +234,7 @@ Two separate WhatsApp rules break the unattended 7am send on the sandbox:
 2. **Delivery channel** — now defaults to Telegram (no roaming/business dependency); set `TELEGRAM_BOT_TOKEN` + `TELEGRAM_CHAT_ID` to activate (see "Telegram"). WhatsApp/Twilio remains as a fallback, including an optional approved-template production path via `TWILIO_CONTENT_SID`.
 3. **Favicon** — not yet added
 4. **Multi-day event ingestion** — ingester can add multi-day notes but doesn't yet add a `stays` entry to the trip; only adds notes to each day individually
-5. **In-app trip customization** — in progress. Phase 0 (done): all rendering reads from the Trip model. Phase 1 (done): multi-trip storage + switcher. Phase 2 (done): create/edit wizard. Phase 3 (done): import/export/share (`trip-planner/v1`), generic welcome screen. Until the wizard lands, a new trip means editing `DEFAULT_TRIP` + `trip-config.json`.
+5. **In-app trip customization** — in progress. Phase 0 (done): all rendering reads from the Trip model. Phase 1 (done): multi-trip storage + switcher. Phase 2 (done): create/edit wizard. Phase 3 (done): import/export/share (`trip-planner/v1`), generic welcome screen. Phase 4 (done): on-demand in-app briefing. Until the wizard lands, a new trip means editing `DEFAULT_TRIP` + `trip-config.json`.
 
 ---
 
