@@ -34,7 +34,8 @@ Single file, no build step. The only external dependency is Google Fonts; share-
 ### Views
 - **Calendar view** — week grid computed from the active trip's dates (weekday header starts on the trip's first day; filler cells complete the last week). Responsive, mobile-first.
 - **Detail view** — slides in when a day is tapped: accommodation, flights, holiday, plans & notes, journal, briefing.
-- **Panels/modals** — AI plan assistant (＋ Add Plans), packing checklist, trips switcher, trip wizard, trip import, share link, daily briefing, mode chooser, key setup.
+- **Top trip bar** — **🧳 My trips** (switcher, with count) and **＋ Start a new trip**, which opens one chooser: *Import from my bookings* (AI prompt route), *Build it step by step* (wizard) or *Copy* an existing trip (`openNewTrip()`). The example banner and Trips modal use the same chooser.
+- **Panels/modals** — AI plan assistant (＋ Add to this trip / ＋ Add to this day), packing checklist, trips switcher, new-trip chooser, trip wizard, trip import, share link, daily briefing, mode chooser, AI key setup.
 
 ### Key JS sections (all in one `<script>` block)
 | Section | Purpose |
@@ -46,7 +47,8 @@ Single file, no build step. The only external dependency is Google Fonts; share-
 | Trip wizard | `openWizard()`, `wizValidate(key, draft)`, `wizBuildTrip(draft)`, `commitDraft(draft)` |
 | Trip files | `buildAiPrompt()`, `extractJson()`, `draftFromImport()`, `tripToPortable()`, `exportTrip()`, `encodeTripCode()` / `decodeTripCode()`, `checkTripParam()` |
 | Daily briefing | `briefingContext()`, `generateBriefing()`, `openBriefing()`, `brMailtoUrl()` / `brWhatsAppUrl()` |
-| AI plan assistant | `openIngester()`, `sendIngesterMessage()` (Claude API, `claude-sonnet-4-6`), `confirmPreview()` |
+| AI providers | `AI_PROVIDERS`, `aiChat()`, `aiCheckKey()`, `aiProvider()` / `aiKey()` / `aiModel()` — one layer over Claude, ChatGPT and Gemini (see below) |
+| AI plan assistant | `openIngester()`, `sendIngesterMessage()` (via `aiChat`, purpose `chat`), `confirmPreview()` |
 | Checklist | `checklistTravelers()`, `renderChecklist()`, `toggleChecklistItem()` — one tick column per traveler |
 | Publishing (built-in trip) | `doPublish()` / `publishToGitHub()` / `buildPublishableHTML()` — bakes notes + checklist edits into `BAKED_*` blocks |
 | Guest hand-off (built-in trip) | `collectAdditions()` / `openSend()` → `?import=` → `checkImportParam()` / `mergeImport()` / `publishImported()` |
@@ -55,7 +57,7 @@ Single file, no build step. The only external dependency is Google Fonts; share-
 ### Access modes
 On first open the app shows a **mode chooser**; the choice is stored in `localStorage["app_mode"]`, and "switch mode" in the footer reopens it.
 - **Plan & view trips** (`"guest"`, no keys) — everything except the AI features: create/import/edit trips, notes, journal, checklist, export/share.
-- **Full access** (`"owner"`) — adds the AI plan assistant and the daily briefing (Anthropic key), plus publishing the built-in trip to the live page (GitHub token, site owner only).
+- **Add the built-in AI helpers** (`"owner"`) — adds the AI plan assistant and the daily briefing using the user's own Claude, ChatGPT or Gemini API key, plus (site owner only) publishing the built-in trip with a GitHub token. The key setup screen walks through getting a key from each provider step by step and can check a key for free.
 
 ### Multi-trip storage (per device)
 A device can hold several trips. The built-in trip (`DEFAULT_TRIP`, id `trip_default`) is always read from code; user trips are stored in localStorage.
@@ -63,7 +65,7 @@ A device can hold several trips. The built-in trip (`DEFAULT_TRIP`, id `trip_def
 - `builtin_trip` — `"owned"` | `"example"` | `"removed"`. Fresh devices see the built-in trip as an **example** (banner shown); creating or importing their own trip deletes the example and its data from that device. Devices with pre-existing data, or owner mode, mark it `"owned"` and never remove it. Deleting the last own trip restores the example.
 - Per-trip state: `notes_<id>_<date>`, `checklist_<id>_by_<traveler>`, `checklist_<id>_custom`, `checklist_<id>_removed`, `briefing_to_<id>`
 - `storage_version` — `migrateStorage()` moved the old un-namespaced keys (`notes_<date>`, `checklist_pete`, …) under `trip_default` once.
-- Trip switcher: footer **🧳 trips** → new / import / open / edit / duplicate / rename / delete / export / share link.
+- Trip switcher: **🧳 My trips** (top bar) or footer **🧳 trips** → start a new trip / open / edit / duplicate / rename / delete / export / share link.
 
 ### Trip wizard (create / edit)
 `openWizard("create" | "edit", tripId)` opens a 5-step panel — Basics (name, emoji, dates, 1–6 travelers, checklist second language), Places (regions + colour + home base), Stays, Flights, Checklist (standard 46-item template or blank; sections/items editable). It edits a deep-copied draft; `wizSave()` validates every step, then `wizBuildTrip()` folds flights back into `trip.days` (other per-day overrides — location, holiday, events — are preserved). Only user trips are editable; the built-in trip must be duplicated first.
@@ -77,7 +79,18 @@ One portable JSON format (spec + AI prompt: `TRIP_IMPORT_FORMAT.md`) is used for
 - **Share link:** `?trip=` + `z` + base64url(deflate-raw JSON) (`j` = uncompressed fallback). Opening one shows the import preview.
 
 ### Daily briefing (on demand, in-app)
-**☀️ Daily briefing** (calendar) or **Briefing for this day** (detail view): pick a day (defaults to today, else the first/last trip day) → **Generate** calls the Messages API from the browser with the user's `cred_anthropic` key — `claude-opus-5`, `output_config.effort: "low"`, `fallbacks: "default"` (beta `server-side-fallback-2026-07-01`), refusal handled. `briefingContext()` sends today + tomorrow + day-after (location, stay, flights, holiday, plans). The text is editable, then sent with **Email** (`mailto:`), **WhatsApp** (`wa.me/<number>?text=`), **Share…** or **Copy**. Nothing is sent automatically; scheduled sends would need a backend (the plan's "Option C").
+**☀️ Daily briefing** (calendar) or **Briefing for this day** (detail view): pick a day (defaults to today, else the first/last trip day) → **Generate** calls the user's chosen AI through `aiChat` (purpose `briefing`); on Claude that's `claude-opus-5` with `output_config.effort: "low"` and `fallbacks: "default"` (beta `server-side-fallback-2026-07-01`). `briefingContext()` sends today + tomorrow + day-after (location, stay, flights, holiday, plans). The text is editable, then sent with **Email** (`mailto:`), **WhatsApp** (`wa.me/<number>?text=`), **Share…** or **Copy**. Nothing is sent automatically; scheduled sends would need a backend (the plan's "Option C").
+
+### AI providers (Claude, ChatGPT, Gemini)
+Both AI helpers call `aiChat({ system, messages, purpose })` with a provider-neutral conversation (`{ role, parts: [{ text } | { file: { name, mime, base64 } }] }`), which adapts it to the chosen provider from the browser with the user's own key:
+
+| Provider | Endpoint | Default model (plan / briefing) | Files |
+|---|---|---|---|
+| Claude (`anthropic`) | `api.anthropic.com/v1/messages` | `claude-sonnet-4-6` / `claude-opus-5` | `document` / `image` blocks |
+| ChatGPT (`openai`) | `api.openai.com/v1/chat/completions` | `gpt-5-mini` | `file` (PDF data URL) / `image_url` parts |
+| Gemini (`gemini`) | `generativelanguage.googleapis.com/v1beta/models/<model>:generateContent?key=` | `gemini-flash-latest` | `inline_data` parts |
+
+Errors come back as `AiError` with `kind` = `auth` / `refusal` / `quota` / `other` and a plain message. `aiCheckKey()` verifies a key with each provider's free model-list endpoint. `ai_model_<provider>` (Setup → Advanced) overrides the default model if one is retired. These integrations are tested against mocked responses only — model names are the likeliest thing to go stale.
 
 ### Publishing the built-in trip (site owner)
 Only the built-in trip is published; user trips never leave the device except via export/share.
@@ -90,7 +103,7 @@ Family members in guest mode can **Send my additions to Pete** (`?import=` link)
 > `buildPublishableHTML()` snapshots the live DOM, so publish with panels closed — `init()` defends against an open panel being baked in.
 
 ### Credentials (stored in browser localStorage, never in code)
-- `cred_anthropic` — Anthropic API key (AI plan assistant + daily briefing)
+- `cred_anthropic` / `cred_openai` / `cred_gemini` — AI keys; `ai_provider` — which one the helpers use; `ai_model_<provider>` — optional model override
 - `cred_github`, `cred_ghuser`, `cred_ghrepo` — optional; only for publishing the built-in trip
 - `app_mode` — `"owner"` | `"guest"` · `guest_name` — optional name on guest submissions
 
@@ -114,8 +127,9 @@ Family members in guest mode can **Send my additions to Pete** (`?import=` link)
 2. **Multi-device sync** — trips live per device; export/import or share links move them. Live sync needs a backend.
 3. **Wizard coverage** — holidays and per-day location labels can't be edited in the wizard (the import format and exports carry them).
 4. **Checklist ticks are keyed by traveler name** — renaming a traveler starts their ticks fresh.
-5. **AI plan assistant** adds notes to days but doesn't create stays; it still uses `claude-sonnet-4-6`.
+5. **AI plan assistant** adds notes to days but doesn't create stays.
 6. **Favicon** — not yet added.
+7. **Built-in trip data** still describes the July 2026 trip (names, flights); it will be replaced with generic sample data. No UI wording references it.
 
 ---
 
