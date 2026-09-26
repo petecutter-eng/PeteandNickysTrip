@@ -107,8 +107,6 @@
   .ev-note   { background: #fef8e6; color: #5a3e00; border-left: 2px solid #e8b800; }
   .ev-user   { background: #edf7ed; color: #1a4a1a; border-left: 2px solid #4caf50; }
   .strip { position: absolute; bottom: 0; left: 0; right: 0; height: 4px; }
-  .strip-boston  { background: #5aaad8; }
-  .strip-cottage { background: #7cb87a; }
   .multiday-badge {
     display: block; font-size: clamp(0.4rem, 1.2vw, 0.52rem);
     font-weight: 700; letter-spacing: 0.04em; padding: 1px 5px; border-radius: 3px;
@@ -845,10 +843,10 @@ Does that work? Want me to add a "Leave home" reminder for **4:00am on July 1** 
   <!-- Calendar View -->
   <div class="view" id="calendar-view">
     <header>
-      <h1>Nicky &amp; Pete's US Trip ✈️</h1>
-      <p>1 July – 17 July 2026 &nbsp;·&nbsp; Japan Airlines &nbsp;·&nbsp; Ref: FQ5ZSK</p>
+      <h1 id="trip-title">Nicky &amp; Pete's US Trip ✈️</h1>
+      <p id="trip-subtitle">1 July – 17 July 2026 &nbsp;·&nbsp; Japan Airlines &nbsp;·&nbsp; Ref: FQ5ZSK</p>
     </header>
-    <div class="legend">
+    <div class="legend" id="trip-legend">
       <div class="legend-item"><div class="legend-dot" style="background:#5aaad8"></div>Boston</div>
       <div class="legend-item"><div class="legend-dot" style="background:#3d7dbf"></div>Flight</div>
       <div class="legend-item"><div class="legend-dot" style="background:#7cb87a"></div>Gallagher Cottage</div>
@@ -864,17 +862,17 @@ Does that work? Want me to add a "Leave home" reminder for **4:00am on July 1** 
     <button class="send-to-pete" id="send-to-pete-btn" onclick="openSend()">📤 Send my additions to Pete</button>
     <button class="owner-publish" id="owner-publish-btn" onclick="publishAdditions()">🚀 Publish my changes to the live page</button>
     <div class="calendar">
-      <div class="cal-header">
+      <div class="cal-header" id="cal-header">
         <div>Wed</div><div>Thu</div><div>Fri</div>
         <div>Sat</div><div>Sun</div><div>Mon</div><div>Tue</div>
       </div>
-      <div class="cal-grid" id="cal-grid"><div class="week-label">Week 1 · 1–7 July 2026</div><div class="cal-cell flight-day has-data"><div class="date-num">1 Jul</div><div class="cal-event ev-flight">✈ BKK→NRT JL708 07:55</div><div class="cal-event ev-flight">✈ NRT→BOS JL008 18:25</div><div class="cal-event ev-user">📝 Leave home 4:00am</div><div class="has-notes-dot"></div><div class="strip strip-boston"></div></div><div class="cal-cell "><div class="date-num">2 Jul</div><div class="cal-event ev-note">🛬 Arr BOS 18:15 local</div><div class="strip strip-boston"></div></div><div class="cal-cell "><div class="date-num">3 Jul</div><div class="strip strip-boston"></div></div><div class="cal-cell "><div class="date-num">4 Jul</div><span class="holiday-tag">🎆 Independence Day</span><div class="strip strip-boston"></div></div><div class="cal-cell "><div class="date-num">5 Jul</div><div class="strip strip-boston"></div></div><div class="cal-cell "><div class="date-num">6 Jul</div><div class="strip strip-boston"></div></div><div class="cal-cell "><div class="date-num">7 Jul</div><span class="multiday-badge multiday-start">▶ Gallagher Cottage</span><div class="cal-event ev-note">🏡 Check-in: Gallagher Cottage</div><div class="strip strip-cottage"></div></div><div class="week-label">Week 2 · 8–14 July 2026</div><div class="cal-cell "><div class="date-num">8 Jul</div><span class="multiday-badge multiday-mid">— Gallagher Cottage</span><div class="strip strip-cottage"></div></div><div class="cal-cell "><div class="date-num">9 Jul</div><span class="multiday-badge multiday-mid">— Gallagher Cottage</span><div class="strip strip-cottage"></div></div><div class="cal-cell "><div class="date-num">10 Jul</div><span class="multiday-badge multiday-end">◀ Gallagher Cottage</span><div class="cal-event ev-note">🏡 Check-out: Gallagher Cottage</div><div class="strip strip-cottage"></div></div><div class="cal-cell "><div class="date-num">11 Jul</div><div class="strip strip-boston"></div></div><div class="cal-cell "><div class="date-num">12 Jul</div><div class="strip strip-boston"></div></div><div class="cal-cell "><div class="date-num">13 Jul</div><div class="strip strip-boston"></div></div><div class="cal-cell "><div class="date-num">14 Jul</div><div class="strip strip-boston"></div></div><div class="week-label">Week 3 · 15–17 July — Return</div><div class="cal-cell "><div class="date-num">15 Jul</div><div class="strip strip-boston"></div></div><div class="cal-cell flight-day"><div class="date-num">16 Jul</div><div class="cal-event ev-flight">✈ BOS→NRT JL007 13:15</div><div class="strip strip-boston"></div></div><div class="cal-cell flight-day"><div class="date-num">17 Jul</div><div class="cal-event ev-flight">✈ NRT→BKK JL707 18:25</div><div class="cal-event ev-note">🛬 Arr BKK 23:00</div></div><div class="cal-cell inactive"><div class="date-num">18</div></div><div class="cal-cell inactive"><div class="date-num">19</div></div><div class="cal-cell inactive"><div class="date-num">20</div></div><div class="cal-cell inactive"><div class="date-num">21</div></div></div>
+      <div class="cal-grid" id="cal-grid"></div>
     </div>
     <div class="cal-hint-row">
       <p class="tap-hint">Tap any day to view details</p>
       <a class="cal-publish-link" id="cal-publish-link" onclick="publishFromCalendar(this)">Publish</a>
     </div>
-    <div class="summary">
+    <div class="summary" id="trip-summary">
       <strong>✈ Flight Details — Peter Guild &amp; Nicholas Boonsuan</strong>
       <b>Out (1 Jul):</b> BKK→NRT JL708 07:55 · NRT→BOS JL008 18:25 · Economy V · 2 bags<br>
       <b>Return (16–17 Jul):</b> BOS→NRT JL007 13:15 · NRT→BKK JL707 18:25 · Economy N · 2 bags<br>
@@ -902,58 +900,240 @@ Does that work? Want me to add a "Leave home" reminder for **4:00am on July 1** 
 
 <script>
 // ══════════════════════════════════════════════════════
-//  TRIP DATA
+//  TRIP MODEL (schemaVersion 1)
 // ══════════════════════════════════════════════════════
-const TRIP_DATA = {
-  "2026-07-01": {
-    label: "1 Jul", dow: "Wed", location: "In transit",
-    flights: [
-      { route: "BKK → NRT", flight: "JL 708", dep: "07:55", arr: "16:05", terminal_dep: "Suvarnabhumi", terminal_arr: "Narita T2", aircraft: "787-8", bags: "2PC", cls: "Economy (V)", conf: "FQ5ZSK" },
-      { route: "NRT → BOS", flight: "JL 008", dep: "18:25", arr: "18:15+1", terminal_dep: "Narita T2", terminal_arr: "Logan Terminal E", aircraft: "787-9", bags: "2PC", cls: "Economy (V)", conf: "FQ5ZSK" }
-    ],
-    calEvents: ["✈ BKK→NRT JL708 07:55","✈ NRT→BOS JL008 18:25"],
-    calClasses: ["ev-flight","ev-flight"],
-    strip: "strip-boston", cellClass: "flight-day"
+// The whole trip lives in one Trip object. Everything the app renders
+// (header, legend, calendar, detail view, flight summary, checklist) is
+// derived from it via getActiveTrip() / getDay(). Days are sparse: a date
+// with no entry inherits location/region from its stay or the trip defaults.
+const DEFAULT_TRIP = {
+  schemaVersion: 1,
+  id: "trip_default",
+  meta: {
+    name: "Nicky & Pete's US Trip",
+    emoji: "✈️",
+    subtitle: "Japan Airlines · Ref: FQ5ZSK",
+    startDate: "2026-07-01",
+    endDate: "2026-07-17",
+    travelers: ["Pete", "Nicky"],          // drives checklist columns
+    secondLanguage: "th",                  // checklist alt-language; "" = single language
+    timezoneHome: "Asia/Bangkok",
+    timezoneTrip: "America/New_York",
+    defaultLocation: "Boston, MA",         // for days with no location/stay
+    defaultRegionId: "boston",             // for days with no region/stay
+    passengers: ["Peter Guild", "Nicholas Boonsuan"],
+    bookingRef: "FQ5ZSK",
+    bookedVia: "Satguru Travel & Tours, Bangkok"
   },
-  "2026-07-02": { label: "2 Jul", dow: "Thu", location: "Boston, MA", strip: "strip-boston" },
-  "2026-07-03": { label: "3 Jul", dow: "Fri", location: "Boston, MA", strip: "strip-boston" },
-  "2026-07-04": { label: "4 Jul", dow: "Sat", location: "Boston, MA", holiday: "🎆 Independence Day", strip: "strip-boston" },
-  "2026-07-05": { label: "5 Jul", dow: "Sun", location: "Boston, MA", strip: "strip-boston" },
-  "2026-07-06": { label: "6 Jul", dow: "Mon", location: "Boston, MA", strip: "strip-boston" },
-  "2026-07-07": {
-    label: "7 Jul", dow: "Tue", location: "Gallagher Cottage",
-    calEvents: ["🏡 Check-in: Gallagher Cottage"], calClasses: ["ev-note"],
-    strip: "strip-cottage", multiday: { name: "Gallagher Cottage", position: "start" }
+  regions: [
+    { id: "boston",  name: "Boston",            color: "#5aaad8" },
+    { id: "cottage", name: "Gallagher Cottage", color: "#7cb87a" }
+  ],
+  stays: [
+    { regionId: "cottage", name: "Gallagher Cottage", checkin: "2026-07-07", checkout: "2026-07-10" }
+  ],
+  days: {
+    "2026-07-01": {
+      location: "In transit",
+      flights: [
+        { route: "BKK → NRT", flight: "JL 708", dep: "07:55", arr: "16:05", terminalDep: "Suvarnabhumi", terminalArr: "Narita T2", aircraft: "787-8", bags: "2PC", cls: "Economy (V)", conf: "FQ5ZSK" },
+        { route: "NRT → BOS", flight: "JL 008", dep: "18:25", arr: "18:15+1", terminalDep: "Narita T2", terminalArr: "Logan Terminal E", aircraft: "787-9", bags: "2PC", cls: "Economy (V)", conf: "FQ5ZSK" }
+      ]
+    },
+    "2026-07-04": { holiday: "🎆 Independence Day" },
+    "2026-07-10": { location: "Gallagher Cottage → Boston" },
+    "2026-07-16": {
+      location: "Boston → Tokyo",
+      flights: [{ route: "BOS → NRT", flight: "JL 007", dep: "13:15", arr: "16:00+1", terminalDep: "Logan Terminal E", terminalArr: "Narita T2", aircraft: "787-9", bags: "2PC", cls: "Economy (N)", conf: "FQ5ZSK" }]
+    },
+    "2026-07-17": {
+      location: "Tokyo → Bangkok",
+      regionId: null,                      // explicit null = no colour strip
+      flights: [{ route: "NRT → BKK", flight: "JL 707", dep: "18:25", arr: "23:00", terminalDep: "Narita T2", terminalArr: "Suvarnabhumi", aircraft: "787-8", bags: "2PC", cls: "Economy (N)", conf: "FQ5ZSK" }],
+      events: [{ text: "🛬 Arr BKK 23:00", kind: "note" }]
+    }
   },
-  "2026-07-08": { label: "8 Jul", dow: "Wed", location: "Gallagher Cottage", strip: "strip-cottage", multiday: { name: "Gallagher Cottage", position: "mid" } },
-  "2026-07-09": { label: "9 Jul", dow: "Thu", location: "Gallagher Cottage", strip: "strip-cottage", multiday: { name: "Gallagher Cottage", position: "mid" } },
-  "2026-07-10": {
-    label: "10 Jul", dow: "Fri", location: "Gallagher Cottage → Boston",
-    calEvents: ["🏡 Check-out: Gallagher Cottage"], calClasses: ["ev-note"],
-    strip: "strip-cottage", multiday: { name: "Gallagher Cottage", position: "end" }
+  checklist: {
+    sections: [
+      { id: "essentials", title: "Absolute essentials", items: [
+        { id: "essentials-1", en: "Passport",                     alt: "หนังสือเดินทาง" },
+        { id: "essentials-2", en: "Cash",                         alt: "เงินสด" },
+        { id: "essentials-3", en: "Plane ticket",                 alt: "ตั๋วเครื่องบิน" },
+        { id: "essentials-4", en: "Travel insurance docs",        alt: "เอกสารประกันการเดินทาง" },
+        { id: "essentials-5", en: "International driving permit",  alt: "ใบอนุญาตขับรถระหว่างประเทศ" },
+        { id: "essentials-6", en: "Power bank",                   alt: "แบตเตอรี่สำรอง" },
+        { id: "essentials-7", en: "Mobile phone",                 alt: "โทรศัพท์มือถือ" },
+        { id: "essentials-8", en: "Mobile charger",               alt: "ที่ชาร์จโทรศัพท์" },
+        { id: "essentials-9", en: "Phone holder",                 alt: "ที่วางโทรศัพท์ในรถ" }
+      ]},
+      { id: "health-hygiene", title: "Health & hygiene", items: [
+        { id: "health-1", en: "Toiletry kit",          alt: "ชุดอุปกรณ์อาบน้ำ" },
+        { id: "health-2", en: "First aid kit",         alt: "ชุดปฐมพยาบาลเบื้องต้น" },
+        { id: "health-3", en: "Sunblock",              alt: "ครีมกันแดด" },
+        { id: "health-4", en: "Lip balm",              alt: "ลิปบาล์ม" },
+        { id: "health-5", en: "Hand sanitizer",        alt: "เจลล้างมือ" },
+        { id: "health-6", en: "Hand wipes",            alt: "ทิชชู่เปียก" },
+        { id: "health-7", en: "Personal medications",  alt: "ยาประจำตัว" },
+        { id: "health-8", en: "Water",                 alt: "น้ำดื่ม" }
+      ]},
+      { id: "outdoor-safety", title: "Outdoor & safety", items: [
+        { id: "outdoor-1", en: "Mosquito repellent",           alt: "ยากันยุง" },
+        { id: "outdoor-2", en: "Tick repellent",               alt: "ยากันเห็บ" },
+        { id: "outdoor-3", en: "Tick remover tool",            alt: "อุปกรณ์ถอนเห็บ" },
+        { id: "outdoor-4", en: "Rain gear / light jacket",     alt: "เสื้อกันฝน / แจ็คเก็ตเบา" },
+        { id: "outdoor-5", en: "Umbrella",                     alt: "ร่ม" },
+        { id: "outdoor-6", en: "Dry bags / waterproof pouches", alt: "ถุงกันน้ำ" },
+        { id: "outdoor-7", en: "Emergency roadside kit",       alt: "ชุดฉุกเฉินในรถ" }
+      ]},
+      { id: "clothing-gear", title: "Clothing & gear", items: [
+        { id: "clothing-1",  en: "Hats",              alt: "หมวก" },
+        { id: "clothing-2",  en: "Flip flops",        alt: "รองเท้าแตะ" },
+        { id: "clothing-3",  en: "Bathing suit",      alt: "ชุดว่ายน้ำ" },
+        { id: "clothing-4",  en: "Sunglasses",        alt: "แว่นกันแดด" },
+        { id: "clothing-5",  en: "Change of clothes", alt: "เสื้อผ้าสำรอง" },
+        { id: "clothing-6",  en: "Towel",             alt: "ผ้าเช็ดตัว" },
+        { id: "clothing-7",  en: "Laundry bag",       alt: "ถุงใส่ผ้าสกปรก" },
+        { id: "clothing-8",  en: "Binoculars",        alt: "กล้องส่องทางไกล" },
+        { id: "clothing-9",  en: "Camera",            alt: "กล้องถ่ายรูป" },
+        { id: "clothing-10", en: "Travel pillow",     alt: "หมอนรองคอ" },
+        { id: "clothing-11", en: "Reusable bags",     alt: "ถุงผ้าอเนกประสงค์" }
+      ]},
+      { id: "food-fun", title: "Food, drinks & fun", items: [
+        { id: "fun-1",  en: "Coffee",                    alt: "กาแฟ" },
+        { id: "fun-2",  en: "Hot chocolate",             alt: "ช็อกโกแลตร้อน" },
+        { id: "fun-3",  en: "Snacks",                    alt: "ขนมขบเคี้ยว" },
+        { id: "fun-4",  en: "Cooler / ice chest",        alt: "กระติกน้ำแข็ง" },
+        { id: "fun-5",  en: "Playing cards / Uno",       alt: "ไพ่ / อูโน่" },
+        { id: "fun-6",  en: "Board game",                alt: "เกมกระดาน" },
+        { id: "fun-7",  en: "Book",                      alt: "หนังสือ" },
+        { id: "fun-8",  en: "Art materials",             alt: "วัสดุศิลปะ" },
+        { id: "fun-9",  en: "Frisbee",                   alt: "จานร่อน" },
+        { id: "fun-10", en: "Kids' tablet & headphones", alt: "แท็บเล็ตและหูฟังสำหรับเด็ก" },
+        { id: "fun-11", en: "Offline maps downloaded",   alt: "ดาวน์โหลดแผนที่ออฟไลน์แล้ว" }
+      ]}
+    ]
   },
-  "2026-07-11": { label: "11 Jul", dow: "Sat", location: "Boston, MA", strip: "strip-boston" },
-  "2026-07-12": { label: "12 Jul", dow: "Sun", location: "Boston, MA", strip: "strip-boston" },
-  "2026-07-13": { label: "13 Jul", dow: "Mon", location: "Boston, MA", strip: "strip-boston" },
-  "2026-07-14": { label: "14 Jul", dow: "Tue", location: "Boston, MA", strip: "strip-boston" },
-  "2026-07-15": { label: "15 Jul", dow: "Wed", location: "Boston, MA", strip: "strip-boston" },
-  "2026-07-16": {
-    label: "16 Jul", dow: "Thu", location: "Boston → Tokyo", cellClass: "flight-day",
-    flights: [{ route: "BOS → NRT", flight: "JL 007", dep: "13:15", arr: "16:00+1", terminal_dep: "Logan Terminal E", terminal_arr: "Narita T2", aircraft: "787-9", bags: "2PC", cls: "Economy (N)", conf: "FQ5ZSK" }],
-    calEvents: ["✈ BOS→NRT JL007 13:15"], calClasses: ["ev-flight"], strip: "strip-boston"
-  },
-  "2026-07-17": {
-    label: "17 Jul", dow: "Fri", location: "Tokyo → Bangkok", cellClass: "flight-day",
-    flights: [{ route: "NRT → BKK", flight: "JL 707", dep: "18:25", arr: "23:00", terminal_dep: "Narita T2", terminal_arr: "Suvarnabhumi", aircraft: "787-8", bags: "2PC", cls: "Economy (N)", conf: "FQ5ZSK" }],
-    calEvents: ["✈ NRT→BKK JL707 18:25","🛬 Arr BKK 23:00"], calClasses: ["ev-flight","ev-note"]
-  }
+  briefing: { recipientEmail: "", whatsappRecipient: "", tone: "friendly" }
 };
 
-const WEEK_LABELS = {
-  "2026-07-01": "Week 1 · 1–7 July 2026",
-  "2026-07-08": "Week 2 · 8–14 July 2026",
-  "2026-07-15": "Week 3 · 15–17 July — Return"
-};
+// Phase 0: always the built-in trip. Phase 1 swaps this for localStorage.
+function getActiveTrip() { return DEFAULT_TRIP; }
+
+// ── Date helpers (UTC so date keys never drift with the device timezone) ──
+const MONTHS_SHORT = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
+const MONTHS_LONG  = ["January","February","March","April","May","June","July","August","September","October","November","December"];
+const DOW_SHORT    = ["Sun","Mon","Tue","Wed","Thu","Fri","Sat"];
+function parseDateKey(k) { const [y,m,d] = k.split("-").map(Number); return new Date(Date.UTC(y, m-1, d)); }
+function toDateKey(dt) { return dt.toISOString().slice(0,10); }
+function addDays(k, n) { const dt = parseDateKey(k); dt.setUTCDate(dt.getUTCDate()+n); return toDateKey(dt); }
+function daysBetween(a, b) { return Math.round((parseDateKey(b) - parseDateKey(a)) / 86400000); }
+function formatDayLabel(k) { const dt = parseDateKey(k); return dt.getUTCDate() + " " + MONTHS_SHORT[dt.getUTCMonth()]; }
+
+// "1–7 July 2026" · "29 June – 5 July 2026" · "28 December 2026 – 3 January 2027"
+function formatDateRange(a, b) {
+  const x = parseDateKey(a), y = parseDateKey(b);
+  const [xd, xm, xy] = [x.getUTCDate(), x.getUTCMonth(), x.getUTCFullYear()];
+  const [yd, ym, yy] = [y.getUTCDate(), y.getUTCMonth(), y.getUTCFullYear()];
+  if (xy !== yy) return `${xd} ${MONTHS_LONG[xm]} ${xy} – ${yd} ${MONTHS_LONG[ym]} ${yy}`;
+  if (xm !== ym) return `${xd} ${MONTHS_LONG[xm]} – ${yd} ${MONTHS_LONG[ym]} ${yy}`;
+  if (xd === yd) return `${xd} ${MONTHS_LONG[xm]} ${xy}`;
+  return `${xd}–${yd} ${MONTHS_LONG[xm]} ${xy}`;
+}
+
+// "1 July – 17 July 2026" (header style: month always spelled out on both ends)
+function formatTripRange(a, b) {
+  const x = parseDateKey(a), y = parseDateKey(b);
+  const sameYear = x.getUTCFullYear() === y.getUTCFullYear();
+  return `${x.getUTCDate()} ${MONTHS_LONG[x.getUTCMonth()]}${sameYear ? "" : " " + x.getUTCFullYear()} – ` +
+         `${y.getUTCDate()} ${MONTHS_LONG[y.getUTCMonth()]} ${y.getUTCFullYear()}`;
+}
+
+function tripDateKeys(trip = getActiveTrip()) {
+  const out = [];
+  for (let k = trip.meta.startDate; k <= trip.meta.endDate; k = addDays(k, 1)) out.push(k);
+  return out;
+}
+function findRegion(trip, id) { return (trip.regions||[]).find(r => r.id === id) || null; }
+function stayForDay(trip, k) { return (trip.stays||[]).find(st => k >= st.checkin && k <= st.checkout) || null; }
+function compactCode(str) { return String(str||"").replace(/\s+/g, ""); }
+
+// Resolved view of one day — everything the UI needs, computed from the Trip.
+// Returns null for dates outside the trip range.
+function getDay(k, trip = getActiveTrip()) {
+  if (!k || k < trip.meta.startDate || k > trip.meta.endDate) return null;
+  const raw = (trip.days||{})[k] || {};
+  const flights = raw.flights || [];
+  const st = stayForDay(trip, k);
+  let stay = null;
+  if (st) {
+    const nights = daysBetween(st.checkin, st.checkout);
+    stay = {
+      name: st.name,
+      position: k === st.checkin ? "start" : k === st.checkout ? "end" : "mid",
+      rangeLabel: `${formatDayLabel(st.checkin)} – ${formatDayLabel(st.checkout)} (${nights} night${nights!==1?"s":""})`
+    };
+  }
+  const regionId = ("regionId" in raw) ? raw.regionId : st ? st.regionId : (trip.meta.defaultRegionId || null);
+  const events = flights.map(f => ({ text: `✈ ${compactCode(f.route)} ${compactCode(f.flight)} ${f.dep}`, cls: "ev-flight" }));
+  if (stay && stay.position === "start") events.push({ text: `🏡 Check-in: ${stay.name}`,  cls: "ev-note" });
+  if (stay && stay.position === "end")   events.push({ text: `🏡 Check-out: ${stay.name}`, cls: "ev-note" });
+  (raw.events||[]).forEach(e => events.push({ text: e.text, cls: "ev-" + (e.kind || "note") }));
+  return {
+    dateKey: k,
+    label: formatDayLabel(k),
+    dow: DOW_SHORT[parseDateKey(k).getUTCDay()],
+    location: raw.location || (st ? st.name : trip.meta.defaultLocation) || "",
+    holiday: raw.holiday || null,
+    flights, stay, events,
+    region: regionId ? findRegion(trip, regionId) : null
+  };
+}
+
+// Header, legend, weekday row and flight summary — static markup before Phase 0.
+function renderTripChrome() {
+  const trip = getActiveTrip(), m = trip.meta;
+  document.getElementById("trip-title").textContent = m.name + (m.emoji ? " " + m.emoji : "");
+  document.getElementById("trip-subtitle").textContent =
+    [formatTripRange(m.startDate, m.endDate), m.subtitle].filter(Boolean).join(" \u00a0·\u00a0 ");
+
+  const dot = (color, label) => `<div class="legend-item"><div class="legend-dot" style="background:${color}"></div>${escapeHtml(label)}</div>`;
+  document.getElementById("trip-legend").innerHTML =
+    (trip.regions||[]).map(r => dot(r.color, r.name)).join("") +
+    dot("#3d7dbf", "Flight") + dot("#4caf50", "Notes saved") + dot("#e8b800", "Holiday");
+
+  const firstDow = parseDateKey(m.startDate).getUTCDay();
+  document.getElementById("cal-header").innerHTML =
+    Array.from({length:7}, (_,i) => `<div>${DOW_SHORT[(firstDow+i)%7]}</div>`).join("");
+
+  // Flight summary: group flight days that are ≤1 day apart (a connection).
+  const groups = [];
+  tripDateKeys(trip).forEach(k => {
+    const d = getDay(k, trip);
+    if (!d.flights.length) return;
+    const g = groups[groups.length-1];
+    if (g && daysBetween(g.last, k) <= 1) { g.last = k; g.flights.push(...d.flights); }
+    else groups.push({ first: k, last: k, flights: [...d.flights] });
+  });
+  const summary = document.getElementById("trip-summary");
+  if (!groups.length) { summary.style.display = "none"; return; }
+  summary.style.display = "";
+  const uniq = arr => [...new Set(arr.filter(Boolean))];
+  let html = `<strong>✈ Flight Details${m.passengers && m.passengers.length ? " — " + escapeHtml(m.passengers.join(" & ")) : ""}</strong>`;
+  groups.forEach((g, i) => {
+    const name = groups.length === 1 ? "Flights" : i === 0 ? "Out" : i === groups.length-1 ? "Return" : "Flights";
+    const a = parseDateKey(g.first), b = parseDateKey(g.last);
+    const when = g.first === g.last ? formatDayLabel(g.first)
+      : a.getUTCMonth() === b.getUTCMonth() ? `${a.getUTCDate()}–${formatDayLabel(g.last)}`
+      : `${formatDayLabel(g.first)} – ${formatDayLabel(g.last)}`;
+    const legs = g.flights.map(f => `${compactCode(f.route)} ${compactCode(f.flight)} ${f.dep}`);
+    // "Economy (V)" → "Economy V", "2PC" → "2 bags"
+    const extras = uniq(g.flights.map(f => String(f.cls||"").replace(/[()]/g, "")))
+      .concat(uniq(g.flights.map(f => String(f.bags||"").replace(/^(\d+)\s*PC$/i, "$1 bags"))));
+    html += `<b>${name} (${when}):</b> ${escapeHtml(legs.concat(extras).join(" · "))}<br>`;
+  });
+  if (m.bookingRef) html += `<b>Ref:</b> ${escapeHtml([m.bookingRef, m.bookedVia].filter(Boolean).join(" · "))}`;
+  summary.innerHTML = html;
+}
 
 // __BAKED_NOTES_START__
 const BAKED_NOTES = {"2026-07-01":[{"type":"Reminder","summary":"Leave home 4:00am","formatted":"<b>🚗 Leave home for airport</b> · 4:00am · Grab/taxi from La Perla (Ari) → Suvarnabhumi · JL 708 departs 07:55 · Conf: FQ5ZSK","raw":"JL 708 Bangkok to Tokyo, departs 07:55. Leave La Perla apt (Ari BTS) by 4:00am."}]};
@@ -1012,41 +1192,46 @@ function saveSetup() {
 function renderCalendar() {
   const grid = document.getElementById("cal-grid");
   grid.innerHTML = "";
-  Object.keys(TRIP_DATA).sort().forEach(dateKey => {
-    if (WEEK_LABELS[dateKey]) {
+  const keys = tripDateKeys();
+  const weeks = Math.ceil(keys.length / 7);
+  keys.forEach((dateKey, i) => {
+    if (i % 7 === 0) {
       const lbl = document.createElement("div");
       lbl.className = "week-label";
-      lbl.textContent = WEEK_LABELS[dateKey];
+      const w = i/7 + 1;
+      lbl.textContent = `Week ${w} · ${formatDateRange(dateKey, keys[Math.min(i+6, keys.length-1)])}` +
+        (weeks > 1 && w === weeks ? " — Return" : "");
       grid.appendChild(lbl);
     }
-    const d = TRIP_DATA[dateKey];
+    const d = getDay(dateKey);
     const notes = getNotes(dateKey);
     const cell = document.createElement("div");
-    cell.className = "cal-cell " + (d.cellClass||"");
+    cell.className = "cal-cell " + (d.flights.length ? "flight-day" : "");
     if (notes.length) cell.classList.add("has-data");
     cell.onclick = () => openDetail(dateKey);
     let inner = `<div class="date-num">${d.label}</div>`;
-    if (d.multiday) {
-      const pos = d.multiday.position;
+    if (d.stay) {
+      const pos = d.stay.position;
       const cls = pos==="start"?"multiday-start":pos==="end"?"multiday-end":"multiday-mid";
       const icon = pos==="start"?"▶ ":pos==="end"?"◀ ":"— ";
-      inner += `<span class="multiday-badge ${cls}">${icon}${d.multiday.name}</span>`;
+      inner += `<span class="multiday-badge ${cls}">${icon}${d.stay.name}</span>`;
     }
     if (d.holiday) inner += `<span class="holiday-tag">${d.holiday}</span>`;
-    (d.calEvents||[]).forEach((ev,ei) => { inner += `<div class="cal-event ${d.calClasses[ei]}">${ev}</div>`; });
+    d.events.forEach(ev => { inner += `<div class="cal-event ${ev.cls}">${ev.text}</div>`; });
     if (notes.length) {
       inner += `<div class="cal-event ev-user">📝 ${notes[0].summary||notes[0].raw}</div>`;
       inner += `<div class="has-notes-dot"></div>`;
     }
-    if (d.strip) inner += `<div class="strip ${d.strip}"></div>`;
+    if (d.region) inner += `<div class="strip" style="background:${d.region.color}"></div>`;
     cell.innerHTML = inner;
     grid.appendChild(cell);
   });
-  // fillers
-  for (let f=0;f<4;f++) {
+  // fillers to complete the last week row
+  const fill = (7 - keys.length % 7) % 7;
+  for (let f=1; f<=fill; f++) {
     const fc = document.createElement("div");
     fc.className = "cal-cell inactive";
-    fc.innerHTML = `<div class="date-num">${18+f}</div>`;
+    fc.innerHTML = `<div class="date-num">${parseDateKey(addDays(keys[keys.length-1], f)).getUTCDate()}</div>`;
     grid.appendChild(fc);
   }
 }
@@ -1058,14 +1243,14 @@ let currentDateKey = null;
 
 function openDetail(dateKey) {
   currentDateKey = dateKey;
-  const d = TRIP_DATA[dateKey];
+  const d = getDay(dateKey);
   const notes = getNotes(dateKey);
   document.getElementById("detail-title").textContent = d.label + " — " + d.location;
   document.getElementById("detail-sub").textContent = d.dow;
   let html = "";
 
-  if (d.multiday) {
-    const pos = d.multiday.position;
+  if (d.stay) {
+    const pos = d.stay.position;
     const posLabel = pos==="start"?"Check-in":pos==="end"?"Check-out":"Staying";
     html += `<div class="detail-section">
       <div class="detail-section-header">🏡 Accommodation</div>
@@ -1073,29 +1258,29 @@ function openDetail(dateKey) {
         <div class="detail-flight-row">
           <div class="flight-icon">🏡</div>
           <div class="flight-info">
-            <div class="flight-route">${d.multiday.name}</div>
-            <div class="flight-meta">${posLabel} · 7 Jul – 10 Jul (3 nights)</div>
+            <div class="flight-route">${d.stay.name}</div>
+            <div class="flight-meta">${posLabel} · ${d.stay.rangeLabel}</div>
           </div>
         </div>
       </div></div>`;
   }
 
-  if (d.calEvents&&d.calEvents.length && !(d.flights&&d.flights.length)) {
+  if (d.events.length && !d.flights.length) {
     html += `<div class="detail-section"><div class="detail-section-header">✈ Travel</div><div class="detail-section-body">`;
-    d.calEvents.forEach(ev => {
-      html += `<div class="detail-flight-row"><div class="flight-info"><div class="flight-route">${ev}</div></div></div>`;
+    d.events.forEach(ev => {
+      html += `<div class="detail-flight-row"><div class="flight-info"><div class="flight-route">${ev.text}</div></div></div>`;
     });
     html += `</div></div>`;
   }
 
-  if (d.flights&&d.flights.length) {
+  if (d.flights.length) {
     html += `<div class="detail-section"><div class="detail-section-header">✈ Flights</div><div class="detail-section-body">`;
     d.flights.forEach(f => {
       html += `<div class="detail-flight-row">
         <div class="flight-icon">✈️</div>
         <div class="flight-info">
           <div class="flight-route">${f.route}</div>
-          <div class="flight-meta">${f.flight} · Dep ${f.dep} → Arr ${f.arr}<br>${f.terminal_dep} → ${f.terminal_arr}<br>${f.aircraft} · ${f.cls} · Bags: ${f.bags}</div>
+          <div class="flight-meta">${f.flight} · Dep ${f.dep} → Arr ${f.arr}<br>${f.terminalDep} → ${f.terminalArr}<br>${f.aircraft} · ${f.cls} · Bags: ${f.bags}</div>
           <span class="flight-conf">Conf: ${f.conf}</span>
         </div></div>`;
     });
@@ -1266,7 +1451,7 @@ async function sendIngesterMessage() {
   const typing = addTyping();
 
   // Trip context summary for system prompt
-  const tripDays = Object.entries(TRIP_DATA).map(([k,v]) => `${k}: ${v.location}`).join("\n");
+  const tripDays = tripDateKeys().map(k => `${k}: ${getDay(k).location}`).join("\n");
 
   try {
     const res = await fetch("https://api.anthropic.com/v1/messages", {
@@ -1363,7 +1548,7 @@ function showPreview(items) {
 
   let html = `<div class="preview-card-header">📋 Ready to add — ${items.length} item${items.length>1?"s":""}</div>`;
   items.forEach(item => {
-    const d = TRIP_DATA[item.dateKey];
+    const d = getDay(item.dateKey);
     const dateLabel = d ? d.label : item.dateKey;
     html += `<div class="preview-card-item"><b>${dateLabel}</b> · <b>${item.type}</b><br>${item.formatted||item.summary}</div>`;
   });
@@ -1481,7 +1666,7 @@ async function publishToGitHub() {
 
 function buildPublishableHTML() {
   const allNotes = {};
-  Object.keys(TRIP_DATA).forEach(k => { const n=getNotes(k); if(n.length) allNotes[k]=n; });
+  tripDateKeys().forEach(k => { const n=getNotes(k); if(n.length) allNotes[k]=n; });
   const notesJSON     = JSON.stringify(allNotes);
   const checklistJSON = JSON.stringify(getCustomItems().map(i => ({ id: i.id, en: i.en, th: i.th||"" })));
   const removedJSON   = JSON.stringify(getRemovedItems());
@@ -1624,10 +1809,11 @@ function onFabClick() {
 // ══════════════════════════════════════════════════════
 function populateDayOptions(sel) {
   sel.innerHTML = "";
-  Object.keys(TRIP_DATA).sort().forEach(k => {
+  tripDateKeys().forEach(k => {
+    const d = getDay(k);
     const o = document.createElement("option");
     o.value = k;
-    o.textContent = TRIP_DATA[k].label + " — " + TRIP_DATA[k].location;
+    o.textContent = d.label + " — " + d.location;
     sel.appendChild(o);
   });
 }
@@ -1635,7 +1821,7 @@ function populateDayOptions(sel) {
 function openGuestNote() {
   const sel = document.getElementById("guest-note-day");
   populateDayOptions(sel);
-  if (currentDateKey && TRIP_DATA[currentDateKey]) sel.value = currentDateKey;
+  if (getDay(currentDateKey)) sel.value = currentDateKey;
   document.getElementById("guest-note-text").value = "";
   document.getElementById("guest-note-modal").classList.add("active");
 }
@@ -1661,8 +1847,8 @@ function saveGuestNote() {
 // "Send to Pete", and published on approval — or, for the owner, via the
 // "Publish my additions" button. Works in both owner and guest mode.
 function openJournal() {
-  if (!currentDateKey || !TRIP_DATA[currentDateKey]) return;
-  const d = TRIP_DATA[currentDateKey];
+  const d = getDay(currentDateKey);
+  if (!d) return;
   document.getElementById("journal-day-label").textContent = d.label + " — " + d.location;
   document.getElementById("journal-text").value = "";
   document.getElementById("journal-modal").classList.add("active");
@@ -1729,8 +1915,7 @@ function saveGuestItem() {
 }
 function deleteCustomItem(id) {
   saveCustomItems(getCustomItems().filter(i => i.id !== id));
-  const ps = getPeteState();  if (ps[id])  { delete ps[id];  savePeteState(ps); }
-  const ns = getNickyState(); if (ns[id])  { delete ns[id];  saveNickyState(ns); }
+  uncheckEverywhere(id);
   renderChecklist();
   updateChecklistLaunchCount();
   updateSendButton();
@@ -1741,7 +1926,7 @@ function deleteCustomItem(id) {
 // ══════════════════════════════════════════════════════
 function collectAdditions() {
   const notes = {};
-  Object.keys(TRIP_DATA).forEach(k => {
+  tripDateKeys().forEach(k => {
     const g = getNotes(k).filter(n => n.guest);
     if (g.length) notes[k] = g.map(n => ({ type: n.type, summary: n.summary, formatted: n.formatted, raw: n.raw }));
   });
@@ -1840,7 +2025,8 @@ function showImportReview(p) {
     `${noteCount} note${noteCount!==1?"s":""} and ${items.length} packing item${items.length!==1?"s":""} to review.`;
   let html = "";
   Object.keys(notes).sort().forEach(k => {
-    const label = TRIP_DATA[k] ? TRIP_DATA[k].label : k;
+    const day = getDay(k);
+    const label = day ? day.label : k;
     html += `<div class="import-day-group"><b>${escapeHtml(label)}</b>`;
     notes[k].forEach(n => { html += `<div class="import-item">📝 ${n.formatted || escapeHtml(n.summary || n.raw || "")}</div>`; });
     html += `</div>`;
@@ -1935,6 +2121,7 @@ function init() {
   if (publishBtn) { publishBtn.disabled = false; publishBtn.textContent = "🚀 Publish Live"; publishBtn.style.background = ""; }
   document.getElementById("publish-bar")?.classList.remove("visible");
   applyMode();
+  renderTripChrome();
   renderCalendar();
   updateChecklistLaunchCount();
 
@@ -1957,72 +2144,20 @@ function init() {
 // ══════════════════════════════════════════════════════
 //  PACKING CHECKLIST
 // ══════════════════════════════════════════════════════
-const CHECKLIST_DATA = {
-  title: "Trip Checklist",
-  sections: [
-    { id: "essentials", title: "Absolute essentials", items: [
-      { id: "essentials-1", en: "Passport",                     th: "หนังสือเดินทาง" },
-      { id: "essentials-2", en: "Cash",                         th: "เงินสด" },
-      { id: "essentials-3", en: "Plane ticket",                 th: "ตั๋วเครื่องบิน" },
-      { id: "essentials-4", en: "Travel insurance docs",        th: "เอกสารประกันการเดินทาง" },
-      { id: "essentials-5", en: "International driving permit",  th: "ใบอนุญาตขับรถระหว่างประเทศ" },
-      { id: "essentials-6", en: "Power bank",                   th: "แบตเตอรี่สำรอง" },
-      { id: "essentials-7", en: "Mobile phone",                 th: "โทรศัพท์มือถือ" },
-      { id: "essentials-8", en: "Mobile charger",               th: "ที่ชาร์จโทรศัพท์" },
-      { id: "essentials-9", en: "Phone holder",                 th: "ที่วางโทรศัพท์ในรถ" }
-    ]},
-    { id: "health-hygiene", title: "Health & hygiene", items: [
-      { id: "health-1", en: "Toiletry kit",          th: "ชุดอุปกรณ์อาบน้ำ" },
-      { id: "health-2", en: "First aid kit",         th: "ชุดปฐมพยาบาลเบื้องต้น" },
-      { id: "health-3", en: "Sunblock",              th: "ครีมกันแดด" },
-      { id: "health-4", en: "Lip balm",              th: "ลิปบาล์ม" },
-      { id: "health-5", en: "Hand sanitizer",        th: "เจลล้างมือ" },
-      { id: "health-6", en: "Hand wipes",            th: "ทิชชู่เปียก" },
-      { id: "health-7", en: "Personal medications",  th: "ยาประจำตัว" },
-      { id: "health-8", en: "Water",                 th: "น้ำดื่ม" }
-    ]},
-    { id: "outdoor-safety", title: "Outdoor & safety", items: [
-      { id: "outdoor-1", en: "Mosquito repellent",           th: "ยากันยุง" },
-      { id: "outdoor-2", en: "Tick repellent",               th: "ยากันเห็บ" },
-      { id: "outdoor-3", en: "Tick remover tool",            th: "อุปกรณ์ถอนเห็บ" },
-      { id: "outdoor-4", en: "Rain gear / light jacket",     th: "เสื้อกันฝน / แจ็คเก็ตเบา" },
-      { id: "outdoor-5", en: "Umbrella",                     th: "ร่ม" },
-      { id: "outdoor-6", en: "Dry bags / waterproof pouches",th: "ถุงกันน้ำ" },
-      { id: "outdoor-7", en: "Emergency roadside kit",       th: "ชุดฉุกเฉินในรถ" }
-    ]},
-    { id: "clothing-gear", title: "Clothing & gear", items: [
-      { id: "clothing-1",  en: "Hats",              th: "หมวก" },
-      { id: "clothing-2",  en: "Flip flops",        th: "รองเท้าแตะ" },
-      { id: "clothing-3",  en: "Bathing suit",      th: "ชุดว่ายน้ำ" },
-      { id: "clothing-4",  en: "Sunglasses",        th: "แว่นกันแดด" },
-      { id: "clothing-5",  en: "Change of clothes", th: "เสื้อผ้าสำรอง" },
-      { id: "clothing-6",  en: "Towel",             th: "ผ้าเช็ดตัว" },
-      { id: "clothing-7",  en: "Laundry bag",       th: "ถุงใส่ผ้าสกปรก" },
-      { id: "clothing-8",  en: "Binoculars",        th: "กล้องส่องทางไกล" },
-      { id: "clothing-9",  en: "Camera",            th: "กล้องถ่ายรูป" },
-      { id: "clothing-10", en: "Travel pillow",     th: "หมอนรองคอ" },
-      { id: "clothing-11", en: "Reusable bags",     th: "ถุงผ้าอเนกประสงค์" }
-    ]},
-    { id: "food-fun", title: "Food, drinks & fun", items: [
-      { id: "fun-1",  en: "Coffee",                    th: "กาแฟ" },
-      { id: "fun-2",  en: "Hot chocolate",             th: "ช็อกโกแลตร้อน" },
-      { id: "fun-3",  en: "Snacks",                    th: "ขนมขบเคี้ยว" },
-      { id: "fun-4",  en: "Cooler / ice chest",        th: "กระติกน้ำแข็ง" },
-      { id: "fun-5",  en: "Playing cards / Uno",       th: "ไพ่ / อูโน่" },
-      { id: "fun-6",  en: "Board game",                th: "เกมกระดาน" },
-      { id: "fun-7",  en: "Book",                      th: "หนังสือ" },
-      { id: "fun-8",  en: "Art materials",             th: "วัสดุศิลปะ" },
-      { id: "fun-9",  en: "Frisbee",                   th: "จานร่อน" },
-      { id: "fun-10", en: "Kids' tablet & headphones", th: "แท็บเล็ตและหูฟังสำหรับเด็ก" },
-      { id: "fun-11", en: "Offline maps downloaded",   th: "ดาวน์โหลดแผนที่ออฟไลน์แล้ว" }
-    ]}
-  ]
-};
-
-function getPeteState()  { try { return JSON.parse(localStorage.getItem("checklist_pete") ||"{}"); } catch { return {}; } }
-function getNickyState() { try { return JSON.parse(localStorage.getItem("checklist_nicky")||"{}"); } catch { return {}; } }
-function savePeteState(s)  { localStorage.setItem("checklist_pete",  JSON.stringify(s)); }
-function saveNickyState(s) { localStorage.setItem("checklist_nicky", JSON.stringify(s)); }
+// Checklist columns come from trip.meta.travelers. The layout still has two
+// fixed slots (CSS classes "pete"/"nicky" = left/right) — N columns is Phase 2.
+// Storage key = lowercased name, so "Pete" still maps to checklist_pete.
+function travelerKey(name) { return String(name).toLowerCase().replace(/[^a-z0-9]+/g, "_"); }
+function checklistTravelers() {
+  return getActiveTrip().meta.travelers.slice(0, 2).map((name, i) =>
+    ({ name, key: travelerKey(name), slot: i === 0 ? "pete" : "nicky" }));
+}
+function getTravelerState(key) { try { return JSON.parse(localStorage.getItem("checklist_"+key)||"{}"); } catch { return {}; } }
+function saveTravelerState(key, s) { localStorage.setItem("checklist_"+key, JSON.stringify(s)); }
+function uncheckEverywhere(id) {
+  checklistTravelers().forEach(t => { const st = getTravelerState(t.key); if (st[id]) { delete st[id]; saveTravelerState(t.key, st); } });
+}
+function checklistSections() { return getActiveTrip().checklist.sections; }
 
 // Custom (family-added) checklist items — live locally, baked & published like notes.
 function getCustomItems() {
@@ -2059,7 +2194,7 @@ function seedBakedRemoved() {
 function isOwner() { return (localStorage.getItem("app_mode")||"guest") === "owner"; }
 
 function findBuiltinItem(id) {
-  for (const sec of CHECKLIST_DATA.sections) {
+  for (const sec of checklistSections()) {
     for (const it of sec.items) if (it.id === id) return it;
   }
   return null;
@@ -2072,82 +2207,81 @@ function removeBuiltinItem(id) {
   if (!confirm(`Remove “${name}” from the packing list?\n\nIt disappears for everyone once you publish.`)) return;
   const removed = getRemovedItems();
   if (!removed.includes(id)) { removed.push(id); saveRemovedItems(removed); }
-  const ps = getPeteState();  if (ps[id])  { delete ps[id];  savePeteState(ps); }
-  const ns = getNickyState(); if (ns[id])  { delete ns[id];  saveNickyState(ns); }
+  uncheckEverywhere(id);
   renderChecklist();
   updateChecklistLaunchCount();
   updateSendButton();
 }
 
 function checklistCounts() {
-  const pete = getPeteState(), nicky = getNickyState();
+  const ts = checklistTravelers();
+  const states = ts.map(t => getTravelerState(t.key));
   const removed = new Set(getRemovedItems());
-  let total = 0, peteDone = 0, nickyDone = 0;
-  CHECKLIST_DATA.sections.forEach(sec => sec.items.forEach(it => {
-    if (removed.has(it.id)) return;
-    total++;
-    if (pete[it.id])  peteDone++;
-    if (nicky[it.id]) nickyDone++;
-  }));
-  getCustomItems().forEach(it => {
-    total++;
-    if (pete[it.id])  peteDone++;
-    if (nicky[it.id]) nickyDone++;
-  });
-  return { total, peteDone, nickyDone };
+  const done = ts.map(() => 0);
+  let total = 0;
+  const tally = it => { total++; states.forEach((st,i) => { if (st[it.id]) done[i]++; }); };
+  checklistSections().forEach(sec => sec.items.forEach(it => { if (!removed.has(it.id)) tally(it); }));
+  getCustomItems().forEach(tally);
+  return { total, done };
 }
 
 function escapeHtml(s) {
   return String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;");
 }
 
-function itemClasses(id, pete, nicky) {
-  const pc = !!pete[id], nc = !!nicky[id];
-  let cls = "checklist-item";
-  if (pc) cls += " pete-checked";
-  if (nc) cls += " nicky-checked";
-  if (pc && nc) cls += " both-checked";
+function itemClasses(id, states) {
+  const ts = checklistTravelers();
+  let cls = "checklist-item", all = ts.length > 0;
+  ts.forEach((t,i) => { if (states[i][id]) cls += ` ${t.slot}-checked`; else all = false; });
+  if (all && ts.length > 1) cls += " both-checked";
   return cls;
 }
 
+function checklistRow(it, states, altText, trailing) {
+  const ts = checklistTravelers();
+  const box = i => `<div class="checklist-box ${ts[i].slot}-box" onclick="toggleChecklistItem('${it.id}',${i})">${states[i][it.id]?"✓":""}</div>`;
+  return `<div class="${itemClasses(it.id,states)}" id="chk-${it.id}">
+        ${ts[0] ? box(0) : ""}
+        <div class="checklist-text">
+          <div class="checklist-en">${escapeHtml(it.en)}</div>
+          ${altText?`<div class="checklist-th">${escapeHtml(altText)}</div>`:""}
+        </div>
+        ${ts[1] ? box(1) : ""}
+        ${trailing}
+      </div>`;
+}
+
+function renderChecklistLabels() {
+  checklistTravelers().forEach(t => {
+    document.querySelectorAll(`.prog-name.${t.slot}, .checklist-person-label.${t.slot}`).forEach(el => el.textContent = t.name);
+  });
+}
+
 function renderChecklist() {
-  const pete = getPeteState(), nicky = getNickyState();
+  const states = checklistTravelers().map(t => getTravelerState(t.key));
   const removed = new Set(getRemovedItems());
+  const showAlt = !!getActiveTrip().meta.secondLanguage;
   const owner = isOwner();
+  renderChecklistLabels();
   let html = "";
-  CHECKLIST_DATA.sections.forEach(sec => {
+  checklistSections().forEach(sec => {
     const items = sec.items.filter(it => !removed.has(it.id));
     if (!items.length) return;
     html += `<div class="checklist-section">
       <div class="checklist-section-title">${escapeHtml(sec.title)}</div>`;
     items.forEach(it => {
       const del = owner ? `<button class="checklist-custom-del" title="Remove from everyone's list" onclick="event.stopPropagation(); removeBuiltinItem('${it.id}')">✕</button>` : "";
-      html += `<div class="${itemClasses(it.id,pete,nicky)}" id="chk-${it.id}">
-        <div class="checklist-box pete-box" onclick="toggleChecklistItem('${it.id}','pete')">${pete[it.id]?"✓":""}</div>
-        <div class="checklist-text">
-          <div class="checklist-en">${escapeHtml(it.en)}</div>
-          <div class="checklist-th">${escapeHtml(it.th)}</div>
-        </div>
-        <div class="checklist-box nicky-box" onclick="toggleChecklistItem('${it.id}','nicky')">${nicky[it.id]?"✓":""}</div>
-        ${del}
-      </div>`;
+      html += checklistRow(it, states, showAlt ? it.alt : "", del);
     });
     html += `</div>`;
   });
 
+  // Custom items keep their stored "th" field until the Phase 1 storage migration.
   const custom = getCustomItems();
   html += `<div class="checklist-section">
     <div class="checklist-section-title">Added by the family</div>`;
   custom.forEach(it => {
-    html += `<div class="${itemClasses(it.id,pete,nicky)}" id="chk-${it.id}">
-      <div class="checklist-box pete-box" onclick="toggleChecklistItem('${it.id}','pete')">${pete[it.id]?"✓":""}</div>
-      <div class="checklist-text">
-        <div class="checklist-en">${escapeHtml(it.en)}</div>
-        ${it.th?`<div class="checklist-th">${escapeHtml(it.th)}</div>`:""}
-      </div>
-      <div class="checklist-box nicky-box" onclick="toggleChecklistItem('${it.id}','nicky')">${nicky[it.id]?"✓":""}</div>
-      <button class="checklist-custom-del" title="Remove" onclick="deleteCustomItem('${it.id}')">✕</button>
-    </div>`;
+    html += checklistRow(it, states, it.th, `<button class="checklist-custom-del" title="Remove" onclick="deleteCustomItem('${it.id}')">✕</button>`);
   });
   if (!custom.length) {
     html += `<div style="font-size:0.7rem; color:#aaa; padding:6px 2px">Nothing added yet.</div>`;
@@ -2160,35 +2294,33 @@ function renderChecklist() {
 }
 
 function updateChecklistProgress() {
-  const { total, peteDone, nickyDone } = checklistCounts();
-  const petePct  = total ? Math.round((peteDone/total)*100)  : 0;
-  const nickyPct = total ? Math.round((nickyDone/total)*100) : 0;
-  const pFill = document.getElementById("checklist-progress-pete");
-  const nFill = document.getElementById("checklist-progress-nicky");
-  const pCount = document.getElementById("checklist-count-pete");
-  const nCount = document.getElementById("checklist-count-nicky");
-  if (pFill)  pFill.style.width  = petePct  + "%";
-  if (nFill)  nFill.style.width  = nickyPct + "%";
-  if (pCount) pCount.textContent = `${peteDone}/${total}`;
-  if (nCount) nCount.textContent = `${nickyDone}/${total}`;
+  const { total, done } = checklistCounts();
+  checklistTravelers().forEach((t,i) => {
+    const pct = total ? Math.round((done[i]/total)*100) : 0;
+    const fill = document.getElementById("checklist-progress-"+t.slot);
+    const count = document.getElementById("checklist-count-"+t.slot);
+    if (fill)  fill.style.width = pct + "%";
+    if (count) count.textContent = `${done[i]}/${total}`;
+  });
 }
 
 function updateChecklistLaunchCount() {
-  const { total, peteDone, nickyDone } = checklistCounts();
+  const { total, done } = checklistCounts();
   const el = document.getElementById("checklist-launch-count");
-  if (el) el.textContent = `P:${peteDone} N:${nickyDone}/${total}`;
+  const parts = checklistTravelers().map((t,i) => `${t.name.charAt(0).toUpperCase()}:${done[i]}`);
+  if (el) el.textContent = `${parts.join(" ")}/${total}`;
 }
 
-function toggleChecklistItem(id, person) {
-  const isPete = person === "pete";
-  const state = isPete ? getPeteState() : getNickyState();
+function toggleChecklistItem(id, idx) {
+  const t = checklistTravelers()[idx];
+  if (!t) return;
+  const state = getTravelerState(t.key);
   if (state[id]) delete state[id]; else state[id] = true;
-  isPete ? savePeteState(state) : saveNickyState(state);
+  saveTravelerState(t.key, state);
   const el = document.getElementById("chk-"+id);
   if (el) {
-    const pete = getPeteState(), nicky = getNickyState();
-    el.className = itemClasses(id, pete, nicky);
-    const box = el.querySelector(isPete ? ".pete-box" : ".nicky-box");
+    el.className = itemClasses(id, checklistTravelers().map(x => getTravelerState(x.key)));
+    const box = el.querySelector(`.${t.slot}-box`);
     if (box) box.textContent = state[id] ? "✓" : "";
   }
   updateChecklistProgress();
@@ -2212,7 +2344,7 @@ function openClearConfirm()  { document.getElementById("checklist-confirm").clas
 function closeClearConfirm() { document.getElementById("checklist-confirm").classList.remove("active"); }
 
 function doClearChecklist() {
-  savePeteState({}); saveNickyState({});
+  checklistTravelers().forEach(t => saveTravelerState(t.key, {}));
   closeClearConfirm();
   renderChecklist();
   updateChecklistLaunchCount();

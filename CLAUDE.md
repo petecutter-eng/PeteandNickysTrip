@@ -35,10 +35,12 @@ Single-file app. No build step, no dependencies except Google Fonts (CDN).
 ### Key JS sections (all in one `<script>` block)
 | Section | Purpose |
 |---|---|
-| `TRIP_DATA` | Static per-day data: flights, location, multiday stays, holidays |
+| `DEFAULT_TRIP` | The whole trip as one `Trip` object (schemaVersion 1): `meta`, `regions`, `stays`, sparse `days`, `checklist`, `briefing` |
+| `getActiveTrip()` / `getDay()` / `tripDateKeys()` | Read path for all rendering. `getDay(k)` resolves a date into label/dow/location/flights/stay/region/events, inheriting from stays and `meta.default*` |
+| `renderTripChrome()` | Renders header, legend, weekday row and flight summary from the trip |
 | `BAKED_NOTES` | Notes snapshot baked in at publish time (starts as `{}`) |
 | Storage helpers | `getNotes()` / `saveNotes()` — read/write localStorage |
-| `renderCalendar()` | Builds the grid from TRIP_DATA + localStorage notes |
+| `renderCalendar()` | Builds the grid (week rows, labels, fillers) from the trip + localStorage notes |
 | `openDetail()` | Renders day detail view |
 | `openIngester()` | Opens the chat ingester panel |
 | `sendIngesterMessage()` | Calls Claude API with conversation history + optional file |
@@ -83,10 +85,10 @@ Stored in browser localStorage (never in code):
 5. Any device loading the live URL gets the baked notes seeded into their localStorage
 
 ### Multi-day stays
-Defined in `TRIP_DATA` with `multiday: { name, position }` where position is `"start"`, `"mid"`, or `"end"`. Renders as coloured badge + bottom strip. Currently: Gallagher Cottage Jul 7–10 (strip-cottage / #7cb87a).
+Declared once in `DEFAULT_TRIP.stays` as `{ regionId, name, checkin, checkout }`; `getDay()` computes the start/mid/end badge, check-in/out events and the nights label. Currently: Gallagher Cottage Jul 7–10 (region `cottage` / #7cb87a).
 
 ### Adding a new multi-day stay
-Add `multiday` block to each relevant day in `TRIP_DATA`, add a new `.strip-X` CSS colour, add to legend HTML.
+Add an entry to `stays` (and a `regions` entry if it needs a new colour). The legend and colour strips are generated from `regions` — no CSS or legend HTML to edit.
 
 ---
 
@@ -207,8 +209,8 @@ Two separate WhatsApp rules break the unattended 7am send on the sandbox:
 1. **Ingester → trip-config.json sync** — notes added via ingester (or imported from a guest) should also write to `trip-config.json` so they appear in the daily briefing automatically. (Guest additions now reach the *live page* via the import link; the briefing is still a separate manual step.)
 2. **Delivery channel** — now defaults to Telegram (no roaming/business dependency); set `TELEGRAM_BOT_TOKEN` + `TELEGRAM_CHAT_ID` to activate (see "Telegram"). WhatsApp/Twilio remains as a fallback, including an optional approved-template production path via `TWILIO_CONTENT_SID`.
 3. **Favicon** — not yet added
-4. **Multi-day event ingestion** — ingester can add multi-day notes but doesn't yet auto-create the `multiday` strip/badge structure in TRIP_DATA; only adds notes to each day individually
-5. **This project is designed as a reusable template** — for future trips, replace `TRIP_DATA`, `trip-config.json` days, and update the header/legend. The ingester, briefing, and publish pipeline are all generic.
+4. **Multi-day event ingestion** — ingester can add multi-day notes but doesn't yet add a `stays` entry to the trip; only adds notes to each day individually
+5. **In-app trip customization** — in progress. Phase 0 (done): all rendering reads from the `DEFAULT_TRIP` model. Until the wizard lands, a new trip means editing `DEFAULT_TRIP` + `trip-config.json`.
 
 ---
 
@@ -240,5 +242,5 @@ Tell Claude Code what to change. It will edit files and push directly to GitHub.
 Edit files on github.com (pencil icon) → commit to main → wait ~60s for Pages to deploy.
 
 ### Adding a new day's plans
-Either use the in-app ingester (＋ Add Plans) or ask Claude Code to add to the relevant day in both `TRIP_DATA` (index.html) and `trip-config.json`.
+Either use the in-app ingester (＋ Add Plans) or ask Claude Code to add to the relevant day in both `DEFAULT_TRIP.days` (index.html) and `trip-config.json`.
 
