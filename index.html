@@ -643,6 +643,19 @@
   .wizard-error.visible { display: block; }
   .wizard-footer { display: flex; gap: 10px; padding: 12px 18px; background: #fff; border-top: 1px solid #e3ddd2; }
 
+  .briefing-launch {
+    width: 100%; margin: 0 0 14px; padding: 11px; border: 1.5px solid #f0d78c; border-radius: 10px;
+    background: #fff8e1; color: #5a3e00; font-family: 'Inter', sans-serif; font-weight: 600; font-size: 0.8rem; cursor: pointer;
+  }
+  .briefing-launch:active { opacity: 0.85; }
+  .br-text {
+    width: 100%; min-height: 220px; border: 1.5px solid #c5bfb5; border-radius: 8px; padding: 10px 12px;
+    font-family: 'Inter', sans-serif; font-size: 0.8rem; line-height: 1.55; color: #1a1a1a; resize: vertical; margin-bottom: 10px;
+  }
+  .br-status { font-size: 0.74rem; color: #1a3a4a; background: #f0f6ff; border-radius: 8px; padding: 8px 10px; margin-bottom: 10px; }
+  .br-status.error { color: #a8321e; background: #fdecea; }
+  .br-send { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+  #briefing-modal .wiz-grid input { width: 100%; }
   .ti-step { font-size: 0.74rem; color: #1a3a4a; line-height: 1.5; margin: 6px 0 8px; }
   .ti-summary { background: #fff; border: 1.5px solid #e3ddd2; border-radius: 10px; padding: 10px 12px; margin: 4px 0 10px; }
   .ti-name { font-weight: 700; color: #1a3a4a; font-size: 0.9rem; }
@@ -746,6 +759,39 @@
       <button class="btn btn-secondary" id="wiz-back" onclick="wizBack()">Back</button>
       <button class="btn btn-secondary" id="wiz-save-now" onclick="wizSave()">Save</button>
       <button class="btn btn-primary" id="wiz-next" onclick="wizNext()">Next</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══ Daily Briefing Modal ══ -->
+<div class="modal-overlay" id="briefing-modal">
+  <div class="modal" style="max-width:460px">
+    <h2>☀️ Daily briefing</h2>
+    <p>A short morning summary of the day — flights, stay, plans and reminders — plus a look at tomorrow. Written by Claude from this trip.</p>
+    <label>Day</label>
+    <select id="br-day" onchange="brShowDay()"></select>
+    <div class="modal-note" id="br-nokey" style="display:none">
+      Briefings are written by Claude and need your own Anthropic API key (a few cents per briefing).
+      <a onclick="closeBriefing(); openSetupModal()" style="color:#1a3a4a; font-weight:700; cursor:pointer; text-decoration:underline">Add a key</a>
+    </div>
+    <button class="btn btn-primary" id="br-gen" style="width:100%; margin-bottom:10px" onclick="brGenerate()">☀️ Generate briefing</button>
+    <div class="br-status" id="br-status" style="display:none"></div>
+    <div id="br-result" style="display:none">
+      <textarea id="br-text" class="br-text" oninput="brUpdateLengthNote()"></textarea>
+      <div class="wiz-grid">
+        <div><label>Email to</label><input type="email" id="br-email" placeholder="optional" oninput="brUpdateLengthNote()"></div>
+        <div><label>WhatsApp number</label><input type="tel" id="br-wa" placeholder="+66 81 234 5678"></div>
+      </div>
+      <div class="br-send">
+        <button class="btn btn-secondary" onclick="brSendEmail()">✉️ Email</button>
+        <button class="btn btn-secondary" onclick="brSendWhatsApp()">💬 WhatsApp</button>
+        <button class="btn btn-secondary" onclick="brShare()">📤 Share…</button>
+        <button class="btn btn-secondary" onclick="brCopy()">📋 Copy</button>
+      </div>
+      <div class="modal-note" id="br-long" style="display:none; margin-top:10px">This briefing is long for an email link — if your mail app cuts it off, use <b>Copy</b> and paste it instead.</div>
+    </div>
+    <div style="display:flex; gap:10px; margin-top:12px">
+      <button class="btn btn-secondary" onclick="closeBriefing()">Close</button>
     </div>
   </div>
 </div>
@@ -995,6 +1041,7 @@ Does that work? Want me to add a "Leave home" reminder for **4:00am on July 1** 
       👋 <b>This is an example trip.</b> <a onclick="openTripImport()">Import my trip</a> from any AI (paste your bookings, get a file), <a onclick="openWizard('create')">create one by hand</a>, or open <a onclick="openTrips()">Trips</a> to copy this one.
       Once you have your own trip, this example — and anything you've added to it — is deleted from this device.
     </div>
+    <button class="briefing-launch" onclick="openBriefing()">☀️ Daily briefing</button>
     <button class="send-to-pete" id="send-to-pete-btn" onclick="openSend()">📤 Send my additions to Pete</button>
     <button class="owner-publish" id="owner-publish-btn" onclick="publishAdditions()">🚀 Publish my changes to the live page</button>
     <div class="calendar">
@@ -1869,7 +1916,6 @@ function tripToPortable(tripId, includeNotes = true) {
   const m = t.meta;
   const placeName = id => { const r = findRegion(t, id); return r ? r.name : null; };
   const clean = o => { Object.keys(o).forEach(k => { if (o[k] === "" || o[k] === undefined || (Array.isArray(o[k]) && !o[k].length)) delete o[k]; }); return o; };
-  const plain = html => new DOMParser().parseFromString(String(html || ""), "text/html").body.textContent.trim();
   const out = clean({
     format: TRIP_FORMAT, name: m.name, emoji: m.emoji, subtitle: m.subtitle,
     startDate: m.startDate, endDate: m.endDate, travelers: m.travelers.slice(),
@@ -1892,7 +1938,7 @@ function tripToPortable(tripId, includeNotes = true) {
     if (raw.holiday) day.holiday = raw.holiday;
     if (raw.events && raw.events.length) day.events = raw.events.map(e => e.kind && e.kind !== "note" ? { text: e.text, kind: e.kind } : e.text);
     if (includeNotes) {
-      const plans = getNotes(k, tripId).map(n => ({ type: n.type || "Note", text: plain(n.formatted) || str(n.summary) || str(n.raw) })).filter(pl => pl.text);
+      const plans = getNotes(k, tripId).map(n => ({ type: n.type || "Note", text: htmlToText(n.formatted) || str(n.summary) || str(n.raw) })).filter(pl => pl.text);
       if (plans.length) day.plans = plans;
     }
     if (Object.keys(day).length > 1) out.days.push(day);
@@ -1910,6 +1956,9 @@ function tripToPortable(tripId, includeNotes = true) {
   if (!out.days.length) delete out.days;
   return out;
 }
+
+// Plain text of a stored note's HTML (DOMParser never runs scripts).
+function htmlToText(html) { return new DOMParser().parseFromString(String(html || ""), "text/html").body.textContent.trim(); }
 
 function slugify(s) { return String(s).toLowerCase().normalize("NFKD").replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "") || "trip"; }
 function downloadJson(obj, filename) {
@@ -2084,6 +2133,190 @@ async function checkTripParam() {
   try { tiRender(draftFromImport(await decodeTripCode(code))); }
   catch (e) { tiRender({ errors: ["Couldn't open this trip link: " + e.message] }); }
   return true;
+}
+
+// ══════════════════════════════════════════════════════
+//  DAILY BRIEFING (on demand) — replaces the GitHub Actions cron for any trip
+// ══════════════════════════════════════════════════════
+// Builds today + tomorrow + day-after context from the active trip (same shape
+// as briefing.js), asks Claude for a short plain-text briefing, then hands it
+// to mail / WhatsApp / the share sheet. Recipients are per device, per trip
+// (briefing_to_<tripId>) so they never travel in exports or share links.
+const BRIEFING_MODEL = "claude-opus-5";
+const DOW_LONG = ["Sunday","Monday","Tuesday","Wednesday","Thursday","Friday","Saturday"];
+const MAILTO_SOFT_LIMIT = 1800;   // chars; some mail apps truncate longer mailto: bodies
+function friendlyDate(k) { const dt = parseDateKey(k); return `${DOW_LONG[dt.getUTCDay()]}, ${dt.getUTCDate()} ${MONTHS_LONG[dt.getUTCMonth()]}`; }
+function localTodayKey() { const d = new Date(); return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}-${String(d.getDate()).padStart(2,"0")}`; }
+
+// Today if it's a trip day, else the first day (before the trip) or last day (after).
+function defaultBriefingDay(trip = getActiveTrip()) {
+  const t = localTodayKey(), m = trip.meta;
+  return t < m.startDate ? m.startDate : t > m.endDate ? m.endDate : t;
+}
+
+function briefingContext(dateKey, trip = getActiveTrip()) {
+  const keys = tripDateKeys(trip), m = trip.meta;
+  const view = (k, withPlans) => {
+    const d = getDay(k, trip);
+    if (!d) return null;
+    const o = { date: friendlyDate(k), location: d.location };
+    if (d.flights.length) o.flights = d.flights;
+    if (d.stay) o.stay = { name: d.stay.name, dates: d.stay.rangeLabel,
+      today: d.stay.position === "start" ? "check-in" : d.stay.position === "end" ? "check-out" : "staying" };
+    if (d.holiday) o.holiday = d.holiday;
+    const other = d.events.filter(e => e.cls !== "ev-flight").map(e => e.text);
+    if (other.length) o.events = other;
+    if (withPlans) {
+      const plans = getNotes(k, activeTripId()).map(n => ({ type: n.type || "Note", text: htmlToText(n.formatted) || str(n.summary) || str(n.raw) })).filter(p => p.text);
+      if (plans.length) o.plans = plans;
+    }
+    return o;
+  };
+  return {
+    tripName: m.name, travelers: m.travelers.slice(),
+    dayNumber: keys.indexOf(dateKey) + 1, totalDays: keys.length,
+    today: view(dateKey, true), tomorrow: view(addDays(dateKey, 1), true), dayAfter: view(addDays(dateKey, 2), false)
+  };
+}
+
+function briefingSystemPrompt(ctx) {
+  return `You are a friendly, practical travel assistant writing a morning briefing for ${ctx.travelers.join(", ")} on their trip "${ctx.tripName}".
+
+Cover, in order:
+1. A cheerful greeting with the date and the day number of the trip (day X of Y).
+2. Today's location, accommodation (check-in / check-out) and any flights, with the key details: times, terminals, confirmation numbers.
+3. Today's plans and reservations.
+4. A "Don't forget" section with the most important practical reminders — specific and actionable.
+5. A brief look at tomorrow so they can prepare tonight if needed.
+6. A short, warm sign-off.
+
+Use only facts from the trip context — never invent times, bookings, places or confirmation numbers. If a day has nothing planned, say so briefly.
+Tone: friendly, calm, organised — like a well-prepared travel companion.
+Format: plain text that reads well in WhatsApp or email. No markdown (no #, no **bold**, no * bullets); use emojis sparingly as section anchors. Keep it scannable with short sections.
+Length: 150–250 words.`;
+}
+
+// Calls the Messages API from the browser with the user's own key.
+async function generateBriefing(dateKey) {
+  const key = getCreds().anthropic;
+  if (!key) throw new Error("Add your Anthropic API key first.");
+  const ctx = briefingContext(dateKey);
+  const res = await fetch("https://api.anthropic.com/v1/messages", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      "x-api-key": key,
+      "anthropic-version": "2023-06-01",
+      "anthropic-beta": "server-side-fallback-2026-07-01",
+      "anthropic-dangerous-direct-browser-access": "true"
+    },
+    body: JSON.stringify({
+      model: BRIEFING_MODEL,
+      max_tokens: 16000,
+      output_config: { effort: "low" },
+      fallbacks: "default",
+      system: briefingSystemPrompt(ctx),
+      messages: [{ role: "user", content: `Here is the trip context as JSON. Write the briefing for ${friendlyDate(dateKey)}:\n\n${JSON.stringify(ctx, null, 2)}` }]
+    })
+  });
+  let data = {};
+  try { data = await res.json(); } catch {}
+  if (!res.ok || data.type === "error") {
+    const msg = (data.error && data.error.message) || `HTTP ${res.status}`;
+    throw new Error(res.status === 401 ? "Your Anthropic API key was rejected — check it under “update keys”." : msg);
+  }
+  if (data.stop_reason === "refusal") throw new Error("Claude declined to write this briefing. Try again, or check the day's notes.");
+  const text = (data.content || []).filter(b => b.type === "text").map(b => b.text).join("").trim();
+  if (!text) throw new Error("Claude returned an empty briefing — try again.");
+  return text;
+}
+
+// ── Briefing panel ──
+const briefingCache = {};   // "<tripId>|<date>" → text, for this page session
+function briefingRecipients() { return lsGet("briefing_to_" + activeTripId(), { email: "", whatsapp: "" }); }
+function saveBriefingRecipients() {
+  lsSet("briefing_to_" + activeTripId(), { email: document.getElementById("br-email").value.trim(), whatsapp: document.getElementById("br-wa").value.trim() });
+}
+
+function openBriefing(dateKey) {
+  const sel = document.getElementById("br-day");
+  sel.innerHTML = tripDateKeys().map(k => { const d = getDay(k); return `<option value="${k}">${escapeHtml(d.label + " — " + d.location)}</option>`; }).join("");
+  sel.value = getDay(dateKey) ? dateKey : defaultBriefingDay();
+  const r = briefingRecipients();
+  document.getElementById("br-email").value = r.email || "";
+  document.getElementById("br-wa").value = r.whatsapp || "";
+  document.getElementById("briefing-modal").classList.add("active");
+  brShowDay();
+}
+function closeBriefing() { document.getElementById("briefing-modal").classList.remove("active"); }
+
+// Show the cached briefing for the selected day, or the Generate prompt.
+function brShowDay() {
+  const hasKey = !!getCreds().anthropic;
+  const text = briefingCache[activeTripId() + "|" + document.getElementById("br-day").value] || "";
+  document.getElementById("br-nokey").style.display = hasKey ? "none" : "block";
+  const gen = document.getElementById("br-gen");
+  gen.disabled = !hasKey;
+  gen.textContent = text ? "↻ Regenerate" : "☀️ Generate briefing";
+  document.getElementById("br-text").value = text;
+  document.getElementById("br-result").style.display = text ? "block" : "none";
+  brStatus("");
+  brUpdateLengthNote();
+}
+function brStatus(msg, isError) {
+  const el = document.getElementById("br-status");
+  el.textContent = msg;
+  el.className = "br-status" + (isError ? " error" : "");
+  el.style.display = msg ? "block" : "none";
+}
+async function brGenerate() {
+  const day = document.getElementById("br-day").value, gen = document.getElementById("br-gen");
+  gen.disabled = true;
+  brStatus("✍️ Writing your briefing…");
+  try {
+    briefingCache[activeTripId() + "|" + day] = await generateBriefing(day);
+    brShowDay();
+  } catch (e) {
+    brStatus("⚠️ " + e.message, true);
+    gen.disabled = !getCreds().anthropic;
+  }
+}
+function brUpdateLengthNote() {
+  document.getElementById("br-long").style.display = brMailtoUrl().length > MAILTO_SOFT_LIMIT ? "block" : "none";
+}
+
+function brSubject() {
+  const m = getActiveTrip().meta;
+  return `${m.emoji ? m.emoji + " " : ""}${m.name} — ${friendlyDate(document.getElementById("br-day").value)}`;
+}
+function brMailtoUrl() {
+  const to = document.getElementById("br-email").value.trim();
+  return `mailto:${encodeURIComponent(to)}?subject=${encodeURIComponent(brSubject())}&body=${encodeURIComponent(document.getElementById("br-text").value)}`;
+}
+// wa.me wants the full international number, digits only; empty → WhatsApp asks who to send to.
+function brWhatsAppUrl() {
+  const digits = document.getElementById("br-wa").value.replace(/\D/g, "");
+  return `https://wa.me/${digits}?text=${encodeURIComponent(document.getElementById("br-text").value)}`;
+}
+function brSendEmail() { saveBriefingRecipients(); location.href = brMailtoUrl(); }
+function brSendWhatsApp() {
+  const raw = document.getElementById("br-wa").value.trim();
+  if (raw && !raw.startsWith("+") && !raw.startsWith("00")) {
+    alert("Enter the WhatsApp number in international format, starting with + and the country code (e.g. +66 81 234 5678) — or leave it blank to pick the chat in WhatsApp.");
+    return;
+  }
+  saveBriefingRecipients();
+  window.open(brWhatsAppUrl(), "_blank");
+}
+async function brShare() {
+  const text = document.getElementById("br-text").value;
+  if (navigator.share) { try { await navigator.share({ title: brSubject(), text }); return; } catch (e) { if (e && e.name === "AbortError") return; } }
+  brCopy();
+}
+async function brCopy() {
+  const el = document.getElementById("br-text");
+  try { await navigator.clipboard.writeText(el.value); brStatus("📋 Copied."); }
+  catch { el.select(); brStatus("Select the text and copy it."); }
 }
 
 // ── Trip switcher UI ──
@@ -2440,6 +2673,7 @@ function openDetail(dateKey) {
   }
   html += `</ul>
       <button class="add-custom-item" onclick="openJournal()" style="margin-top:4px">✍️ Add journal entry</button>
+      <button class="add-custom-item" onclick="openBriefing('${dateKey}')">☀️ Briefing for this day</button>
     </div></div>`;
 
   document.getElementById("detail-body").innerHTML = html;
