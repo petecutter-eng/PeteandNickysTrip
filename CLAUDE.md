@@ -75,7 +75,12 @@ A device can hold several trips. The built-in trip (`DEFAULT_TRIP`, id `trip_def
 - Per-trip state: `notes_<id>_<date>`, `checklist_<id>_by_<traveler>`, `checklist_<id>_custom`, `checklist_<id>_removed`
 - `storage_version` — `migrateStorage()` moved the old un-namespaced keys (`notes_<date>`, `checklist_pete`, …) under `trip_default` once.
 - Publish, Send-to-Pete and `?import=` always operate on the built-in trip; those buttons are hidden while a user trip is open.
-- Trip switcher: footer **🧳 trips** link → open / duplicate / rename / delete.
+- Trip switcher: footer **🧳 trips** link → new / open / edit / duplicate / rename / delete.
+
+### Trip wizard (create / edit)
+`openWizard("create" | "edit", tripId)` opens a 5-step panel — Basics (name, emoji, dates, travelers, checklist second language), Places (regions + colour + home base), Stays, Flights, Checklist (standard 46-item template or blank; sections/items editable). It edits a deep-copied draft; `wizSave()` validates every step, then `wizBuildTrip()` folds flights back into `trip.days` (other per-day overrides — location, holiday, events — are preserved). Only user trips are editable; the built-in trip must be duplicated first. Entry points: example banner "Create my trip", Trips → ＋ New trip / Edit, footer "✏️ edit trip" (own trips only).
+
+The checklist renders one tick column per traveler (up to 6, colours from `TRAVELER_COLORS`), split either side of the item text; two travelers keep the original one-each-side layout.
 
 ### Credentials (owner mode only)
 Stored in browser localStorage (never in code):
@@ -219,7 +224,7 @@ Two separate WhatsApp rules break the unattended 7am send on the sandbox:
 2. **Delivery channel** — now defaults to Telegram (no roaming/business dependency); set `TELEGRAM_BOT_TOKEN` + `TELEGRAM_CHAT_ID` to activate (see "Telegram"). WhatsApp/Twilio remains as a fallback, including an optional approved-template production path via `TWILIO_CONTENT_SID`.
 3. **Favicon** — not yet added
 4. **Multi-day event ingestion** — ingester can add multi-day notes but doesn't yet add a `stays` entry to the trip; only adds notes to each day individually
-5. **In-app trip customization** — in progress. Phase 0 (done): all rendering reads from the Trip model. Phase 1 (done): multi-trip storage + switcher. Until the wizard lands, a new trip means editing `DEFAULT_TRIP` + `trip-config.json`.
+5. **In-app trip customization** — in progress. Phase 0 (done): all rendering reads from the Trip model. Phase 1 (done): multi-trip storage + switcher. Phase 2 (done): create/edit wizard. Until the wizard lands, a new trip means editing `DEFAULT_TRIP` + `trip-config.json`.
 
 ---
 
