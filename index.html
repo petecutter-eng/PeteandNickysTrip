@@ -643,6 +643,17 @@
   .wizard-error.visible { display: block; }
   .wizard-footer { display: flex; gap: 10px; padding: 12px 18px; background: #fff; border-top: 1px solid #e3ddd2; }
 
+  .trip-bar { display: flex; gap: 8px; justify-content: space-between; align-items: center; margin-bottom: 14px; }
+  .trip-switch {
+    border: 1.5px solid #d8d2c7; background: #fff; color: #1a3a4a; border-radius: 999px; padding: 8px 14px;
+    font-family: 'Inter', sans-serif; font-weight: 600; font-size: 0.74rem; cursor: pointer; white-space: nowrap;
+  }
+  .trip-count { color: #6b7c8a; font-weight: 500; }
+  .new-trip-btn {
+    border: none; background: #1a3a4a; color: #fff; border-radius: 999px; padding: 9px 16px;
+    font-family: 'Inter', sans-serif; font-weight: 700; font-size: 0.76rem; cursor: pointer; white-space: nowrap;
+  }
+  .trip-switch:active, .new-trip-btn:active { opacity: 0.85; }
   .briefing-launch {
     width: 100%; margin: 0 0 14px; padding: 11px; border: 1.5px solid #f0d78c; border-radius: 10px;
     background: #fff8e1; color: #5a3e00; font-family: 'Inter', sans-serif; font-weight: 600; font-size: 0.8rem; cursor: pointer;
@@ -731,10 +742,7 @@
   <div class="modal" style="max-width:420px">
     <h2>🧳 Your trips</h2>
     <p>Trips are saved on this device — use <b>Export</b> to keep a backup file. Create a trip from scratch, import one your AI prepared, or duplicate an existing trip.</p>
-    <div style="display:flex; gap:8px">
-      <button class="add-custom-item" onclick="closeTrips(); openWizard('create')">＋ New trip</button>
-      <button class="add-custom-item" onclick="openTripImport()">📥 Import trip</button>
-    </div>
+    <button class="new-trip-btn" style="width:100%; margin-bottom:12px" onclick="closeTrips(); openNewTrip()">＋ Start a new trip</button>
     <div id="trips-list"></div>
     <div class="modal-note" id="trips-example-note" style="display:none">
       The example trip is only here to show how the app works. When you create your own trip, the example and anything you added to it is deleted from this device.
@@ -792,6 +800,27 @@
     </div>
     <div style="display:flex; gap:10px; margin-top:12px">
       <button class="btn btn-secondary" onclick="closeBriefing()">Close</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══ Start a New Trip (chooser) ══ -->
+<div class="modal-overlay" id="new-trip-modal">
+  <div class="modal" style="max-width:420px">
+    <h2>🧳 Start a new trip</h2>
+    <p>How would you like to set it up?</p>
+    <button class="mode-choice-btn" onclick="closeNewTrip(); openTripImport()">
+      <b>📥 Import from my bookings</b>
+      <span>Recommended. Paste your booking emails, PDFs, screenshots or notes into ChatGPT, Claude or Gemini with our prompt, then paste the result back here. Takes a couple of minutes.</span>
+    </button>
+    <button class="mode-choice-btn" onclick="closeNewTrip(); openWizard('create')">
+      <b>✏️ Build it step by step</b>
+      <span>Enter the dates, travelers, places, stays and flights yourself in a short guided form.</span>
+    </button>
+    <div id="nt-copy"></div>
+    <div class="modal-note" id="nt-example" style="display:none">Your example trip — and anything you added to it — will be removed from this device once your new trip is created.</div>
+    <div style="display:flex; gap:10px">
+      <button class="btn btn-secondary" onclick="closeNewTrip()">Cancel</button>
     </div>
   </div>
 </div>
@@ -1020,6 +1049,10 @@ Does that work? Want me to add a "Leave home" reminder for **4:00am on July 1** 
 
   <!-- Calendar View -->
   <div class="view" id="calendar-view">
+    <div class="trip-bar">
+      <button class="trip-switch" onclick="openTrips()">🧳 My trips <span class="trip-count" id="trip-count"></span> ▾</button>
+      <button class="new-trip-btn" onclick="openNewTrip()">＋ Start a new trip</button>
+    </div>
     <header>
       <h1 id="trip-title">Nicky &amp; Pete's US Trip ✈️</h1>
       <p id="trip-subtitle">1 July – 17 July 2026 &nbsp;·&nbsp; Japan Airlines &nbsp;·&nbsp; Ref: FQ5ZSK</p>
@@ -1035,10 +1068,11 @@ Does that work? Want me to add a "Leave home" reminder for **4:00am on July 1** 
       <button class="checklist-launch" onclick="openChecklist()">
         📋 Packing Checklist <span class="cl-count" id="checklist-launch-count">3/46</span>
       </button>
-      <button class="fab" id="fab" onclick="onFabClick()">＋ Add Plans</button>
+      <button class="fab" id="fab" onclick="onFabClick()">＋ Add to this trip</button>
     </div>
     <div class="example-banner" id="example-banner" style="display:none">
-      👋 <b>This is an example trip.</b> <a onclick="openTripImport()">Import my trip</a> from any AI (paste your bookings, get a file), <a onclick="openWizard('create')">create one by hand</a>, or open <a onclick="openTrips()">Trips</a> to copy this one.
+      👋 <b>This is an example trip</b> to show how the app works.
+      <button class="new-trip-btn" style="display:block; width:100%; margin:8px 0" onclick="openNewTrip()">＋ Start my own trip</button>
       Once you have your own trip, this example — and anything you've added to it — is deleted from this device.
     </div>
     <button class="briefing-launch" onclick="openBriefing()">☀️ Daily briefing</button>
@@ -1076,7 +1110,7 @@ Does that work? Want me to add a "Leave home" reminder for **4:00am on July 1** 
       </div>
     </div>
     <div class="detail-body" id="detail-body"></div>
-    <button class="detail-add-btn" onclick="onFabClick()">＋ Add Plans</button>
+    <button class="detail-add-btn" onclick="onFabClick()">＋ Add to this day</button>
   </div>
 
 </div>
@@ -1355,6 +1389,8 @@ function switchTrip(id) {
 // Re-render everything that depends on which trip is active.
 function applyTripContext() {
   document.body.classList.toggle("own-trip", !isBuiltinActive());
+  const n = listTrips().length, count = document.getElementById("trip-count");
+  if (count) count.textContent = n > 1 ? `(${n})` : "";
   const banner = document.getElementById("example-banner");
   if (banner) banner.style.display = (isBuiltinActive() && builtinStatus() === "example") ? "block" : "none";
   renderTripChrome();
@@ -2319,6 +2355,19 @@ async function brCopy() {
   catch { el.select(); brStatus("Select the text and copy it."); }
 }
 
+// ── Start a new trip: one entry point for import / build / copy ──
+function openNewTrip() {
+  const trips = listTrips();
+  document.getElementById("nt-copy").innerHTML = trips.map(t =>
+    `<button class="mode-choice-btn" onclick="closeNewTrip(); onDuplicateTrip('${t.id}')">
+      <b>📄 Copy “${escapeHtml(t.name)}”</b>
+      <span>Start from this trip — handy for a repeat trip. You can edit the copy.</span>
+    </button>`).join("");
+  document.getElementById("nt-example").style.display = builtinStatus() === "example" ? "block" : "none";
+  document.getElementById("new-trip-modal").classList.add("active");
+}
+function closeNewTrip() { document.getElementById("new-trip-modal").classList.remove("active"); }
+
 // ── Trip switcher UI ──
 function openTrips() { renderTripsList(); document.getElementById("trips-modal").classList.add("active"); }
 function closeTrips() { document.getElementById("trips-modal").classList.remove("active"); }
@@ -3155,7 +3204,7 @@ function applyMode() {
   document.body.classList.toggle("guest-mode", mode === "guest");
   document.body.classList.toggle("owner-mode", mode === "owner");
   const fab = document.getElementById("fab");
-  if (fab) fab.textContent = mode === "guest" ? "＋ Add Note" : "＋ Add Plans";
+  if (fab) fab.textContent = mode === "guest" ? "＋ Add a note" : "＋ Add to this trip";
   const ind = document.getElementById("mode-indicator");
   if (ind) ind.textContent = mode === "owner" ? "Full access" : "Guest view";
   const keysLink = document.getElementById("keys-link");
