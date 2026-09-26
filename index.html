@@ -1,7 +1,7 @@
 <html lang="en"><head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
-<title>Nicky &amp; Pete — US Trip July 2026</title>
+<title>Trip Planner</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&amp;display=swap" rel="stylesheet">
 <style>
@@ -555,15 +555,15 @@
   }
   .modal textarea { resize: vertical; min-height: 70px; line-height: 1.5; }
   .modal select:focus, .modal textarea:focus { border-color: #3d7dbf; }
-  .send-to-pete {
+  .send-additions {
     display: none; width: 100%; margin: 0 0 14px; padding: 12px;
     border: none; border-radius: 10px; background: #1a3a4a; color: #fff;
     font-family: 'Inter', sans-serif; font-weight: 600; font-size: 0.8rem; cursor: pointer;
   }
-  .send-to-pete:active { opacity: 0.85; }
-  body.guest-mode .send-to-pete.has-items { display: block; }
-  body.owner-mode .send-to-pete { display: none !important; }
-  /* Owner-only "publish additions" button (mirrors send-to-pete, but publishes directly) */
+  .send-additions:active { opacity: 0.85; }
+  body.guest-mode .send-additions.has-items { display: block; }
+  body.owner-mode .send-additions { display: none !important; }
+  /* Owner-only "publish additions" button (mirrors send-additions, but publishes directly) */
   .owner-publish {
     display: none; width: 100%; margin: 0 0 14px; padding: 12px;
     border: none; border-radius: 10px; background: #1b5e20; color: #fff;
@@ -678,7 +678,7 @@
   body.own-trip .builtin-only { display: none; }
 
   /* Send/publish/import only apply to the built-in (published) trip */
-  body.own-trip .send-to-pete, body.own-trip .owner-publish,
+  body.own-trip .send-additions, body.own-trip .owner-publish,
   body.own-trip .cal-publish-link, body.own-trip #publish-bar { display: none !important; }
   .add-custom-item {
     width: 100%; padding: 10px; border: 1.5px dashed #b9b3a8; border-radius: 8px;
@@ -714,9 +714,9 @@
     <label>GitHub Personal Access Token</label>
     <input type="password" id="setup-github" placeholder="ghp_..." autocomplete="off">
     <label>GitHub Username</label>
-    <input type="text" id="setup-ghuser" placeholder="petecutter-eng" autocomplete="off">
+    <input type="text" id="setup-ghuser" placeholder="your-github-username" autocomplete="off">
     <label>GitHub Repo Name</label>
-    <input type="text" id="setup-ghrepo" placeholder="PeteandNickysTrip" autocomplete="off">
+    <input type="text" id="setup-ghrepo" placeholder="your-repo-name" autocomplete="off">
     <button class="btn btn-primary" onclick="saveSetup()" style="width:100%">Save &amp; Continue</button>
   </div>
 </div>
@@ -868,7 +868,7 @@
 <div class="modal-overlay" id="guest-note-modal">
   <div class="modal" style="max-width:400px">
     <h2>📝 Add a note</h2>
-    <p>Saved on this device.<span class="builtin-only"> When you're ready, tap <b>Send to Pete</b> on the calendar and he'll publish it for everyone.</span></p>
+    <p>Saved on this device.<span class="builtin-only"> When you're ready, tap <b>Send my additions</b> on the calendar and the trip owner can publish it for everyone.</span></p>
     <label>Which day</label>
     <select id="guest-note-day"></select>
     <label>Your note</label>
@@ -885,8 +885,8 @@
   <div class="modal" style="max-width:400px">
     <h2>✍️ Journal entry</h2>
     <p id="journal-day-label" style="font-weight:600; color:#1a3a4a; margin-bottom:6px">—</p>
-    <p>Jot down a memory, a highlight, or what happened on this day. Saved on this device<span class="builtin-only"> — then send it to Pete (or publish it, if you're Pete) to share it with everyone</span>.</p>
-    <textarea id="journal-text" style="min-height:120px" placeholder="e.g. Walked the Freedom Trail — Nicky loved the duck boats and we got ice cream at Faneuil Hall."></textarea>
+    <p>Jot down a memory, a highlight, or what happened on this day. Saved on this device<span class="builtin-only"> — then send it to the trip owner (or publish it, if that's you) to share it with everyone</span>.</p>
+    <textarea id="journal-text" style="min-height:120px" placeholder="e.g. Walked the old town, found a great gelato place and watched the sunset from the harbour."></textarea>
     <div style="display:flex; gap:10px">
       <button class="btn btn-secondary" onclick="closeJournal()">Cancel</button>
       <button class="btn btn-primary" onclick="saveJournal()">Save entry</button>
@@ -898,7 +898,7 @@
 <div class="modal-overlay" id="guest-item-modal">
   <div class="modal" style="max-width:400px">
     <h2>➕ Add a packing item</h2>
-    <p>Added to the checklist on this device.<span class="builtin-only"> Send it to Pete to publish it to everyone's list.</span></p>
+    <p>Added to the checklist on this device.<span class="builtin-only"> Send it to the trip owner to publish it to everyone's list.</span></p>
     <label>Item (English)</label>
     <input type="text" id="guest-item-en" placeholder="e.g. Fishing rod" autocomplete="off">
     <label>Thai (optional)</label>
@@ -910,14 +910,14 @@
   </div>
 </div>
 
-<!-- ══ Send-to-Pete Modal ══ -->
+<!-- ══ Send-to-owner Modal ══ -->
 <div class="modal-overlay" id="send-modal">
   <div class="modal" style="max-width:420px">
-    <h2>📤 Send to Pete</h2>
+    <h2>📤 Send to the trip owner</h2>
     <p id="send-summary">—</p>
     <label>Your name (optional)</label>
     <input type="text" id="send-name" placeholder="e.g. Auntie Jane" autocomplete="off">
-    <div class="modal-note">Pete opens the link in his app, reviews your additions, and publishes them to the live page. Nothing goes live until he approves it.</div>
+    <div class="modal-note">The trip owner opens the link, reviews your additions and publishes them to the live page. Nothing goes live until they approve it.</div>
     <button class="btn btn-primary" style="width:100%; margin-bottom:8px" onclick="shareToPhone()">📲 Share link…</button>
     <button class="btn btn-secondary" style="width:100%; margin-bottom:12px" onclick="copyShareLink()">📋 Copy link</button>
     <label>Or copy this code</label>
@@ -926,10 +926,10 @@
   </div>
 </div>
 
-<!-- ══ Import Review Modal (Pete) ══ -->
+<!-- ══ Import Review Modal (trip owner) ══ -->
 <div class="modal-overlay" id="import-modal">
   <div class="modal" style="max-width:440px">
-    <h2 id="import-title">📥 Family additions</h2>
+    <h2 id="import-title">📥 Additions to review</h2>
     <p id="import-summary">—</p>
     <div id="import-body" style="max-height:40vh; overflow-y:auto; margin-bottom:16px"></div>
     <div id="import-status" style="font-size:0.72rem; color:#1b5e20; margin-bottom:10px; display:none"></div>
@@ -952,41 +952,7 @@
     <button class="ingester-close" onclick="closeIngester()">✕</button>
   </div>
 
-  <div class="chat-thread" id="chat-thread"><div class="chat-bubble claude">Hi! Drop in a booking confirmation, paste an itinerary, or just tell me what's planned — I'll figure out what goes where. You can also attach a PDF or image. 📋</div><div class="chat-bubble system">🎤 Listening — speak now. Tap ⏹ to stop and send.</div><div class="chat-bubble user">on on the on the on the on the first on the first day on the first day on the first day when on the first day when we on the first day when we leave on the first day when we leave on the first day when we leave on the first day when we leave Bangkok on the first day when we leave Bangkok on the first day when we leave Bangkok on the first day when we leave Bangkok on the first day when we leave Bangkok on the first day when we leave Bangkok on the first day when we leave Bangkok calculate on the first day when we leave Bangkok calculate on the first day when we leave Bangkok calculate the on the first day when we leave Bangkok calculate the on the first day when we leave Bangkok calculate the time on the first day when we leave Bangkok calculate the time that on the first day when we leave Bangkok calculate the time that on the first day when we leave Bangkok calculate the time that we on the first day when we leave Bangkok calculate the time that we need on the first day when we leave Bangkok calculate the time that we need on the first day when we leave Bangkok calculate the time that we need to on the first day when we leave Bangkok calculate the time that we need to leave on the first day when we leave Bangkok calculate the time that we need to leave the on the first day when we leave Bangkok calculate the time that we need to leave the house on the first day when we leave Bangkok calculate the time that we need to leave the house add add it add it to add it to the add it to the calendar</div><div class="chat-bubble claude">Sounds like you're voice-dictating — got it! 😄
-
-So you want to figure out what time you need to leave home in Bangkok on **July 1**, and add that to the calendar.
-
-To calculate that, I need a few details:
-
-1. **What flight are you taking out of Bangkok?** (airline, flight number, or departure time?)
-2. **Which Bangkok airport?** Suvarnabhumi (BKK) or Don Mueang (DMK)?
-3. **How far is your home from the airport?** (or roughly which area of Bangkok?)
-
-Once I have those I can work backwards and give you a "leave the house by" time! 🏠✈️</div><div class="chat-bubble user">you you you have you have you have all you have all of you have all of the you have all of the you have all of the information you have all of the information you have all of the information about you have all of the information about you have all of the information about the you have all of the information about the flight you have all of the information about the flight already</div><div class="chat-bubble claude">You're right, I'm sorry — but I actually *don't* have your flight details yet! This is a fresh conversation and no booking info has been shared with me yet.
-
-Could you paste your flight confirmation for **July 1**? Even just the key details:
-
-- ✈️ Airline &amp; flight number
-- 🕐 Departure time
-- 🛫 Airport (BKK or DMK?)
-
-Then I'll calculate your leave-home time and add it! 🙂</div><div class="chat-bubble user">📎 E-Ticket_PETER GUILD MR.pdf</div><div class="chat-bubble claude">Got it — I have all your flights now! ✈️
-
-**July 1: JL 708 departs Suvarnabhumi at 07:55**
-
-For an international flight, you'll want to be at the airport **2.5–3 hours early** → so at BKK by **5:00am**.
-
-One question: **roughly where in Bangkok do you live?** That'll let me calculate your leave-home time accurately (e.g. Sukhumvit vs. outskirts can be very different at 4am!).</div><div class="chat-bubble user">La Perla apt</div><div class="chat-bubble claude">I'm not familiar with exactly where La Perla apartment is in Bangkok — do you know which area/neighborhood it's in, or the nearest BTS/MRT station? 🙏</div><div class="chat-bubble user">Near Ari BTS station</div><div class="chat-bubble claude">Perfect! Ari to Suvarnabhumi at ~4:30am — traffic will be very light, so about **45–60 minutes** by taxi/Grab.
-
-So I'd suggest:
-
-- 🛫 Be at BKK airport by **5:00am**
-- 🚗 **Leave home by 4:00am**
-
-Does that work? Want me to add a "Leave home" reminder for **4:00am on July 1** to the calendar?</div><div class="chat-bubble user">Yes</div><div class="chat-bubble claude">Here's what I'll add to July 1 👆 — looks good?</div><div class="preview-card"><div class="preview-card-header">📋 Ready to add — 1 item</div><div class="preview-card-item"><b>1 Jul</b> · <b>Reminder</b><br><b>🚗 Leave home for airport</b> · 4:00am · Grab/taxi from La Perla (Ari) → Suvarnabhumi · JL 708 departs 07:55 · Conf: FQ5ZSK</div><div class="preview-confirm-row">
-    <button class="btn btn-confirm" onclick="confirmPreview()">✓ Add to calendar</button>
-    <button class="btn btn-revise" onclick="revisePreview()">Edit</button>
-  </div></div><div class="chat-bubble claude">✅ Done! Added to your calendar. Hit "Publish Live" to update the live page.</div></div>
+  <div class="chat-thread" id="chat-thread"><div class="chat-bubble claude">Hi! Drop in a booking confirmation, paste an itinerary, or just tell me what's planned — I'll figure out what goes where. You can also attach a PDF or image. 📋</div></div>
 
   <div class="publish-bar" id="publish-bar">
     <span class="publish-bar-text">✅ Changes ready to publish</span>
@@ -1054,16 +1020,10 @@ Does that work? Want me to add a "Leave home" reminder for **4:00am on July 1** 
       <button class="new-trip-btn" onclick="openNewTrip()">＋ Start a new trip</button>
     </div>
     <header>
-      <h1 id="trip-title">Nicky &amp; Pete's US Trip ✈️</h1>
-      <p id="trip-subtitle">1 July – 17 July 2026 &nbsp;·&nbsp; Japan Airlines &nbsp;·&nbsp; Ref: FQ5ZSK</p>
+      <h1 id="trip-title">Trip Planner</h1>
+      <p id="trip-subtitle"></p>
     </header>
-    <div class="legend" id="trip-legend">
-      <div class="legend-item"><div class="legend-dot" style="background:#5aaad8"></div>Boston</div>
-      <div class="legend-item"><div class="legend-dot" style="background:#3d7dbf"></div>Flight</div>
-      <div class="legend-item"><div class="legend-dot" style="background:#7cb87a"></div>Gallagher Cottage</div>
-      <div class="legend-item"><div class="legend-dot" style="background:#4caf50"></div>Notes saved</div>
-      <div class="legend-item"><div class="legend-dot" style="background:#e8b800"></div>Holiday</div>
-    </div>
+    <div class="legend" id="trip-legend"></div>
     <div class="cal-tools-row">
       <button class="checklist-launch" onclick="openChecklist()">
         📋 Packing Checklist <span class="cl-count" id="checklist-launch-count">3/46</span>
@@ -1076,7 +1036,7 @@ Does that work? Want me to add a "Leave home" reminder for **4:00am on July 1** 
       Once you have your own trip, this example — and anything you've added to it — is deleted from this device.
     </div>
     <button class="briefing-launch" onclick="openBriefing()">☀️ Daily briefing</button>
-    <button class="send-to-pete" id="send-to-pete-btn" onclick="openSend()">📤 Send my additions to Pete</button>
+    <button class="send-additions" id="send-additions-btn" onclick="openSend()">📤 Send my additions to the trip owner</button>
     <button class="owner-publish" id="owner-publish-btn" onclick="publishAdditions()">🚀 Publish my changes to the live page</button>
     <div class="calendar">
       <div class="cal-header" id="cal-header">
@@ -1089,12 +1049,7 @@ Does that work? Want me to add a "Leave home" reminder for **4:00am on July 1** 
       <p class="tap-hint">Tap any day to view details</p>
       <a class="cal-publish-link" id="cal-publish-link" onclick="publishFromCalendar(this)">Publish</a>
     </div>
-    <div class="summary" id="trip-summary">
-      <strong>✈ Flight Details — Peter Guild &amp; Nicholas Boonsuan</strong>
-      <b>Out (1 Jul):</b> BKK→NRT JL708 07:55 · NRT→BOS JL008 18:25 · Economy V · 2 bags<br>
-      <b>Return (16–17 Jul):</b> BOS→NRT JL007 13:15 · NRT→BKK JL707 18:25 · Economy N · 2 bags<br>
-      <b>Ref:</b> FQ5ZSK · Satguru Travel &amp; Tours, Bangkok
-    </div>
+    <div class="summary" id="trip-summary" style="display:none"></div>
     <div class="mode-footer">
       <a onclick="openTrips()">🧳 trips</a><span class="own-trip-only"> · <a onclick="openWizard('edit', activeTripId())">✏️ edit trip</a></span> · <span id="mode-indicator"></span> · <a onclick="reopenModeChooser()">switch mode</a><span id="keys-link" style="display:none"> · <a onclick="openSetupModal()">update keys</a></span>
     </div>
@@ -1984,7 +1939,7 @@ function tripToPortable(tripId, includeNotes = true) {
     items: sec.items.filter(it => !removed.has(it.id)).map(it => clean({ id: it.id, en: it.en, alt: it.alt })) }))
     .filter(sec => sec.items.length);
   const custom = getCustomItems(tripId);
-  if (custom.length) sections.push({ id: "custom", section: "Added by the family", items: custom.map(c => clean({ id: c.id, en: c.en, alt: c.th })) });
+  if (custom.length) sections.push({ id: "custom", section: "Added items", items: custom.map(c => clean({ id: c.id, en: c.en, alt: c.th })) });
   out.checklist = sections.length ? sections : "none";
   const booking = clean({ ref: m.bookingRef, via: m.bookedVia, passengers: (m.passengers || []).slice() });
   if (Object.keys(booking).length) out.booking = booking;
@@ -3271,7 +3226,7 @@ function saveGuestNote() {
 // ══════════════════════════════════════════════════════
 // Journal entries are saved like guest notes (guest:true) so they flow through
 // the exact same pipeline: collected by collectAdditions(), shareable via
-// "Send to Pete", and published on approval — or, for the owner, via the
+// "Send my additions", and published on approval — or, for the owner, via the
 // "Publish my additions" button. Works in both owner and guest mode.
 function openJournal() {
   const d = getDay(currentDateKey);
@@ -3296,7 +3251,7 @@ function saveJournal() {
 // ══════════════════════════════════════════════════════
 //  OWNER — publish additions directly (notes/journal + packing items)
 // ══════════════════════════════════════════════════════
-// One-tap publish for Pete: bakes the current notes + custom checklist items
+// One-tap publish for the trip owner: bakes the current notes + custom checklist items
 // into index.html and commits via the GitHub API (same path as the ingester).
 async function publishAdditions() {
   const creds = getCreds();
@@ -3349,7 +3304,7 @@ function deleteCustomItem(id) {
 }
 
 // ══════════════════════════════════════════════════════
-//  OUTBOX — share guest additions to Pete
+//  OUTBOX — share guest additions with the trip owner
 // ══════════════════════════════════════════════════════
 function collectAdditions() {
   const notes = {};
@@ -3367,7 +3322,7 @@ function hasAdditions() {
 }
 function updateSendButton() {
   const has = hasAdditions();
-  const btn = document.getElementById("send-to-pete-btn");
+  const btn = document.getElementById("send-additions-btn");
   if (btn) btn.classList.toggle("has-items", has);
   // Owner-mode publish buttons light up for any unpublished change — added notes/items OR removed items.
   const ownerHas = has || getRemovedItems(BUILTIN_TRIP_ID).length > 0;
@@ -3397,7 +3352,7 @@ function openSend() {
   const a = collectAdditions();
   const noteCount = Object.values(a.notes).reduce((s,arr)=>s+arr.length,0);
   document.getElementById("send-summary").textContent =
-    `You're sending ${noteCount} note${noteCount!==1?"s":""} and ${a.items.length} packing item${a.items.length!==1?"s":""} to Pete.`;
+    `You're sending ${noteCount} note${noteCount!==1?"s":""} and ${a.items.length} packing item${a.items.length!==1?"s":""} to the trip owner.`;
   document.getElementById("send-name").value = localStorage.getItem("guest_name") || "";
   refreshShareCode();
   document.getElementById("send-modal").classList.add("active");
@@ -3408,9 +3363,9 @@ async function shareToPhone() {
   if (by) localStorage.setItem("guest_name", by);
   refreshShareCode();
   const link = document.getElementById("send-code").value;
-  const text = (by ? by + " added" : "Additions") + " to Nicky & Pete's trip — open to review & publish:";
+  const text = (by ? by + " added" : "Additions") + ` to “${DEFAULT_TRIP.meta.name}” — open to review & publish:`;
   if (navigator.share) {
-    try { await navigator.share({ title: "Trip additions for Pete", text, url: link }); } catch(e) {}
+    try { await navigator.share({ title: "Trip additions", text, url: link }); } catch(e) {}
   } else {
     copyShareLink();
   }
@@ -3422,15 +3377,15 @@ async function copyShareLink() {
   const link = document.getElementById("send-code").value;
   try {
     await navigator.clipboard.writeText(link);
-    alert("Link copied! Paste it to Pete via WhatsApp, Telegram or email.");
+    alert("Link copied! Send it to the trip owner by WhatsApp, Telegram or email.");
   } catch(e) {
     document.getElementById("send-code").select();
-    alert("Select the link below and copy it to send to Pete.");
+    alert("Select the link below and copy it to send to the trip owner.");
   }
 }
 
 // ══════════════════════════════════════════════════════
-//  IMPORT — Pete reviews & publishes family additions
+//  IMPORT — trip owner reviews & publishes guest additions
 // ══════════════════════════════════════════════════════
 let importPayload = null;
 
@@ -3450,7 +3405,7 @@ function showImportReview(p) {
   const notes = p.notes || {};
   const items = p.items || [];
   const noteCount = Object.values(notes).reduce((s,arr)=>s+arr.length,0);
-  document.getElementById("import-title").textContent = p.by ? `📥 Additions from ${escapeHtml(p.by)}` : "📥 Family additions";
+  document.getElementById("import-title").textContent = p.by ? `📥 Additions from ${p.by}` : "📥 Additions to review";
   document.getElementById("import-summary").textContent =
     `${noteCount} note${noteCount!==1?"s":""} and ${items.length} packing item${items.length!==1?"s":""} to review.`;
   let html = "";
@@ -3517,7 +3472,7 @@ async function publishImported() {
   const status = document.getElementById("import-status");
   btn.disabled = true; btn.textContent = "⏳ Publishing…";
   try {
-    await doPublish("Add family submissions via import link");
+    await doPublish("Add guest submissions via import link");
     status.textContent = "🚀 Published — live on the page in about 60 seconds.";
     btn.textContent = "✅ Published";
   } catch(e) {
@@ -3556,7 +3511,7 @@ function init() {
   applyMode();
   applyTripContext();
 
-  // An incoming family submission (?import=...) or shared trip (?trip=...) takes priority.
+  // An incoming guest submission (?import=...) or shared trip (?trip=...) takes priority.
   if (checkImportParam()) return;
   if (new URLSearchParams(location.search).get("trip")) { checkTripParam(); return; }
 
@@ -3579,7 +3534,7 @@ function init() {
 // One tick column per traveler in trip.meta.travelers (up to MAX_TRAVELERS).
 // Boxes sit either side of the item text: first half left, rest right, so two
 // travelers keep the original one-each-side layout.
-// Storage key = lowercased name ("Pete" → checklist_<tripId>_by_pete).
+// Storage key = lowercased name ("Ana" → checklist_<tripId>_by_ana).
 const MAX_TRAVELERS = 6;
 const TRAVELER_COLORS = [
   { fill: "#4caf50", label: "#2e7d32" }, { fill: "#5aaad8", label: "#1565c0" },
@@ -3602,7 +3557,7 @@ function uncheckEverywhere(id) {
 }
 function checklistSections() { return getActiveTrip().checklist.sections; }
 
-// Custom (family-added) checklist items — live locally, baked & published like notes.
+// Custom (user-added) checklist items — live locally, baked & published like notes.
 function getCustomItems(tripId = activeTripId()) { return lsGet(customItemsKey(tripId), []); }
 function saveCustomItems(arr, tripId = activeTripId()) { lsSet(customItemsKey(tripId), arr); }
 
@@ -3729,7 +3684,7 @@ function renderChecklist() {
   // Custom items keep their stored "th" field until the Phase 1 storage migration.
   const custom = getCustomItems();
   html += `<div class="checklist-section">
-    <div class="checklist-section-title">Added by the family</div>`;
+    <div class="checklist-section-title">Added items</div>`;
   custom.forEach(it => {
     html += checklistRow(it, states, it.th, `<button class="checklist-custom-del" title="Remove" onclick="deleteCustomItem('${it.id}')">✕</button>`);
   });
