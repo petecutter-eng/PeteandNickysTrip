@@ -2138,8 +2138,8 @@ async function checkTripParam() {
 // ══════════════════════════════════════════════════════
 //  DAILY BRIEFING (on demand) — replaces the GitHub Actions cron for any trip
 // ══════════════════════════════════════════════════════
-// Builds today + tomorrow + day-after context from the active trip (same shape
-// as briefing.js), asks Claude for a short plain-text briefing, then hands it
+// Builds today + tomorrow + day-after context from the active trip (the shape
+// the old GitHub Actions briefing used), asks Claude for a short plain-text briefing, then hands it
 // to mail / WhatsApp / the share sheet. Recipients are per device, per trip
 // (briefing_to_<tripId>) so they never travel in exports or share links.
 const BRIEFING_MODEL = "claude-opus-5";

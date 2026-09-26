@@ -2,7 +2,7 @@
 
 **Goal:** Turn the trip from hardcoded source into runtime data, so any user can create and edit a trip *inside the app* — no GitHub fork, no code edits. Plus: decouple the daily briefing from the single-repo GitHub Actions cron and replace it with an **on-demand briefing** the user can generate in-app and send to **email or WhatsApp**; and let a user **import trip data from an Excel/CSV spreadsheet**, with a column-mapping step when the columns can't be auto-detected.
 
-**Status:** Phase 0 ✅ merged (PR #13) — the trip now lives in `DEFAULT_TRIP` and all rendering goes through `getActiveTrip()` / `getDay()`. Phase 1 ✅ — multi-trip storage, migration and a basic switcher; the built-in trip is an *example* on fresh devices and is deleted once the user creates their own trip. Phase 2 ✅ — create/edit wizard; checklist supports 1–6 travelers. Phase 3 ✅ — one portable JSON format (`trip-planner/v1`, see `TRIP_IMPORT_FORMAT.md`) for AI import, file export and `?trip=` share links (browser-native deflate instead of LZ-String); generic welcome screen. Phase 5 dropped — AI import covers spreadsheets. Phase 4 ✅ — on-demand briefing in the app (any trip), sent by mailto / wa.me / share sheet / copy; EmailJS not added (mailto covers it without a third-party account). Next up: Phase 6 cleanup.
+**Status:** Phase 0 ✅ merged (PR #13) — the trip now lives in `DEFAULT_TRIP` and all rendering goes through `getActiveTrip()` / `getDay()`. Phase 1 ✅ — multi-trip storage, migration and a basic switcher; the built-in trip is an *example* on fresh devices and is deleted once the user creates their own trip. Phase 2 ✅ — create/edit wizard; checklist supports 1–6 travelers. Phase 3 ✅ — one portable JSON format (`trip-planner/v1`, see `TRIP_IMPORT_FORMAT.md`) for AI import, file export and `?trip=` share links (browser-native deflate instead of LZ-String); generic welcome screen. Phase 5 dropped — AI import covers spreadsheets. Phase 4 ✅ — on-demand briefing in the app (any trip), sent by mailto / wa.me / share sheet / copy; EmailJS not added (mailto covers it without a third-party account). Phase 6 ✅ — the GitHub Actions cron, `briefing.js` and `trip-config.json` are deleted (in git history); README, CLAUDE.md and APP_OVERVIEW.md rewritten for the generic app. **All phases complete.**
 
 **Approach:** Pure client-side. Stays a single static `index.html` on GitHub Pages — no backend, no database, no accounts. Trips live in the browser and travel via share links / file export.
 
@@ -205,7 +205,7 @@ Purpose: bulk-populate a trip from a spreadsheet the user already has (an itiner
 - **Phase 3 — Share/backup.** ✅ *Done — plus AI import via a copy-paste prompt.* Export/import JSON, compressed `?trip=` link, optional QR; hide/repurpose GitHub publish.
 - **Phase 4 — On-demand briefing + delivery.** ✅ *Done (EmailJS skipped).* In-app generation; `mailto` + `wa.me`/Web Share tap-to-send; optional EmailJS.
 - ~~**Phase 5 — Spreadsheet import.**~~ *Dropped: paste the spreadsheet into any AI with the import prompt instead.* SheetJS parse, auto-detect + column-mapping UI, preview/confirm, optional AI-assisted mapping.
-- **Phase 6 — Cleanup.** Retire the Actions cron path, update `CLAUDE.md`/`README`, refresh `APP_OVERVIEW.md`.
+- **Phase 6 — Cleanup.** ✅ *Done.* Retire the Actions cron path, update `CLAUDE.md`/`README`, refresh `APP_OVERVIEW.md`.
 
 Phases 0–1 are the load-bearing refactor; 2–5 are the visible features; 6 is housekeeping.
 

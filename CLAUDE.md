@@ -1,7 +1,9 @@
 # PeteandNickysTrip — Project Handover
 
 ## What This Is
-A live trip planning web app for Pete Cutter and his son Nicky (Nicholas Boonsuan) travelling from Bangkok to the US, July 1–17, 2026. Built as a GitHub Pages site with a daily briefing system (delivered via Telegram; WhatsApp/Twilio supported as a fallback).
+A phone-first trip planner that runs entirely in the browser: a colour-coded trip calendar, day details, a packing checklist, an AI plan assistant and an on-demand daily briefing. Any user can create, import, edit and share their own trips in the app — no fork, no backend, no accounts. Trips live in the browser's localStorage and move between devices as files or share links.
+
+It started as Pete Cutter and his son Nicky's Bangkok → Boston trip (1–17 July 2026). That trip is still built in (`DEFAULT_TRIP`). Pete's devices treat it as their own trip, and fresh devices see it as an **example**.
 
 **Live URL:** https://petecutter-eng.github.io/PeteandNickysTrip/
 **Repo:** https://github.com/petecutter-eng/PeteandNickysTrip
@@ -12,229 +14,108 @@ A live trip planning web app for Pete Cutter and his son Nicky (Nicholas Boonsua
 
 ```
 PeteandNickysTrip/
-├── index.html               ← Full calendar app (single file, self-contained)
-├── trip-config.json         ← Source of truth for all trip data (used by briefing)
-├── briefing.js              ← Daily briefing script — Telegram (or WhatsApp), run by GitHub Actions
-├── CLAUDE.md                ← This file
-└── .github/
-    └── workflows/
-        └── daily-briefing.yml  ← Cron job: runs briefing.js at 7am ET daily Jul 1–17
+├── index.html                  ← The whole app (single file, no build step)
+├── TRIP_IMPORT_FORMAT.md       ← trip-planner/v1 JSON format + the AI import prompt
+├── TRIP_CUSTOMIZATION_PLAN.md  ← Design + phase history of the multi-trip work
+├── APP_OVERVIEW.md             ← Plain-language feature overview
+├── samples/                    ← Messy sample itinerary + answer key for testing AI import
+├── README.md
+└── CLAUDE.md                   ← This file
 ```
+
+GitHub Pages serves `index.html` from `main`. There's no CI and no scheduled job.
 
 ---
 
 ## index.html — Architecture
 
-Single-file app. No build step, no dependencies except Google Fonts (CDN).
+Single file, no build step. The only external dependency is Google Fonts; share-link compression uses the browser's own `CompressionStream`.
 
 ### Views
-- **Calendar view** — 3-week grid (Wed 1 Jul → Tue 21 Jul fillers). Responsive, mobile-first.
-- **Detail view** — slides in from right when a day is tapped. Shows flights, accommodation, notes.
-- **Ingester panel** — slides up from bottom via ＋ Add Plans FAB button.
+- **Calendar view** — week grid computed from the active trip's dates (weekday header starts on the trip's first day; filler cells complete the last week). Responsive, mobile-first.
+- **Detail view** — slides in when a day is tapped: accommodation, flights, holiday, plans & notes, journal, briefing.
+- **Panels/modals** — AI plan assistant (＋ Add Plans), packing checklist, trips switcher, trip wizard, trip import, share link, daily briefing, mode chooser, key setup.
 
 ### Key JS sections (all in one `<script>` block)
 | Section | Purpose |
 |---|---|
-| `DEFAULT_TRIP` | The whole trip as one `Trip` object (schemaVersion 1): `meta`, `regions`, `stays`, sparse `days`, `checklist`, `briefing` |
+| `DEFAULT_TRIP` | The built-in July trip as a `Trip` object (schemaVersion 1): `meta`, `regions`, `stays`, sparse `days`, `checklist`, `briefing` |
 | `getActiveTrip()` / `getDay()` / `tripDateKeys()` | Read path for all rendering. `getDay(k)` resolves a date into label/dow/location/flights/stay/region/events, inheriting from stays and `meta.default*` |
-| `renderTripChrome()` | Renders header, legend, weekday row and flight summary from the trip |
-| `BAKED_NOTES` | Notes snapshot baked in at publish time (starts as `{}`) |
-| Storage helpers | `getNotes()` / `saveNotes()` — read/write localStorage |
-| `renderCalendar()` | Builds the grid (week rows, labels, fillers) from the trip + localStorage notes |
-| `openDetail()` | Renders day detail view |
-| `openIngester()` | Opens the chat ingester panel |
-| `sendIngesterMessage()` | Calls Claude API with conversation history + optional file |
-| `confirmPreview()` | Saves parsed items from Claude into localStorage |
-| `publishToGitHub()` | Commits updated index.html to repo via GitHub API |
-| `buildPublishableHTML()` | Bakes current notes into BAKED_NOTES and custom checklist items into BAKED_CHECKLIST |
-| `toggleVoice()` / `stopVoice()` | Web Speech API mic input |
-| `init()` | Seeds localStorage from BAKED_NOTES/BAKED_CHECKLIST, handles `?import=`, shows mode chooser on first open |
-| `applyMode()` / `chooseMode()` | Owner vs Guest mode (see "Access Modes") |
-| `collectAdditions()` / `openSend()` | Guest outbox — packages local additions into a share link |
-| `checkImportParam()` / `mergeImport()` / `publishImported()` | Owner side — review & publish family submissions |
+| `renderTripChrome()` / `renderCalendar()` / `openDetail()` | Header, legend, weekday row, flight summary, grid, day view |
+| Trip store | `listTrips()`, `switchTrip()`, `duplicateTrip()`, `deleteTrip()`, `migrateStorage()`, `applyTripContext()` |
+| Trip wizard | `openWizard()`, `wizValidate(key, draft)`, `wizBuildTrip(draft)`, `commitDraft(draft)` |
+| Trip files | `buildAiPrompt()`, `extractJson()`, `draftFromImport()`, `tripToPortable()`, `exportTrip()`, `encodeTripCode()` / `decodeTripCode()`, `checkTripParam()` |
+| Daily briefing | `briefingContext()`, `generateBriefing()`, `openBriefing()`, `brMailtoUrl()` / `brWhatsAppUrl()` |
+| AI plan assistant | `openIngester()`, `sendIngesterMessage()` (Claude API, `claude-sonnet-4-6`), `confirmPreview()` |
+| Checklist | `checklistTravelers()`, `renderChecklist()`, `toggleChecklistItem()` — one tick column per traveler |
+| Publishing (built-in trip) | `doPublish()` / `publishToGitHub()` / `buildPublishableHTML()` — bakes notes + checklist edits into `BAKED_*` blocks |
+| Guest hand-off (built-in trip) | `collectAdditions()` / `openSend()` → `?import=` → `checkImportParam()` / `mergeImport()` / `publishImported()` |
+| `init()` | Migrates storage, seeds baked data into the built-in trip, handles `?import=` / `?trip=`, shows the mode chooser on first open |
 
-### Access Modes (Owner / Guest)
-On first open the app shows a **mode chooser** instead of forcing the key-setup modal. The choice is stored in `localStorage["app_mode"]` (`"owner"` | `"guest"`), and a "switch mode" link in the calendar footer reopens it.
-
-- **Owner (Pete)** — needs the keys below. Full app: AI ingester (＋ Add Plans), publish to live page, plus the import flow.
-- **Guest (family, no keys)** — view the whole calendar/details, use the packing checklist, **add their own notes** (＋ Add Note, plain text, no AI) and **custom packing items**. These save to their device only. A **"📤 Send my additions to Pete"** button packages them.
-
-**Guest → Owner handoff (no guest keys, no backend):**
-1. Guest taps Send → `collectAdditions()` gathers notes flagged `guest:true` + custom items flagged `guest:true`, `encodePayload()` URL-safe-base64s them into a link `…/?import=<code>`.
-2. Guest shares the link (native share sheet / copy) via WhatsApp/Telegram/email.
-3. Pete opens it in **owner mode** → `checkImportParam()` decodes → review modal → `mergeImport()` writes into his localStorage → `publishImported()` calls `doPublish()` (same path as the normal publish bar). Nothing goes live until Pete approves.
-
-Custom checklist items are published the same way notes are: baked into the `BAKED_CHECKLIST` block so every device picks them up. The `guest` flag is stripped at bake time.
-
-> Note: `buildPublishableHTML()` snapshots the live DOM, so always publish with the ingester **closed** — `init()` and the clean markup now defend against an open panel being baked in.
+### Access modes
+On first open the app shows a **mode chooser**; the choice is stored in `localStorage["app_mode"]`, and "switch mode" in the footer reopens it.
+- **Plan & view trips** (`"guest"`, no keys) — everything except the AI features: create/import/edit trips, notes, journal, checklist, export/share.
+- **Full access** (`"owner"`) — adds the AI plan assistant and the daily briefing (Anthropic key), plus publishing the built-in trip to the live page (GitHub token, site owner only).
 
 ### Multi-trip storage (per device)
 A device can hold several trips. The built-in trip (`DEFAULT_TRIP`, id `trip_default`) is always read from code; user trips are stored in localStorage.
 - `trips_index` — `[{ id, name, startDate }]` for user trips · `trip_<id>` — full Trip JSON · `activeTripId` — trip currently open
-- `builtin_trip` — `"owned"` | `"example"` | `"removed"`. Fresh devices see the built-in trip as an **example** (banner shown); creating their own trip (Trips → Duplicate) deletes the example and its data from that device. Devices with pre-existing data, or owner mode, mark it `"owned"` and never remove it.
-- Per-trip state: `notes_<id>_<date>`, `checklist_<id>_by_<traveler>`, `checklist_<id>_custom`, `checklist_<id>_removed`
+- `builtin_trip` — `"owned"` | `"example"` | `"removed"`. Fresh devices see the built-in trip as an **example** (banner shown); creating or importing their own trip deletes the example and its data from that device. Devices with pre-existing data, or owner mode, mark it `"owned"` and never remove it. Deleting the last own trip restores the example.
+- Per-trip state: `notes_<id>_<date>`, `checklist_<id>_by_<traveler>`, `checklist_<id>_custom`, `checklist_<id>_removed`, `briefing_to_<id>`
 - `storage_version` — `migrateStorage()` moved the old un-namespaced keys (`notes_<date>`, `checklist_pete`, …) under `trip_default` once.
-- Publish, Send-to-Pete and `?import=` always operate on the built-in trip; those buttons are hidden while a user trip is open.
-- Trip switcher: footer **🧳 trips** link → new / open / edit / duplicate / rename / delete.
-
-### Daily briefing (on demand, in-app)
-**☀️ Daily briefing** (calendar) or **Briefing for this day** (detail view) opens a panel: pick a day (defaults to today, else the first/last trip day) → **Generate** calls the Messages API from the browser with the user's `cred_anthropic` key — `claude-opus-5`, `output_config.effort: "low"`, `fallbacks: "default"` (beta `server-side-fallback-2026-07-01`), refusal handled. `briefingContext()` sends today + tomorrow + day-after (location, stay, flights, holiday, plans) from the active trip, as `briefing.js` did. The text is editable, then sent with **Email** (`mailto:`), **WhatsApp** (`wa.me/<number>?text=`), **Share…** (Web Share) or **Copy**. Recipients are stored per device per trip in `briefing_to_<tripId>`, never in exports or share links. Nothing is sent automatically — scheduled sends need a backend (see the plan's Option C).
-
-### Trip import / export / share (`trip-planner/v1`)
-One portable JSON format (spec + AI prompt: `TRIP_IMPORT_FORMAT.md`) is used for AI import, file export/backup and share links. Places are referenced by name, and `days[].plans` become notes.
-- **Import:** Trips → 📥 Import trip → *Copy AI prompt* (`buildAiPrompt()`) → paste the AI's JSON or upload a file → `extractJson()` → `draftFromImport()` → preview (`tiRender()`) → **Import as new trip** / **Replace** / **Fix in the trip editor** (opens the wizard on the draft at the failing step).
-- **Export:** `tripToPortable(tripId, includeNotes)` → `.json` download. Custom checklist items are folded into a section; removed items are dropped.
-- **Share link:** `?trip=` + `z` + base64url(deflate-raw JSON) via the browser's `CompressionStream` (no dependency; `j` = uncompressed fallback). Opening one shows the import preview; `checkTripParam()` runs from `init()`.
-- Wizard and import share `wizValidate(key, draft)`, `wizBuildTrip(draft)` and `commitDraft(draft)`.
+- Trip switcher: footer **🧳 trips** → new / import / open / edit / duplicate / rename / delete / export / share link.
 
 ### Trip wizard (create / edit)
-`openWizard("create" | "edit", tripId)` opens a 5-step panel — Basics (name, emoji, dates, travelers, checklist second language), Places (regions + colour + home base), Stays, Flights, Checklist (standard 46-item template or blank; sections/items editable). It edits a deep-copied draft; `wizSave()` validates every step, then `wizBuildTrip()` folds flights back into `trip.days` (other per-day overrides — location, holiday, events — are preserved). Only user trips are editable; the built-in trip must be duplicated first. Entry points: example banner "Create my trip", Trips → ＋ New trip / Edit, footer "✏️ edit trip" (own trips only).
+`openWizard("create" | "edit", tripId)` opens a 5-step panel — Basics (name, emoji, dates, 1–6 travelers, checklist second language), Places (regions + colour + home base), Stays, Flights, Checklist (standard 46-item template or blank; sections/items editable). It edits a deep-copied draft; `wizSave()` validates every step, then `wizBuildTrip()` folds flights back into `trip.days` (other per-day overrides — location, holiday, events — are preserved). Only user trips are editable; the built-in trip must be duplicated first.
 
 The checklist renders one tick column per traveler (up to 6, colours from `TRAVELER_COLORS`), split either side of the item text; two travelers keep the original one-each-side layout.
 
-### Credentials (owner mode only)
-Stored in browser localStorage (never in code):
-- `cred_anthropic` — Anthropic API key
-- `cred_github` — GitHub Personal Access Token (repo scope)
-- `cred_ghuser` — `petecutter-eng`
-- `cred_ghrepo` — `PeteandNickysTrip`
-- `app_mode` — `"owner"` or `"guest"` (set via the first-open chooser)
-- `guest_name` — optional name a guest attaches to their submissions
+### Trip import / export / share (`trip-planner/v1`)
+One portable JSON format (spec + AI prompt: `TRIP_IMPORT_FORMAT.md`) is used for AI import, file export/backup and share links. Places are referenced by name, and `days[].plans` become notes.
+- **Import:** Trips → 📥 Import trip → *Copy AI prompt* → paste the AI's JSON or upload a file → preview → **Import as new trip** / **Replace** / **Fix in the trip editor** (opens the wizard on the draft at the failing step).
+- **Export:** `tripToPortable(tripId, includeNotes)` → `.json` download. Custom checklist items are folded into a section; removed items are dropped.
+- **Share link:** `?trip=` + `z` + base64url(deflate-raw JSON) (`j` = uncompressed fallback). Opening one shows the import preview.
 
-### Notes persistence model
-1. User adds note via ingester → saved to `localStorage["notes_<tripId>_2026-07-XX"]` (built-in trip id: `trip_default`)
-2. Visible immediately in calendar and detail view
-3. On Publish → `buildPublishableHTML()` bakes all notes into `BAKED_NOTES` constant
-4. GitHub API commits new index.html → GitHub Pages deploys in ~60s
-5. Any device loading the live URL gets the baked notes seeded into their localStorage
+### Daily briefing (on demand, in-app)
+**☀️ Daily briefing** (calendar) or **Briefing for this day** (detail view): pick a day (defaults to today, else the first/last trip day) → **Generate** calls the Messages API from the browser with the user's `cred_anthropic` key — `claude-opus-5`, `output_config.effort: "low"`, `fallbacks: "default"` (beta `server-side-fallback-2026-07-01`), refusal handled. `briefingContext()` sends today + tomorrow + day-after (location, stay, flights, holiday, plans). The text is editable, then sent with **Email** (`mailto:`), **WhatsApp** (`wa.me/<number>?text=`), **Share…** or **Copy**. Nothing is sent automatically; scheduled sends would need a backend (the plan's "Option C").
 
-### Multi-day stays
-Declared once in `DEFAULT_TRIP.stays` as `{ regionId, name, checkin, checkout }`; `getDay()` computes the start/mid/end badge, check-in/out events and the nights label. Currently: Gallagher Cottage Jul 7–10 (region `cottage` / #7cb87a).
+### Publishing the built-in trip (site owner)
+Only the built-in trip is published; user trips never leave the device except via export/share.
+1. Notes/checklist edits on the built-in trip live in localStorage (`notes_trip_default_<date>`, …).
+2. **Publish** → `buildPublishableHTML()` snapshots the DOM and bakes notes into `BAKED_NOTES`, custom items into `BAKED_CHECKLIST`, removed items into `BAKED_REMOVED`.
+3. The GitHub API commits the new `index.html`; Pages deploys in ~60s; other devices seed the baked data into their built-in trip on load.
 
-### Adding a new multi-day stay
-Add an entry to `stays` (and a `regions` entry if it needs a new colour). The legend and colour strips are generated from `regions` — no CSS or legend HTML to edit.
+Family members in guest mode can **Send my additions to Pete** (`?import=` link); Pete reviews and publishes. These buttons only appear while the built-in trip is open.
 
----
+> `buildPublishableHTML()` snapshots the live DOM, so publish with panels closed — `init()` defends against an open panel being baked in.
 
-## trip-config.json — Architecture
-
-Used exclusively by `briefing.js` for the daily briefing message. Structure:
-
-```json
-{
-  "trip": { "name", "travelers", "timezone_trip", "briefing_time", "whatsapp_recipient_name" },
-  "days": {
-    "2026-07-01": {
-      "location": "...",
-      "flights": [...],
-      "multiday_stay": { "name", "checkin", "checkout" },
-      "holiday": "...",
-      "reminders": [...],
-      "notes": []
-    }
-  }
-}
-```
-
-**Important:** Notes added via the calendar ingester currently live in `index.html` (localStorage → baked HTML). They do NOT automatically write back to `trip-config.json`. For notes to appear in the morning briefing, they need to be manually added to the relevant day's `"notes"` array in `trip-config.json`. This is a known gap — the ingester writing directly to `trip-config.json` via GitHub API is the next planned feature.
+### Credentials (stored in browser localStorage, never in code)
+- `cred_anthropic` — Anthropic API key (AI plan assistant + daily briefing)
+- `cred_github`, `cred_ghuser`, `cred_ghrepo` — optional; only for publishing the built-in trip
+- `app_mode` — `"owner"` | `"guest"` · `guest_name` — optional name on guest submissions
 
 ---
 
-## briefing.js — Architecture
-
-Node.js script, no npm dependencies (uses built-in `https` and `fs`).
-
-**Flow:**
-1. Gets today's date in Bangkok time first, falls back to ET (handles pre/post-trip testing from Bangkok)
-2. Loads `trip-config.json` from disk
-3. Checks if today is a trip day — exits cleanly if not
-4. Builds context object (today + tomorrow + day after)
-5. Calls Claude API (`claude-sonnet-4-6`) with system prompt → generates briefing text
-6. Delivers the briefing via `sendBriefing()`, which dispatches to Telegram when `TELEGRAM_BOT_TOKEN` + `TELEGRAM_CHAT_ID` are set, otherwise falls back to WhatsApp/Twilio
-
-**All credentials via environment variables** (GitHub Secrets):
-- `ANTHROPIC_API_KEY`
-- `TELEGRAM_BOT_TOKEN` — bot token from @BotFather (preferred channel)
-- `TELEGRAM_CHAT_ID` — chat ID of the recipient (or group). See "Telegram" below.
-- `TWILIO_ACCOUNT_SID` — *(WhatsApp fallback)* stored in GitHub Secrets as `TWILIO_ACCOUNT_SID`
-- `TWILIO_AUTH_TOKEN` — *(WhatsApp fallback)*
-- `TWILIO_WHATSAPP_FROM` — *(WhatsApp fallback)* `whatsapp:+14155238886`
-- `TWILIO_WHATSAPP_TO` — *(WhatsApp fallback)* Pete's WhatsApp number
-- `TWILIO_CONTENT_SID` — *(WhatsApp fallback, optional)* Content SID of the approved WhatsApp Message Template. See "Twilio WhatsApp" below.
-
----
-
-## GitHub Actions — daily-briefing.yml
-
-Cron: `0 11 1-17 7 *` = 11:00 UTC = 7:00am ET, July 1–17 only.
-
-Has `workflow_dispatch` for manual testing. Node 24.
-
-To test manually: Actions tab → Daily Trip Briefing → Run workflow.
-
----
-
-## Telegram (preferred channel)
-
-The daily briefing is delivered via the Telegram Bot API. It works over wifi or mobile data (no SMS/roaming dependency), has no session window, and needs no business verification. `sendBriefing()` uses Telegram whenever `TELEGRAM_BOT_TOKEN` and `TELEGRAM_CHAT_ID` are both set; otherwise it falls back to WhatsApp/Twilio.
-
-### One-time setup
-1. In Telegram, message **@BotFather** → `/newbot` → follow prompts. Copy the **bot token** it gives you → add as GitHub Secret `TELEGRAM_BOT_TOKEN`.
-2. Pete (the recipient) opens the new bot and taps **Start** (or sends any message). This is required — bots can't message a user who hasn't started a chat with them.
-3. Get the **chat ID**: visit `https://api.telegram.org/bot<TOKEN>/getUpdates` in a browser (replace `<TOKEN>`), find `"chat":{"id":...}` in the JSON → add that number as GitHub Secret `TELEGRAM_CHAT_ID`.
-   - For a group chat, add the bot to the group, send a message there, then read the (negative) group chat ID from `getUpdates`.
-4. Test: Actions tab → Daily Trip Briefing → Run workflow. The message should arrive in Telegram.
-
-Message is sent as plain text (no `parse_mode`), so emojis and punctuation render as-is. Telegram's 4096-char limit comfortably covers the ~200-280 word briefing.
-
----
-
-## Twilio WhatsApp (fallback)
-
-If the Telegram secrets are absent, `sendBriefing()` falls back to `sendWhatsApp()`, which supports two send paths, chosen at runtime by whether `TWILIO_CONTENT_SID` is set:
-
-- **Sandbox (default, no `TWILIO_CONTENT_SID`)** — sends a free-form `Body` from `whatsapp:+14155238886`. Pete's number is verified on the sandbox. Good for testing.
-- **Production (set `TWILIO_CONTENT_SID`)** — sends via an approved Message Template, passing the generated briefing as template variable `{{1}}`.
-
-### Why the sandbox isn't enough for the trip
-Two separate WhatsApp rules break the unattended 7am send on the sandbox:
-1. **72h sandbox opt-in** — lapses if Pete doesn't message the sandbox number for 72h; he'd have to re-send the join code.
-2. **24h session window** — WhatsApp only allows *free-form* text within 24h of the recipient's last inbound message. The briefing is business-initiated (no preceding reply), so outside that window WhatsApp **requires an approved Message Template**, not free text. The sandbox is lenient about this; production is not.
-
-### Migrating to production (do this before July 1 — approval takes days)
-1. In Twilio, register a **WhatsApp Business sender** (Twilio number + Meta business verification).
-2. Create a **Message Template** (a.k.a. Content template) with a single body variable `{{1}}`. Suggested body: a short greeting line followed by `{{1}}`. Category: *Utility*.
-3. Submit it for approval and wait until status is **Approved**.
-4. Copy the template's **Content SID** (`HX…`) and add it as GitHub Secret `TWILIO_CONTENT_SID`.
-5. Update `TWILIO_WHATSAPP_FROM` to the approved production sender number.
-6. That's it — no code change needed; the next run uses the template automatically.
-
-**Template variable caveat:** WhatsApp rejects tabs and runs of 4+ spaces inside template variables. `sanitizeForTemplate()` in `briefing.js` cleans these. Newlines are preserved (modern templates allow them); if your template is rejected for newlines, also strip `\n` in that function.
-
----
-
-## Flight Details (both passengers)
+## Built-in trip — flight details
 
 | | |
 |---|---|
 | **Passengers** | Peter Guild (MR) · Nicholas Boonsuan (MSTR, child) |
-| **Booking ref** | FQ5ZSK |
-| **Booked via** | Satguru Travel & Tours, Bangkok |
+| **Booking ref** | FQ5ZSK · Satguru Travel & Tours, Bangkok |
 | **Outbound** | BKK→NRT JL708 07:55 · NRT→BOS JL008 18:25 (1 Jul) |
 | **Return** | BOS→NRT JL007 13:15 (16 Jul) · NRT→BKK JL707 18:25 (17 Jul) |
-| **Class** | Economy (V) out · Economy (N) return |
-| **Baggage** | 2PC each · Meals included |
-| **Aircraft** | BKK↔NRT: 787-8 · BOS↔NRT: 787-9 |
+| **Class / bags** | Economy (V) out · Economy (N) return · 2PC each |
 
 ---
 
-## Known Gaps / Next Features
+## Known Gaps / Ideas
 
-1. **Ingester → trip-config.json sync** — notes added via ingester (or imported from a guest) should also write to `trip-config.json` so they appear in the daily briefing automatically. (Guest additions now reach the *live page* via the import link; the briefing is still a separate manual step.)
-2. **Delivery channel** — now defaults to Telegram (no roaming/business dependency); set `TELEGRAM_BOT_TOKEN` + `TELEGRAM_CHAT_ID` to activate (see "Telegram"). WhatsApp/Twilio remains as a fallback, including an optional approved-template production path via `TWILIO_CONTENT_SID`.
-3. **Favicon** — not yet added
-4. **Multi-day event ingestion** — ingester can add multi-day notes but doesn't yet add a `stays` entry to the trip; only adds notes to each day individually
-5. **In-app trip customization** — in progress. Phase 0 (done): all rendering reads from the Trip model. Phase 1 (done): multi-trip storage + switcher. Phase 2 (done): create/edit wizard. Phase 3 (done): import/export/share (`trip-planner/v1`), generic welcome screen. Phase 4 (done): on-demand in-app briefing. Until the wizard lands, a new trip means editing `DEFAULT_TRIP` + `trip-config.json`.
+1. **Scheduled briefings** — the briefing is on demand only. Hands-off 7am sends need a small backend holding secrets (e.g. a serverless relay for email, or Twilio for WhatsApp with an approved template) — "Option C" in `TRIP_CUSTOMIZATION_PLAN.md`.
+2. **Multi-device sync** — trips live per device; export/import or share links move them. Live sync needs a backend.
+3. **Wizard coverage** — holidays and per-day location labels can't be edited in the wizard (the import format and exports carry them).
+4. **Checklist ticks are keyed by traveler name** — renaming a traveler starts their ticks fresh.
+5. **AI plan assistant** adds notes to days but doesn't create stays; it still uses `claude-sonnet-4-6`.
+6. **Favicon** — not yet added.
 
 ---
 
@@ -244,8 +125,7 @@ Two separate WhatsApp rules break the unattended 7am send on the sandbox:
 |---|---|
 | Background | `#f7f4ef` |
 | Primary dark | `#1a3a4a` |
-| Boston strip | `#5aaad8` |
-| Cottage strip | `#7cb87a` |
+| Place colours (default palette) | `#5aaad8` `#7cb87a` `#e0a458` `#b98ed6` `#e07a7a` `#5fb8a8` |
 | Flight cells | `#f0f6ff` |
 | Notes green | `#4caf50` |
 | Fonts | Playfair Display (headers) · Inter (body) |
@@ -260,11 +140,10 @@ git clone https://github.com/petecutter-eng/PeteandNickysTrip.git
 cd PeteandNickysTrip
 claude
 ```
-Tell Claude Code what to change. It will edit files and push directly to GitHub. Pages deploys in ~60s.
+Tell Claude Code what to change. Pages deploys ~60s after a merge to `main`.
 
 ### Manually
-Edit files on github.com (pencil icon) → commit to main → wait ~60s for Pages to deploy.
+Edit files on github.com (pencil icon) → commit to `main` → wait ~60s for Pages to deploy.
 
-### Adding a new day's plans
-Either use the in-app ingester (＋ Add Plans) or ask Claude Code to add to the relevant day in both `DEFAULT_TRIP.days` (index.html) and `trip-config.json`.
-
+### Changing the built-in trip
+Edit `DEFAULT_TRIP` in `index.html` (it reaches every device on the next load). Users' own trips are changed in the app with the wizard, or by exporting, editing the JSON (by hand or with an AI) and re-importing with **Replace**.
