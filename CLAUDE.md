@@ -146,6 +146,13 @@ Family members in guest mode can **Send my additions to Pete** (`?import=` link)
 
 ---
 
+## Working Conventions (for Claude Code)
+
+- **One piece of work per PR**, each on its own branch cut fresh from the latest `main` — never stack unrelated work into an open PR.
+- **Every PR description starts with a manual test plan**: a `## Test plan` checklist of concrete steps Pete can tick off on his phone against the live site after merging (what to tap, what he should see), with anything that couldn't be verified automatically — e.g. real AI provider calls — called out explicitly. Automated test results go in a separate `## Automated testing` section below the summary.
+- **Watch every PR you open** (subscribe to its activity and keep an hourly check-in) until it's merged or closed — no need to ask first.
+- Before merge, a private preview of `index.html` can be published as an artifact for hands-on testing; GitHub Pages only serves `main`.
+
 ## How to Make Changes
 
 ### Via Claude Code (recommended)
