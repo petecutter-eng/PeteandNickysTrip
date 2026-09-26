@@ -654,6 +654,14 @@
     font-family: 'Inter', sans-serif; font-weight: 700; font-size: 0.76rem; cursor: pointer; white-space: nowrap;
   }
   .trip-switch:active, .new-trip-btn:active { opacity: 0.85; }
+  .ai-pick { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; margin-bottom: 12px; }
+  .ai-pick label { border: 1.5px solid #d8d2c7; border-radius: 8px; padding: 8px 6px; text-align: center; cursor: pointer;
+    text-transform: none; letter-spacing: 0; margin: 0; background: #fff; }
+  .ai-pick label:has(input:checked) { border-color: #1a3a4a; background: #f0f6ff; }
+  .ai-pick input { display: none; }
+  .ai-pick b { display: block; font-size: 0.8rem; color: #1a3a4a; }
+  .ai-pick span { display: block; font-size: 0.6rem; color: #6b7c8a; font-weight: 500; margin-top: 2px; }
+  .setup-cost { font-size: 0.68rem; color: #5a3e00; background: #fff8e1; border-radius: 6px; padding: 6px 8px; margin-top: 4px; }
   .setup-steps { background: #f7f4ef; border-radius: 10px; padding: 10px 12px; margin-bottom: 14px; }
   .setup-step-title { font-size: 0.72rem; font-weight: 700; color: #1a3a4a; margin-bottom: 6px; }
   .setup-steps ol, .setup-github ol { padding-left: 18px; font-size: 0.72rem; color: #333; line-height: 1.55; }
@@ -714,28 +722,64 @@
 <div class="modal-overlay" id="setup-modal">
   <div class="modal" style="max-width:460px">
     <h2>✨ Set up the AI helpers</h2>
-    <p>The AI helpers run on <b>Claude</b>, made by Anthropic. To use them you need your own <b>API key</b> — a long password that lets this app use Claude on your behalf, billed to your Anthropic account. It takes about 5 minutes.</p>
+    <p>The AI helpers can run on <b>Claude</b>, <b>ChatGPT</b> or <b>Gemini</b> — pick whichever you prefer. You'll need an <b>API key</b> from that company: a long password that lets this app use their AI on your behalf, billed (if at all) to your own account. It takes about 5 minutes.</p>
 
-    <div class="setup-steps">
-      <div class="setup-step-title">How to get your Anthropic API key</div>
+    <label>Which AI?</label>
+    <div class="ai-pick">
+      <label><input type="radio" name="ai-pick" value="anthropic" onchange="setupPick(this.value)"><b>Claude</b><span>Anthropic</span></label>
+      <label><input type="radio" name="ai-pick" value="openai" onchange="setupPick(this.value)"><b>ChatGPT</b><span>OpenAI</span></label>
+      <label><input type="radio" name="ai-pick" value="gemini" onchange="setupPick(this.value)"><b>Gemini</b><span>Google · free tier</span></label>
+    </div>
+
+    <div class="setup-steps" data-provider="anthropic">
+      <div class="setup-step-title">How to get a Claude (Anthropic) API key</div>
       <ol>
         <li><b>Create an account.</b> Open the <a href="https://console.anthropic.com" target="_blank" rel="noopener">Anthropic Console</a> and sign up with your email or Google account. (This is separate from a Claude.ai chat subscription — you need a Console account even if you already use Claude.)</li>
         <li><b>Add some credit.</b> In the Console, go to <b>Settings → Billing</b> and buy credits (the minimum is about US$5). Keys don't work until the account has credit. $5 covers a whole trip's worth of briefings and plan-adding for most people.</li>
-        <li><b>Optional but wise: set a spending limit.</b> Under <b>Settings → Limits</b> you can cap monthly spend (e.g. $10) so there are never surprises.</li>
-        <li><b>Create the key.</b> Go to <b>Settings → API keys</b> (<a href="https://console.anthropic.com/settings/keys" target="_blank" rel="noopener">direct link</a>) → <b>Create Key</b> → name it something like “Trip Planner” → <b>Create</b>.</li>
-        <li><b>Copy it straight away.</b> It starts with <code>sk-ant-</code> and is shown <b>only once</b>. Tap the copy button next to it, come back here and paste it below. If you lose it, just create a new one.</li>
+        <li><b>Optional but wise: set a spending limit.</b> Under <b>Settings → Limits</b> you can cap monthly spend (e.g. $10).</li>
+        <li><b>Create the key.</b> Go to <b>Settings → API keys</b> (<a href="https://console.anthropic.com/settings/keys" target="_blank" rel="noopener">direct link</a>) → <b>Create Key</b> → name it “Trip Planner” → <b>Create</b>.</li>
+        <li><b>Copy it straight away.</b> It starts with <code>sk-ant-</code> and is shown <b>only once</b>. Paste it below. If you lose it, just create a new one.</li>
       </ol>
+      <div class="setup-cost">Cost: a daily briefing is roughly 2–3 US cents; adding plans from an email or photo is usually a few cents. Billed by Anthropic.</div>
     </div>
 
-    <label>Anthropic API key</label>
-    <input type="password" id="setup-anthropic" placeholder="sk-ant-…" autocomplete="off" oninput="document.getElementById('setup-test').style.display='none'">
-    <button class="btn btn-secondary" style="width:100%; margin:-4px 0 10px" onclick="testAnthropicKey()">Check this key</button>
+    <div class="setup-steps" data-provider="openai">
+      <div class="setup-step-title">How to get a ChatGPT (OpenAI) API key</div>
+      <ol>
+        <li><b>Create a developer account.</b> Open the <a href="https://platform.openai.com" target="_blank" rel="noopener">OpenAI Platform</a> and sign up or log in. (A ChatGPT Plus or Pro subscription does <b>not</b> include API use — the Platform is billed separately, even with the same login.)</li>
+        <li><b>Add some credit.</b> Go to <b>Settings → Billing</b> and add a payment method and credit (the minimum is about US$5). Keys don't work until there's credit.</li>
+        <li><b>Optional but wise: set a budget.</b> Under <b>Settings → Limits</b> you can set a monthly budget.</li>
+        <li><b>Create the key.</b> Go to <b>API keys</b> (<a href="https://platform.openai.com/api-keys" target="_blank" rel="noopener">direct link</a>) → <b>Create new secret key</b> → name it “Trip Planner” → <b>Create secret key</b>.</li>
+        <li><b>Copy it straight away.</b> It starts with <code>sk-</code> and is shown <b>only once</b>. Paste it below.</li>
+      </ol>
+      <div class="setup-cost">Cost: usually well under a cent to a few cents per briefing or plan. Billed by OpenAI.</div>
+    </div>
+
+    <div class="setup-steps" data-provider="gemini">
+      <div class="setup-step-title">How to get a Gemini (Google) API key</div>
+      <ol>
+        <li><b>Open Google AI Studio.</b> Go to <a href="https://aistudio.google.com" target="_blank" rel="noopener">Google AI Studio</a> and sign in with your Google account. Accept the terms if asked.</li>
+        <li><b>Create the key.</b> Click <b>Get API key</b> → <b>Create API key</b> (<a href="https://aistudio.google.com/app/apikey" target="_blank" rel="noopener">direct link</a>). If it asks for a Google Cloud project, let it create one for you.</li>
+        <li><b>Copy the key.</b> It starts with <code>AIza</code>. Paste it below. (You can come back to AI Studio to copy it again later.)</li>
+        <li><b>Free or paid — your choice.</b> Gemini currently has a <b>free tier</b> with daily limits, so no card is needed to start. On the free tier Google may use what you send to improve its products; turning on billing in AI Studio avoids that and raises the limits.</li>
+      </ol>
+      <div class="setup-cost">Cost: free on the free tier (within Google's limits); otherwise typically well under a cent per briefing or plan.</div>
+    </div>
+
+    <label id="setup-key-label">API key</label>
+    <input type="password" id="setup-key" autocomplete="off" oninput="document.getElementById('setup-test').style.display='none'">
+    <button class="btn btn-secondary" style="width:100%; margin:-4px 0 10px" onclick="testAiKey()">Check this key</button>
     <div class="br-status" id="setup-test" style="display:none"></div>
 
     <div class="modal-note">
-      <b>About cost:</b> a daily briefing is roughly 2–3 US cents; adding plans from an email or photo is usually a few cents. You're billed by Anthropic, not by this app.<br>
-      <b>About safety:</b> the key is saved only in this browser on this device and is only ever sent to Anthropic. Anyone using this browser could use it, so don't set it up on a shared computer. You can delete the key in the Console at any time.
+      <b>About safety:</b> the key is saved only in this browser on this device and is only ever sent to the company that issued it. Anyone using this browser could use it, so don't set it up on a shared computer. You can delete the key on the company's website at any time.
     </div>
+
+    <details class="setup-github">
+      <summary>Advanced: model name (optional)</summary>
+      <p>Leave blank to use the default (<code id="setup-model-default"></code>). Only change this if the AI company has retired that model or you prefer another one.</p>
+      <input type="text" id="setup-model" autocomplete="off" placeholder="default">
+    </details>
 
     <details class="setup-github">
       <summary>Publishing to the live website (site owner only — most people skip this)</summary>
@@ -773,10 +817,10 @@
     </button>
     <button class="mode-choice-btn" onclick="chooseMode('owner')">
       <b>✨ Add the built-in AI helpers</b>
-      <span>Everything above, plus two time-savers that use Claude (an AI) right inside the app:
+      <span>Everything above, plus two time-savers that use an AI — Claude, ChatGPT or Gemini, your choice — right inside the app:
         <br>• <b>Add plans without typing</b> — paste a booking email or snap a photo of a ticket and it's put on the right day.
         <br>• <b>A daily briefing</b> — a friendly summary of the day, ready to send by email or WhatsApp.
-        <br>Needs your own Anthropic API key (a one-time, 5-minute setup; you pay Anthropic directly, usually a few cents per use). We'll walk you through it.</span>
+        <br>Needs your own API key from that AI company (a one-time, 5-minute setup). Gemini has a free tier; the others cost a few cents per use, paid to them directly. We'll walk you through it.</span>
     </button>
     <div class="modal-note" style="margin:4px 0 0">Not sure? Start with the first option — you can switch any time from the link at the bottom of the calendar. Importing a trip with ChatGPT, Claude or Gemini works in both.</div>
   </div>
@@ -820,11 +864,11 @@
 <div class="modal-overlay" id="briefing-modal">
   <div class="modal" style="max-width:460px">
     <h2>☀️ Daily briefing</h2>
-    <p>A short morning summary of the day — flights, stay, plans and reminders — plus a look at tomorrow. Written by Claude from this trip.</p>
+    <p>A short morning summary of the day — flights, stay, plans and reminders — plus a look at tomorrow. Written by your AI helper from this trip.</p>
     <label>Day</label>
     <select id="br-day" onchange="brShowDay()"></select>
     <div class="modal-note" id="br-nokey" style="display:none">
-      Briefings are written by Claude and need your own Anthropic API key (a few cents per briefing).
+      Briefings are written by an AI helper — Claude, ChatGPT or Gemini — using your own API key (free on Gemini's free tier; otherwise a few cents per briefing).
       <a onclick="closeBriefing(); openSetupModal()" style="color:#1a3a4a; font-weight:700; cursor:pointer; text-decoration:underline">Add a key</a>
     </div>
     <button class="btn btn-primary" id="br-gen" style="width:100%; margin-bottom:10px" onclick="brGenerate()">☀️ Generate briefing</button>
@@ -2172,13 +2216,113 @@ async function checkTripParam() {
 }
 
 // ══════════════════════════════════════════════════════
+//  AI PROVIDERS — Claude (Anthropic), ChatGPT (OpenAI), Gemini (Google)
+// ══════════════════════════════════════════════════════
+// The AI helpers (plan assistant + daily briefing) call whichever provider the
+// user picked, with their own key, straight from the browser. aiChat() takes a
+// provider-neutral conversation and returns plain text:
+//   messages: [{ role: "user" | "assistant", parts: [{ text } | { file: { name, mime, base64 } }] }]
+// Keys: cred_anthropic / cred_openai / cred_gemini · ai_provider · ai_model_<provider> (optional override).
+const AI_PROVIDERS = {
+  anthropic: { label: "Claude",  company: "Anthropic", keyPrefix: "sk-ant-", models: { chat: "claude-sonnet-4-6", briefing: "claude-opus-5" } },
+  openai:    { label: "ChatGPT", company: "OpenAI",    keyPrefix: "sk-",     models: { chat: "gpt-5-mini",        briefing: "gpt-5-mini" } },
+  gemini:    { label: "Gemini",  company: "Google",    keyPrefix: "AIza",    models: { chat: "gemini-flash-latest", briefing: "gemini-flash-latest" } }
+};
+function aiProvider() { const p = localStorage.getItem("ai_provider"); return AI_PROVIDERS[p] ? p : "anthropic"; }
+function aiKey(p = aiProvider()) { return localStorage.getItem("cred_" + p) || ""; }
+function hasAiKey() { return !!aiKey(); }
+function aiModel(p, purpose) { return (localStorage.getItem("ai_model_" + p) || "").trim() || AI_PROVIDERS[p].models[purpose]; }
+function aiLabel(p = aiProvider()) { return AI_PROVIDERS[p].label; }
+
+class AiError extends Error { constructor(message, kind) { super(message); this.kind = kind; } }   // kind: auth | refusal | quota | other
+
+async function aiChat({ system, messages, purpose, maxTokens = 16000 }) {
+  const p = aiProvider(), key = aiKey(p), model = aiModel(p, purpose), who = AI_PROVIDERS[p];
+  if (!key) throw new AiError(`Add your ${who.company} API key first.`, "auth");
+  let res, data = {};
+  const call = async (url, init) => { res = await fetch(url, init); try { data = await res.json(); } catch { data = {}; } };
+  const fail = (msg) => {
+    const m = msg || `HTTP ${res.status}`;
+    if (res.status === 401 || /api key not valid|api_key_invalid|invalid.*api.?key|incorrect api key/i.test(m))
+      throw new AiError(`${who.company} didn't accept your API key — check it under “update keys”.`, "auth");
+    if (res.status === 429 || /quota|credit balance|billing/i.test(m))
+      throw new AiError(`${who.company} says: ${m} (usually a usage limit or missing credit on your ${who.company} account).`, "quota");
+    if (res.status === 404 || /model/i.test(m) && res.status === 400)
+      throw new AiError(`${who.company} says: ${m} — if the model name is out of date, change it under “update keys” → Advanced.`, "other");
+    throw new AiError(`${who.company} says: ${m}`, "other");
+  };
+
+  if (p === "anthropic") {
+    const content = parts => parts.map(pt => pt.file
+      ? (pt.file.mime === "application/pdf"
+          ? { type: "document", source: { type: "base64", media_type: "application/pdf", data: pt.file.base64 } }
+          : { type: "image", source: { type: "base64", media_type: pt.file.mime, data: pt.file.base64 } })
+      : { type: "text", text: pt.text });
+    const body = { model, max_tokens: maxTokens, system,
+      messages: messages.map(m => ({ role: m.role, content: m.role === "assistant" ? m.parts.map(pt => pt.text).join("") : content(m.parts) })) };
+    const headers = { "Content-Type": "application/json", "x-api-key": key, "anthropic-version": "2023-06-01", "anthropic-dangerous-direct-browser-access": "true" };
+    if (model === "claude-opus-5") {   // briefing default: low effort + server-side refusal fallback
+      body.output_config = { effort: "low" };
+      body.fallbacks = "default";
+      headers["anthropic-beta"] = "server-side-fallback-2026-07-01";
+    }
+    await call("https://api.anthropic.com/v1/messages", { method: "POST", headers, body: JSON.stringify(body) });
+    if (!res.ok || data.type === "error") fail(data.error && data.error.message);
+    if (data.stop_reason === "refusal") throw new AiError("Claude declined this request.", "refusal");
+    return (data.content || []).filter(b => b.type === "text").map(b => b.text).join("").trim();
+  }
+
+  if (p === "openai") {
+    const content = parts => parts.map(pt => pt.file
+      ? (pt.file.mime === "application/pdf"
+          ? { type: "file", file: { filename: pt.file.name || "document.pdf", file_data: `data:application/pdf;base64,${pt.file.base64}` } }
+          : { type: "image_url", image_url: { url: `data:${pt.file.mime};base64,${pt.file.base64}` } })
+      : { type: "text", text: pt.text });
+    const body = { model, max_completion_tokens: maxTokens,
+      messages: [{ role: "system", content: system }].concat(messages.map(m =>
+        ({ role: m.role, content: m.role === "assistant" ? m.parts.map(pt => pt.text).join("") : content(m.parts) }))) };
+    await call("https://api.openai.com/v1/chat/completions", { method: "POST",
+      headers: { "Content-Type": "application/json", "Authorization": "Bearer " + key }, body: JSON.stringify(body) });
+    if (!res.ok || data.error) fail(data.error && data.error.message);
+    const choice = (data.choices || [])[0] || {}, msg = choice.message || {};
+    if (msg.refusal || choice.finish_reason === "content_filter") throw new AiError("ChatGPT declined this request.", "refusal");
+    return String(msg.content || "").trim();
+  }
+
+  // gemini
+  const body = {
+    systemInstruction: { parts: [{ text: system }] },
+    contents: messages.map(m => ({ role: m.role === "assistant" ? "model" : "user",
+      parts: m.parts.map(pt => pt.file ? { inline_data: { mime_type: pt.file.mime, data: pt.file.base64 } } : { text: pt.text }) })),
+    generationConfig: { maxOutputTokens: maxTokens }
+  };
+  await call(`https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(model)}:generateContent?key=${encodeURIComponent(key)}`,
+    { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) });
+  if (!res.ok || data.error) fail(data.error && data.error.message);
+  const cand = (data.candidates || [])[0];
+  if (!cand) throw new AiError(data.promptFeedback && data.promptFeedback.blockReason ? "Gemini declined this request." : "Gemini returned nothing — try again.", "refusal");
+  if (["SAFETY", "PROHIBITED_CONTENT", "BLOCKLIST", "RECITATION"].includes(cand.finishReason)) throw new AiError("Gemini declined this request.", "refusal");
+  return ((cand.content && cand.content.parts) || []).filter(pt => pt.text && !pt.thought).map(pt => pt.text).join("").trim();
+}
+
+// Free check that a key works (every provider lists its models at no cost).
+async function aiCheckKey(p, key) {
+  const req = {
+    anthropic: ["https://api.anthropic.com/v1/models?limit=1", { headers: { "x-api-key": key, "anthropic-version": "2023-06-01", "anthropic-dangerous-direct-browser-access": "true" } }],
+    openai:    ["https://api.openai.com/v1/models", { headers: { "Authorization": "Bearer " + key } }],
+    gemini:    [`https://generativelanguage.googleapis.com/v1beta/models?pageSize=1&key=${encodeURIComponent(key)}`, {}]
+  }[p];
+  const res = await fetch(req[0], req[1]);
+  return res.status;
+}
+
+// ══════════════════════════════════════════════════════
 //  DAILY BRIEFING (on demand) — replaces the GitHub Actions cron for any trip
 // ══════════════════════════════════════════════════════
 // Builds today + tomorrow + day-after context from the active trip (the shape
 // the old GitHub Actions briefing used), asks Claude for a short plain-text briefing, then hands it
 // to mail / WhatsApp / the share sheet. Recipients are per device, per trip
 // (briefing_to_<tripId>) so they never travel in exports or share links.
-const BRIEFING_MODEL = "claude-opus-5";
 const DOW_LONG = ["Sunday","Monday","Tuesday","Wednesday","Thursday","Friday","Saturday"];
 const MAILTO_SOFT_LIMIT = 1800;   // chars; some mail apps truncate longer mailto: bodies
 function friendlyDate(k) { const dt = parseDateKey(k); return `${DOW_LONG[dt.getUTCDay()]}, ${dt.getUTCDate()} ${MONTHS_LONG[dt.getUTCMonth()]}`; }
@@ -2232,38 +2376,18 @@ Format: plain text that reads well in WhatsApp or email. No markdown (no #, no *
 Length: 150–250 words.`;
 }
 
-// Calls the Messages API from the browser with the user's own key.
+// Asks the user's chosen AI (see aiChat) for the briefing text.
 async function generateBriefing(dateKey) {
-  const key = getCreds().anthropic;
-  if (!key) throw new Error("Add your Anthropic API key first.");
   const ctx = briefingContext(dateKey);
-  const res = await fetch("https://api.anthropic.com/v1/messages", {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      "x-api-key": key,
-      "anthropic-version": "2023-06-01",
-      "anthropic-beta": "server-side-fallback-2026-07-01",
-      "anthropic-dangerous-direct-browser-access": "true"
-    },
-    body: JSON.stringify({
-      model: BRIEFING_MODEL,
-      max_tokens: 16000,
-      output_config: { effort: "low" },
-      fallbacks: "default",
-      system: briefingSystemPrompt(ctx),
-      messages: [{ role: "user", content: `Here is the trip context as JSON. Write the briefing for ${friendlyDate(dateKey)}:\n\n${JSON.stringify(ctx, null, 2)}` }]
-    })
-  });
-  let data = {};
-  try { data = await res.json(); } catch {}
-  if (!res.ok || data.type === "error") {
-    const msg = (data.error && data.error.message) || `HTTP ${res.status}`;
-    throw new Error(res.status === 401 ? "Your Anthropic API key was rejected — check it under “update keys”." : msg);
+  let text;
+  try {
+    text = await aiChat({ purpose: "briefing", system: briefingSystemPrompt(ctx),
+      messages: [{ role: "user", parts: [{ text: `Here is the trip context as JSON. Write the briefing for ${friendlyDate(dateKey)}:\n\n${JSON.stringify(ctx, null, 2)}` }] }] });
+  } catch (e) {
+    if (e.kind === "refusal") throw new Error(`${aiLabel()} declined to write this briefing. Try again, or check the day's notes.`);
+    throw e;
   }
-  if (data.stop_reason === "refusal") throw new Error("Claude declined to write this briefing. Try again, or check the day's notes.");
-  const text = (data.content || []).filter(b => b.type === "text").map(b => b.text).join("").trim();
-  if (!text) throw new Error("Claude returned an empty briefing — try again.");
+  if (!text) throw new Error(`${aiLabel()} returned an empty briefing — try again.`);
   return text;
 }
 
@@ -2288,7 +2412,7 @@ function closeBriefing() { document.getElementById("briefing-modal").classList.r
 
 // Show the cached briefing for the selected day, or the Generate prompt.
 function brShowDay() {
-  const hasKey = !!getCreds().anthropic;
+  const hasKey = hasAiKey();
   const text = briefingCache[activeTripId() + "|" + document.getElementById("br-day").value] || "";
   document.getElementById("br-nokey").style.display = hasKey ? "none" : "block";
   const gen = document.getElementById("br-gen");
@@ -2314,7 +2438,7 @@ async function brGenerate() {
     brShowDay();
   } catch (e) {
     brStatus("⚠️ " + e.message, true);
-    gen.disabled = !getCreds().anthropic;
+    gen.disabled = !hasAiKey();
   }
 }
 function brUpdateLengthNote() {
@@ -2574,50 +2698,70 @@ function getCreds() {
     ghrepo:    localStorage.getItem("cred_ghrepo")||""
   };
 }
+let setupProvider = "anthropic";
 function openSetupModal() {
   const creds = getCreds();
-  // Pre-populate only if already set (shows masked placeholder so user knows it's saved)
-  const el = (id, val) => { const e = document.getElementById(id); if (val) e.placeholder = "••••••••" + val.slice(-4); };
-  el("setup-anthropic", creds.anthropic);
-  el("setup-github",    creds.github);
+  setupPick(aiProvider());
+  const gh = document.getElementById("setup-github");
+  gh.value = ""; gh.placeholder = creds.github ? "••••••••" + creds.github.slice(-4) : "ghp_…";
   document.getElementById("setup-ghuser").value = creds.ghuser || "";
   document.getElementById("setup-ghrepo").value = creds.ghrepo || "";
   document.getElementById("setup-modal").classList.add("active");
 }
 
-// Verifies a key without spending credit (listing models is free).
-async function testAnthropicKey() {
-  const key = document.getElementById("setup-anthropic").value.trim() || getCreds().anthropic;
+// Show the chosen provider's steps; a saved key shows as a masked placeholder.
+function setupPick(p) {
+  setupProvider = p;
+  const info = AI_PROVIDERS[p], saved = aiKey(p);
+  document.querySelectorAll('input[name="ai-pick"]').forEach(r => { r.checked = r.value === p; });
+  document.querySelectorAll("#setup-modal .setup-steps").forEach(el => { el.style.display = el.dataset.provider === p ? "" : "none"; });
+  document.getElementById("setup-key-label").textContent = `${info.label} (${info.company}) API key`;
+  const input = document.getElementById("setup-key");
+  input.value = "";
+  input.placeholder = saved ? "Saved: ••••••••" + saved.slice(-4) + " (paste a new one to replace it)" : info.keyPrefix + "…";
+  document.getElementById("setup-model").value = localStorage.getItem("ai_model_" + p) || "";
+  document.getElementById("setup-model-default").textContent = info.models.chat + (info.models.briefing !== info.models.chat ? " / " + info.models.briefing : "");
+  document.getElementById("setup-test").style.display = "none";
+}
+
+async function testAiKey() {
+  const p = setupProvider, info = AI_PROVIDERS[p];
+  const key = document.getElementById("setup-key").value.trim() || aiKey(p);
   const out = document.getElementById("setup-test");
   const show = (msg, bad) => { out.textContent = msg; out.className = "br-status" + (bad ? " error" : ""); out.style.display = "block"; };
   if (!key) return show("Paste your key in the box first.", true);
-  if (!key.startsWith("sk-ant-")) return show("That doesn't look like an Anthropic API key — they start with “sk-ant-”. Check you copied the whole thing.", true);
-  show("Checking with Anthropic…");
+  if (!key.startsWith(info.keyPrefix)) return show(`That doesn't look like a ${info.company} API key — they start with “${info.keyPrefix}”. Check you copied the whole thing.`, true);
+  show(`Checking with ${info.company}…`);
   try {
-    const res = await fetch("https://api.anthropic.com/v1/models?limit=1", { headers: {
-      "x-api-key": key, "anthropic-version": "2023-06-01", "anthropic-dangerous-direct-browser-access": "true" } });
-    if (res.ok) show("✅ This key works. Tap Save. (If a helper later says your credit balance is too low, add credit under Settings → Billing in the Console.)");
-    else if (res.status === 401) show("❌ Anthropic didn't accept this key. Check you copied all of it, or create a new one in the Console.", true);
-    else if (res.status === 403) show("❌ This key isn't allowed to use the API. Create a new key under Settings → API keys.", true);
-    else show(`⚠️ Anthropic replied with an error (${res.status}). The key may still be fine — try Save and use a helper.`, true);
+    const status = await aiCheckKey(p, key);
+    if (status >= 200 && status < 300) show(`✅ This key works. Tap Save.${p === "gemini" ? "" : ` (If a helper later mentions credit or quota, add credit in your ${info.company} account's billing settings.)`}`);
+    else if (status === 401 || status === 400) show(`❌ ${info.company} didn't accept this key. Check you copied all of it, or create a new one.`, true);
+    else if (status === 403) show(`❌ This key isn't allowed to use the API. Create a new key and try again.`, true);
+    else show(`⚠️ ${info.company} replied with an error (${status}). The key may still be fine — try Save and use a helper.`, true);
   } catch {
-    show("Couldn't reach Anthropic to check the key from here. You can still save it and try a helper.", true);
+    show(`Couldn't reach ${info.company} to check the key from here. You can still save it and try a helper.`, true);
   }
 }
 
 function saveSetup() {
-  const creds = getCreds();
-  const a = document.getElementById("setup-anthropic").value.trim() || creds.anthropic;
-  const g = document.getElementById("setup-github").value.trim()    || creds.github;
-  const u = document.getElementById("setup-ghuser").value.trim()    || creds.ghuser;
-  const r = document.getElementById("setup-ghrepo").value.trim()    || creds.ghrepo;
-  if (!a) { alert("Please paste your Anthropic API key — or tap “Not now” to set it up later."); return; }
-  if (!a.startsWith("sk-ant-") && !confirm("That doesn't look like an Anthropic API key (they start with “sk-ant-”). Save it anyway?")) return;
-  localStorage.setItem("cred_anthropic",a);
-  if (g) localStorage.setItem("cred_github",g);
-  if (u) localStorage.setItem("cred_ghuser",u);
-  if (r) localStorage.setItem("cred_ghrepo",r);
+  const p = setupProvider, info = AI_PROVIDERS[p];
+  const typed = document.getElementById("setup-key").value.trim();
+  const key = typed || aiKey(p);
+  if (!key) { alert(`Please paste your ${info.company} API key — or tap “Not now” to set it up later.`); return; }
+  if (typed && !typed.startsWith(info.keyPrefix) &&
+      !confirm(`That doesn't look like a ${info.company} API key (they start with “${info.keyPrefix}”). Save it anyway?`)) return;
+  localStorage.setItem("cred_" + p, key);
+  localStorage.setItem("ai_provider", p);
+  const model = document.getElementById("setup-model").value.trim();
+  if (model) localStorage.setItem("ai_model_" + p, model); else localStorage.removeItem("ai_model_" + p);
+  const g = document.getElementById("setup-github").value.trim();
+  const u = document.getElementById("setup-ghuser").value.trim();
+  const r = document.getElementById("setup-ghrepo").value.trim();
+  if (g) localStorage.setItem("cred_github", g);
+  if (u) localStorage.setItem("cred_ghuser", u);
+  if (r) localStorage.setItem("cred_ghrepo", r);
   document.getElementById("setup-modal").classList.remove("active");
+  ingesterHistory = [];   // a different AI starts a fresh conversation
   renderCalendar();
 }
 
@@ -2779,13 +2923,13 @@ function deleteNote(dateKey, index) {
 // ══════════════════════════════════════════════════════
 //  INGESTER
 // ══════════════════════════════════════════════════════
-let ingesterHistory = [];   // Claude conversation history
+let ingesterHistory = [];   // AI conversation history (provider-neutral, see aiChat)
 let pendingItems    = [];   // parsed items awaiting confirmation
 let attachedFile    = null; // { name, type, base64 or text }
 
 function openIngester() {
   const creds = getCreds();
-  if (!creds.anthropic) { document.getElementById("setup-modal").classList.add("active"); return; }
+  if (!hasAiKey()) { openSetupModal(); return; }
   document.getElementById("ingester-overlay").classList.add("active");
   document.getElementById("ingester-panel").classList.add("active");
   if (!ingesterHistory.length) resetIngester();
@@ -2818,7 +2962,7 @@ function addBubble(role, html, isHTML=false) {
 }
 
 function addTyping() {
-  return addBubble("system", "Claude is thinking…");
+  return addBubble("system", `${aiLabel()} is thinking…`);
 }
 
 function handleIngesterKey(e) {
@@ -2865,7 +3009,6 @@ async function sendIngesterMessage() {
   const raw = input.value.trim();
   if (!raw && !attachedFile) return;
 
-  const creds = getCreds();
   const btn   = document.getElementById("ingester-send");
   btn.disabled = true;
 
@@ -2875,24 +3018,19 @@ async function sendIngesterMessage() {
   if (userLabel) addBubble("user", userLabel);
   input.value = "";
 
-  // Build message content for Claude
-  const userContent = [];
-
+  // Build the (provider-neutral) message: attachment first, then the typed text
+  const parts = [];
   if (attachedFile) {
-    if (attachedFile.type === "application/pdf") {
-      userContent.push({ type: "document", source: { type: "base64", media_type: "application/pdf", data: attachedFile.base64 } });
-    } else if (attachedFile.type.startsWith("image/")) {
-      userContent.push({ type: "image", source: { type: "base64", media_type: attachedFile.type, data: attachedFile.base64 } });
+    if (attachedFile.type === "application/pdf" || attachedFile.type.startsWith("image/")) {
+      parts.push({ file: { name: attachedFile.name, mime: attachedFile.type, base64: attachedFile.base64 } });
     } else {
-      userContent.push({ type: "text", text: `[Attached file: ${attachedFile.name}]\n${attachedFile.text}` });
+      parts.push({ text: `[Attached file: ${attachedFile.name}]\n${attachedFile.text}` });
     }
     resetFileZone();
   }
-
-  if (raw) userContent.push({ type: "text", text: raw });
-  if (!userContent.length) { btn.disabled=false; return; }
-
-  ingesterHistory.push({ role: "user", content: userContent });
+  if (raw) parts.push({ text: raw });
+  if (!parts.length) { btn.disabled=false; return; }
+  ingesterHistory.push({ role: "user", parts });
 
   const typing = addTyping();
 
@@ -2900,18 +3038,8 @@ async function sendIngesterMessage() {
   const tripDays = tripDateKeys().map(k => `${k}: ${getDay(k).location}`).join("\n");
 
   try {
-    const res = await fetch("https://api.anthropic.com/v1/messages", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "x-api-key": creds.anthropic,
-        "anthropic-version": "2023-06-01",
-        "anthropic-dangerous-direct-browser-access": "true"
-      },
-      body: JSON.stringify({
-        model: "claude-sonnet-4-6",
-        max_tokens: 2000,
-        system: `You are a travel planning assistant helping plan the trip "${getActiveTrip().meta.name}" (${formatTripRange(getActiveTrip().meta.startDate, getActiveTrip().meta.endDate)}) for ${getActiveTrip().meta.travelers.join(", ")}. You help parse bookings, reservations, and plans and slot them into the right days.
+    const fullText = await aiChat({ purpose: "chat", maxTokens: 2000, messages: ingesterHistory,
+      system: `You are a travel planning assistant helping plan the trip "${getActiveTrip().meta.name}" (${formatTripRange(getActiveTrip().meta.startDate, getActiveTrip().meta.endDate)}) for ${getActiveTrip().meta.travelers.join(", ")}. You help parse bookings, reservations, and plans and slot them into the right days.
 
 TRIP DAYS:
 ${tripDays}
@@ -2941,20 +3069,10 @@ Rules:
 - For multi-day stays, create one entry per day
 - If unsure about a date, ASK before outputting <PREVIEW>
 - Never guess confirmation numbers or addresses — ask if not provided
-- Be warm and brief in your conversational text`,
-        messages: ingesterHistory
-      })
-    });
-
-    const data = await res.json();
-    if (!res.ok) {
-      const apiMsg = data?.error?.message || `API error ${res.status}`;
-      throw new Error(apiMsg);
-    }
-    const fullText = data.content.filter(b=>b.type==="text").map(b=>b.text).join("");
+- Be warm and brief in your conversational text` });
 
     // Add to history
-    ingesterHistory.push({ role: "assistant", content: fullText });
+    ingesterHistory.push({ role: "assistant", parts: [{ text: fullText }] });
 
     // Check for PREVIEW block
     const previewMatch = fullText.match(/<PREVIEW>([\s\S]*?)<\/PREVIEW>/);
@@ -2977,8 +3095,8 @@ Rules:
 
   } catch(err) {
     typing.remove();
-    const msg = err.message || "Something went wrong — please try again.";
-    const isAuthErr = /api.key|invalid.x-api|auth|401/i.test(msg);
+    const msg = escapeHtml(err.message || "Something went wrong — please try again.");
+    const isAuthErr = err.kind === "auth";
     addBubble("claude", `⚠️ ${msg}${isAuthErr ? ' — <a onclick="openSetupModal()" style="color:inherit;text-decoration:underline">update your API key</a>' : ""}`, true);
     console.error(err);
   } finally {
@@ -3240,7 +3358,7 @@ function chooseMode(mode) {
   applyMode();
   if (mode === "owner") {
     const creds = getCreds();
-    if (!creds.anthropic) document.getElementById("setup-modal").classList.add("active");
+    if (!hasAiKey()) openSetupModal();
   }
 }
 
@@ -3588,8 +3706,8 @@ function init() {
   }
   if (mode === "owner") {
     const creds = getCreds();
-    if (!creds.anthropic) {
-      document.getElementById("setup-modal").classList.add("active");
+    if (!hasAiKey()) {
+      openSetupModal();
     }
   }
 }
