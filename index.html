@@ -643,6 +643,16 @@
   .wizard-error.visible { display: block; }
   .wizard-footer { display: flex; gap: 10px; padding: 12px 18px; background: #fff; border-top: 1px solid #e3ddd2; }
 
+  .ti-step { font-size: 0.74rem; color: #1a3a4a; line-height: 1.5; margin: 6px 0 8px; }
+  .ti-summary { background: #fff; border: 1.5px solid #e3ddd2; border-radius: 10px; padding: 10px 12px; margin: 4px 0 10px; }
+  .ti-name { font-weight: 700; color: #1a3a4a; font-size: 0.9rem; }
+  .ti-dates { font-size: 0.7rem; color: #6b7c8a; margin: 2px 0 6px; }
+  .ti-summary ul { list-style: none; font-size: 0.74rem; color: #333; line-height: 1.7; }
+  .ti-warnings { background: #fff8e1; color: #5a3e00; border-radius: 8px; padding: 8px 10px; font-size: 0.7rem; line-height: 1.5; margin-bottom: 10px; }
+  .ti-errors { background: #fdecea; color: #a8321e; border-radius: 8px; padding: 8px 10px; font-size: 0.72rem; line-height: 1.5; margin-bottom: 10px; }
+  .builtin-only { }
+  body.own-trip .builtin-only { display: none; }
+
   /* Send/publish/import only apply to the built-in (published) trip */
   body.own-trip .send-to-pete, body.own-trip .owner-publish,
   body.own-trip .cal-publish-link, body.own-trip #publish-bar { display: none !important; }
@@ -669,8 +679,8 @@
 <!-- ══ Setup Modal ══ -->
 <div class="modal-overlay" id="setup-modal">
   <div class="modal">
-    <h2>⚙️ First-time Setup</h2>
-    <p>To save notes and publish to your live page, we need two keys. These are stored only in your browser.</p>
+    <h2>⚙️ Keys</h2>
+    <p>The Anthropic key powers the AI assistant. The GitHub fields are only needed by the site owner to publish to the live page. Keys are stored only in this browser.</p>
     <div class="modal-note">
       <b>Anthropic API key:</b> console.anthropic.com → API Keys<br>
       <b>GitHub token:</b> github.com → Settings → Developer settings → Personal access tokens (classic) → Generate → tick <b>repo</b>
@@ -691,14 +701,14 @@
 <div class="modal-overlay" id="mode-modal">
   <div class="modal" style="max-width:400px">
     <h2>Welcome 👋</h2>
-    <p>How are you using Nicky &amp; Pete's trip planner?</p>
+    <p>How would you like to use the trip planner?</p>
     <button class="mode-choice-btn" onclick="chooseMode('guest')">
-      <b>👨‍👩‍👧 Family / Guest</b>
-      <span>View the calendar, day details &amp; packing list. Add your own notes and packing items, then send them to Pete to publish. No keys needed.</span>
+      <b>🧳 Plan &amp; view trips</b>
+      <span>Create or import trips, see the calendar and day details, add notes and use the packing checklist. Everything is saved on this device. No keys needed.</span>
     </button>
     <button class="mode-choice-btn" onclick="chooseMode('owner')">
-      <b>🔑 I'm Pete — full access</b>
-      <span>Everything above, plus the AI plan ingester and publishing to the live page. Needs API keys.</span>
+      <b>🔑 Full access</b>
+      <span>Everything above, plus the in-app AI assistant (needs an Anthropic API key) and, for the site owner, publishing to the live page (needs a GitHub token).</span>
     </button>
   </div>
 </div>
@@ -707,8 +717,11 @@
 <div class="modal-overlay" id="trips-modal">
   <div class="modal" style="max-width:420px">
     <h2>🧳 Your trips</h2>
-    <p>Trips are saved on this device. Create one from scratch, or duplicate an existing trip and edit the copy.</p>
-    <button class="add-custom-item" onclick="closeTrips(); openWizard('create')">＋ New trip</button>
+    <p>Trips are saved on this device — use <b>Export</b> to keep a backup file. Create a trip from scratch, import one your AI prepared, or duplicate an existing trip.</p>
+    <div style="display:flex; gap:8px">
+      <button class="add-custom-item" onclick="closeTrips(); openWizard('create')">＋ New trip</button>
+      <button class="add-custom-item" onclick="openTripImport()">📥 Import trip</button>
+    </div>
     <div id="trips-list"></div>
     <div class="modal-note" id="trips-example-note" style="display:none">
       The example trip is only here to show how the app works. When you create your own trip, the example and anything you added to it is deleted from this device.
@@ -737,11 +750,50 @@
   </div>
 </div>
 
+<!-- ══ Trip Import Modal ══ -->
+<div class="modal-overlay" id="trip-import-modal">
+  <div class="modal" style="max-width:460px">
+    <h2 id="ti-title">📥 Import a trip</h2>
+    <div id="ti-steps">
+      <p>Turn any trip info — booking emails, PDFs, screenshots, a spreadsheet, rough notes — into a trip, using the AI you already use.</p>
+      <div class="ti-step"><b>1.</b> Copy this prompt, paste it into ChatGPT, Claude, Gemini or similar, and add your trip info after it.</div>
+      <button class="btn btn-secondary" style="width:100%; margin-bottom:8px" onclick="copyAiPrompt(this)">📋 Copy AI prompt</button>
+      <textarea id="ti-prompt" class="import-code" readonly style="display:none; min-height:120px"></textarea>
+      <div class="ti-step"><b>2.</b> Paste the JSON your AI gives back — or upload a trip <code>.json</code> file.</div>
+      <textarea id="ti-json" class="import-code" style="min-height:110px" placeholder='{ "format": "trip-planner/v1", … }'></textarea>
+      <input type="file" id="ti-file" accept=".json,application/json,text/plain" onchange="tiFile(event)" style="font-size:0.7rem; margin-bottom:10px">
+      <button class="btn btn-primary" style="width:100%; margin-bottom:10px" onclick="tiCheck()">Check trip</button>
+    </div>
+    <div id="ti-preview"></div>
+    <div style="display:flex; gap:10px; margin-top:10px">
+      <button class="btn btn-secondary" onclick="closeTripImport()">Close</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══ Trip Share Modal ══ -->
+<div class="modal-overlay" id="trip-share-modal">
+  <div class="modal" style="max-width:440px">
+    <h2 id="ts-title">🔗 Share trip</h2>
+    <p>Anyone who opens this link can add the trip to their own device. The whole trip is inside the link — nothing is uploaded.</p>
+    <label style="display:flex; align-items:center; gap:6px; text-transform:none; letter-spacing:0; font-weight:500; font-size:0.74rem; margin-bottom:10px">
+      <input type="checkbox" id="ts-notes" checked onchange="refreshTripShare()" style="width:auto; margin:0"> Include notes &amp; plans
+    </label>
+    <textarea id="ts-link" class="import-code" readonly></textarea>
+    <div class="modal-note" id="ts-long" style="display:none">This link is long — some chat apps cut long links off. If it doesn't open, use <b>Export</b> in Trips and send the file instead.</div>
+    <div style="display:flex; gap:10px">
+      <button class="btn btn-secondary" onclick="closeTripShare()">Close</button>
+      <button class="btn btn-secondary" onclick="copyTripLink()">Copy</button>
+      <button class="btn btn-primary" onclick="shareTripLink()">Share…</button>
+    </div>
+  </div>
+</div>
+
 <!-- ══ Guest Add-Note Modal ══ -->
 <div class="modal-overlay" id="guest-note-modal">
   <div class="modal" style="max-width:400px">
     <h2>📝 Add a note</h2>
-    <p>Saved on this device. When you're ready, tap <b>Send to Pete</b> on the calendar and he'll publish it for everyone.</p>
+    <p>Saved on this device.<span class="builtin-only"> When you're ready, tap <b>Send to Pete</b> on the calendar and he'll publish it for everyone.</span></p>
     <label>Which day</label>
     <select id="guest-note-day"></select>
     <label>Your note</label>
@@ -758,7 +810,7 @@
   <div class="modal" style="max-width:400px">
     <h2>✍️ Journal entry</h2>
     <p id="journal-day-label" style="font-weight:600; color:#1a3a4a; margin-bottom:6px">—</p>
-    <p>Jot down a memory, a highlight, or what happened on this day. Saved on this device — then send it to Pete (or publish it, if you're Pete) to share it with everyone.</p>
+    <p>Jot down a memory, a highlight, or what happened on this day. Saved on this device<span class="builtin-only"> — then send it to Pete (or publish it, if you're Pete) to share it with everyone</span>.</p>
     <textarea id="journal-text" style="min-height:120px" placeholder="e.g. Walked the Freedom Trail — Nicky loved the duck boats and we got ice cream at Faneuil Hall."></textarea>
     <div style="display:flex; gap:10px">
       <button class="btn btn-secondary" onclick="closeJournal()">Cancel</button>
@@ -771,7 +823,7 @@
 <div class="modal-overlay" id="guest-item-modal">
   <div class="modal" style="max-width:400px">
     <h2>➕ Add a packing item</h2>
-    <p>Added to the checklist on this device. Send it to Pete to publish it to everyone's list.</p>
+    <p>Added to the checklist on this device.<span class="builtin-only"> Send it to Pete to publish it to everyone's list.</span></p>
     <label>Item (English)</label>
     <input type="text" id="guest-item-en" placeholder="e.g. Fishing rod" autocomplete="off">
     <label>Thai (optional)</label>
@@ -825,7 +877,7 @@
     <button class="ingester-close" onclick="closeIngester()">✕</button>
   </div>
 
-  <div class="chat-thread" id="chat-thread"><div class="chat-bubble claude">Hi Pete! Drop in a booking confirmation, paste an itinerary, or just tell me what's planned — I'll figure out what goes where. You can also attach a PDF or image. 📋</div><div class="chat-bubble system">🎤 Listening — speak now. Tap ⏹ to stop and send.</div><div class="chat-bubble user">on on the on the on the on the first on the first day on the first day on the first day when on the first day when we on the first day when we leave on the first day when we leave on the first day when we leave on the first day when we leave Bangkok on the first day when we leave Bangkok on the first day when we leave Bangkok on the first day when we leave Bangkok on the first day when we leave Bangkok on the first day when we leave Bangkok on the first day when we leave Bangkok calculate on the first day when we leave Bangkok calculate on the first day when we leave Bangkok calculate the on the first day when we leave Bangkok calculate the on the first day when we leave Bangkok calculate the time on the first day when we leave Bangkok calculate the time that on the first day when we leave Bangkok calculate the time that on the first day when we leave Bangkok calculate the time that we on the first day when we leave Bangkok calculate the time that we need on the first day when we leave Bangkok calculate the time that we need on the first day when we leave Bangkok calculate the time that we need to on the first day when we leave Bangkok calculate the time that we need to leave on the first day when we leave Bangkok calculate the time that we need to leave the on the first day when we leave Bangkok calculate the time that we need to leave the house on the first day when we leave Bangkok calculate the time that we need to leave the house add add it add it to add it to the add it to the calendar</div><div class="chat-bubble claude">Sounds like you're voice-dictating — got it! 😄
+  <div class="chat-thread" id="chat-thread"><div class="chat-bubble claude">Hi! Drop in a booking confirmation, paste an itinerary, or just tell me what's planned — I'll figure out what goes where. You can also attach a PDF or image. 📋</div><div class="chat-bubble system">🎤 Listening — speak now. Tap ⏹ to stop and send.</div><div class="chat-bubble user">on on the on the on the on the first on the first day on the first day on the first day when on the first day when we on the first day when we leave on the first day when we leave on the first day when we leave on the first day when we leave Bangkok on the first day when we leave Bangkok on the first day when we leave Bangkok on the first day when we leave Bangkok on the first day when we leave Bangkok on the first day when we leave Bangkok on the first day when we leave Bangkok calculate on the first day when we leave Bangkok calculate on the first day when we leave Bangkok calculate the on the first day when we leave Bangkok calculate the on the first day when we leave Bangkok calculate the time on the first day when we leave Bangkok calculate the time that on the first day when we leave Bangkok calculate the time that on the first day when we leave Bangkok calculate the time that we on the first day when we leave Bangkok calculate the time that we need on the first day when we leave Bangkok calculate the time that we need on the first day when we leave Bangkok calculate the time that we need to on the first day when we leave Bangkok calculate the time that we need to leave on the first day when we leave Bangkok calculate the time that we need to leave the on the first day when we leave Bangkok calculate the time that we need to leave the house on the first day when we leave Bangkok calculate the time that we need to leave the house add add it add it to add it to the add it to the calendar</div><div class="chat-bubble claude">Sounds like you're voice-dictating — got it! 😄
 
 So you want to figure out what time you need to leave home in Bangkok on **July 1**, and add that to the calendar.
 
@@ -940,7 +992,7 @@ Does that work? Want me to add a "Leave home" reminder for **4:00am on July 1** 
       <button class="fab" id="fab" onclick="onFabClick()">＋ Add Plans</button>
     </div>
     <div class="example-banner" id="example-banner" style="display:none">
-      👋 <b>This is an example trip.</b> <a onclick="openWizard('create')">Create my trip</a> to plan your own (or open <a onclick="openTrips()">Trips</a> to copy this one).
+      👋 <b>This is an example trip.</b> <a onclick="openTripImport()">Import my trip</a> from any AI (paste your bookings, get a file), <a onclick="openWizard('create')">create one by hand</a>, or open <a onclick="openTrips()">Trips</a> to copy this one.
       Once you have your own trip, this example — and anything you've added to it — is deleted from this device.
     </div>
     <button class="send-to-pete" id="send-to-pete-btn" onclick="openSend()">📤 Send my additions to Pete</button>
@@ -1290,7 +1342,16 @@ function blankTrip() {
   };
 }
 
-function openWizard(mode, tripId) {
+function openWizard(mode, tripId, draft) {
+  if (draft) {
+    wiz = { ...draft, step: 0 };
+    document.getElementById("wiz-title").textContent = "📥 Review imported trip";
+    document.getElementById("wizard").classList.add("active");
+    const bad = WIZ_STEPS.findIndex(([k]) => wizValidate(k).length);
+    wizGo(bad >= 0 ? bad : 0);
+    if (bad >= 0) wizShowErrors(wizValidate(WIZ_STEPS[bad][0]));
+    return;
+  }
   let trip;
   if (mode === "edit") {
     trip = loadStoredTrip(tripId);
@@ -1464,8 +1525,8 @@ function wizAddItem(si) {
 }
 
 // Returns a list of error strings for one step (by key).
-function wizValidate(key) {
-  const t = wiz.trip, m = t.meta, e = [];
+function wizValidate(key, d = wiz) {
+  const t = d.trip, m = t.meta, e = [];
   const datesOk = !!(m.startDate && m.endDate && m.startDate <= m.endDate);
   const inRange = d => datesOk && d >= m.startDate && d <= m.endDate;
   if (key === "basics") {
@@ -1494,7 +1555,7 @@ function wizValidate(key) {
       if (sorted[i].checkin < sorted[i-1].checkout) e.push(`“${sorted[i-1].name || "a stay"}” and “${sorted[i].name || "a stay"}” overlap — one can start on the day the other ends.`);
   }
   if (key === "flights") {
-    wiz.flights.forEach((f, i) => {
+    d.flights.forEach((f, i) => {
       if (!f.date) e.push(`Flight ${i+1}: pick a day.`);
       else if (!inRange(f.date)) e.push(`Flight ${i+1}: its date is outside the trip.`);
       if (!(f.from || "").trim() || !(f.to || "").trim()) e.push(`Flight ${i+1}: fill in From and To.`);
@@ -1519,11 +1580,11 @@ function wizGo(i) {
 
 // The standard list's translations are Thai. Show them only when the trip's
 // second language is Thai; never touch translations the user typed.
-function wizSyncTemplateAlt() {
-  const thai = /^(th|thai|ไทย|ภาษาไทย)$/i.test((wiz.trip.meta.secondLanguage || "").trim());
+function wizSyncTemplateAlt(d = wiz) {
+  const thai = /^(th|thai|ไทย|ภาษาไทย)$/i.test((d.trip.meta.secondLanguage || "").trim());
   const tpl = {};
   DEFAULT_TRIP.checklist.sections.forEach(sec => sec.items.forEach(it => { tpl[it.id] = it.alt; }));
-  wiz.trip.checklist.sections.forEach(sec => sec.items.forEach(it => {
+  d.trip.checklist.sections.forEach(sec => sec.items.forEach(it => {
     if (!(it.id in tpl)) return;
     if (thai && !it.alt) it.alt = tpl[it.id];
     else if (!thai && it.alt === tpl[it.id]) it.alt = "";
@@ -1538,8 +1599,8 @@ function wizNext() {
 }
 
 // Fold the draft into a clean Trip object.
-function wizBuildTrip() {
-  const t = clone(wiz.trip), m = t.meta;
+function wizBuildTrip(d = wiz) {
+  const t = clone(d.trip), m = t.meta;
   m.name = m.name.trim();
   m.emoji = (m.emoji || "").trim();
   m.subtitle = (m.subtitle || "").trim();
@@ -1548,7 +1609,7 @@ function wizBuildTrip() {
   t.regions.forEach(r => { r.name = r.name.trim(); r.color = safeColor(r.color); });
   if (!t.regions.some(r => r.id === m.defaultRegionId)) m.defaultRegionId = t.regions.length ? t.regions[0].id : null;
   const home = t.regions.find(r => r.id === m.defaultRegionId);
-  if (m.defaultRegionId !== wiz.origHome || !m.defaultLocation) m.defaultLocation = home ? home.name : "";
+  if (m.defaultRegionId !== d.origHome || !m.defaultLocation) m.defaultLocation = home ? home.name : "";
   t.stays = t.stays.map(st => ({ regionId: st.regionId || null, name: st.name.trim(), checkin: st.checkin, checkout: st.checkout }));
   // Rebuild per-day flights; keep other per-day overrides inside the new range.
   const days = {};
@@ -1558,7 +1619,7 @@ function wizBuildTrip() {
     if (Object.keys(d).length) days[k] = d;
   });
   const FIELDS = ["flight","dep","arr","terminalDep","terminalArr","aircraft","bags","cls","conf"];
-  wiz.flights.slice().sort((a, b) => (a.date + (a.dep||"")) < (b.date + (b.dep||"")) ? -1 : 1).forEach(f => {
+  d.flights.slice().sort((a, b) => (a.date + (a.dep||"")) < (b.date + (b.dep||"")) ? -1 : 1).forEach(f => {
     const out = { route: `${f.from.trim()} → ${f.to.trim()}` };
     FIELDS.forEach(k => { const v = (f[k] || "").trim(); if (v) out[k] = v; });
     (days[f.date] = days[f.date] || {}).flights = (days[f.date].flights || []).concat([out]);
@@ -1576,23 +1637,50 @@ function wizSave() {
     const errs = wizValidate(WIZ_STEPS[i][0]);
     if (errs.length) { if (wiz.step !== i) wizGo(i); wizShowErrors(errs); return; }
   }
-  const t = wizBuildTrip();
-  if (wiz.mode === "create") {
+  const id = commitDraft(wiz);
+  if (!id) return;
+  closeWizard();
+  switchTrip(id);
+}
+
+// Write a validated draft to storage. Returns the trip id, or null if the
+// user cancelled a confirmation. Used by the wizard and by trip import.
+//   d.mode "create" → new trip · "edit" → overwrite d.tripId
+//   d.notes         → { date: [note, …] } to add (import plans)
+//   d.replaceNotes  → on edit, clear the trip's notes + custom/removed items first
+function commitDraft(d) {
+  const t = wizBuildTrip(d);
+  if (d.mode === "create") {
     if (builtinStatus() === "example" &&
-        !confirm("Creating your own trip deletes the example trip — and any notes or checklist ticks you added to it — from this device.\n\nContinue?")) return;
+        !confirm("Creating your own trip deletes the example trip — and any notes or checklist ticks you added to it — from this device.\n\nContinue?")) return null;
     t.id = newTripId();
     lsSet("trip_" + t.id, t);
     saveTripsIndex(getTripsIndex().concat([{ id: t.id, name: t.meta.name, startDate: t.meta.startDate }]));
     removeExampleTrip();
   } else {
-    t.id = wiz.tripId;
-    const hidden = tripNotesOutside(t.id, t.meta.startDate, t.meta.endDate);
-    if (hidden && !confirm(`${hidden} day${hidden !== 1 ? "s" : ""} with notes fall outside the new dates. Those notes will be hidden (not deleted) until the dates include them again.\n\nSave anyway?`)) return;
+    t.id = d.tripId;
+    if (!d.replaceNotes) {
+      const hidden = tripNotesOutside(t.id, t.meta.startDate, t.meta.endDate);
+      if (hidden && !confirm(`${hidden} day${hidden !== 1 ? "s" : ""} with notes fall outside the new dates. Those notes will be hidden (not deleted) until the dates include them again.\n\nSave anyway?`)) return null;
+    }
     lsSet("trip_" + t.id, t);
     saveTripsIndex(getTripsIndex().map(e => e.id === t.id ? { ...e, name: t.meta.name, startDate: t.meta.startDate } : e));
+    if (d.replaceNotes) {
+      clearTripNotes(t.id);
+      saveCustomItems([], t.id);
+      saveRemovedItems([], t.id);
+    }
   }
-  closeWizard();
-  switchTrip(t.id);
+  Object.entries(d.notes || {}).forEach(([k, arr]) => {
+    if (k >= t.meta.startDate && k <= t.meta.endDate) saveNotes(k, getNotes(k, t.id).concat(arr), t.id);
+  });
+  return t.id;
+}
+
+function clearTripNotes(tripId) {
+  const prefix = `notes_${tripId}_`, doomed = [];
+  for (let i = 0; i < localStorage.length; i++) { const k = localStorage.key(i); if (k.startsWith(prefix)) doomed.push(k); }
+  doomed.forEach(k => localStorage.removeItem(k));
 }
 
 // How many dates with saved notes fall outside [start, end] for a trip.
@@ -1608,6 +1696,396 @@ function tripNotesOutside(tripId, start, end) {
   return n;
 }
 
+// ══════════════════════════════════════════════════════
+//  TRIP FILES — import (AI / file / link), export, share
+// ══════════════════════════════════════════════════════
+// One portable format, "trip-planner/v1", is used for everything that moves a
+// trip in or out of the app: AI-generated JSON, file export/import and ?trip=
+// share links. It references places by name (not id) so an AI can write it,
+// and carries day plans (→ notes). See TRIP_IMPORT_FORMAT.md.
+const TRIP_FORMAT = "trip-planner/v1";
+function isIsoDate(v) { return typeof v === "string" && /^\d{4}-\d{2}-\d{2}$/.test(v) && toDateKey(parseDateKey(v)) === v; }
+function str(v) { return v == null ? "" : String(v).trim(); }
+
+const AI_TEMPLATE = {
+  format: TRIP_FORMAT,
+  name: "Summer in Portugal",
+  emoji: "🇵🇹",
+  subtitle: "TAP Air Portugal · Ref ABC123",
+  startDate: "2027-06-01",
+  endDate: "2027-06-10",
+  travelers: ["Ana", "Ben"],
+  homeBase: "Lisbon",
+  places: [{ name: "Lisbon", color: "#5aaad8" }, { name: "Algarve", color: "#7cb87a" }],
+  stays: [{ name: "Casa da Praia", place: "Algarve", checkin: "2027-06-05", checkout: "2027-06-08" }],
+  flights: [{ date: "2027-06-01", from: "BKK", to: "LIS", flight: "TP 1234", dep: "09:10", arr: "18:15", class: "Economy", bags: "2PC", conf: "ABC123" }],
+  days: [{ date: "2027-06-03", location: "Sintra (day trip)", plans: [
+    { type: "Tour", text: "Pena Palace entry 10:00 · tickets #88213" },
+    { type: "Dinner", text: "Tasca do Chico 19:30 · Rua do Diário de Notícias 39" } ] }],
+  booking: { ref: "ABC123", via: "Expedia" },
+  checklist: "standard",
+  assumptions: []
+};
+
+function buildAiPrompt() {
+  return `I want to load a trip into my trip-planner app. Convert the trip information I give you (after this message) into ONE JSON object in the exact format below.
+
+Reply with the JSON only — no explanation, no markdown code fences.
+
+FORMAT (example values — replace them with my trip):
+${JSON.stringify(AI_TEMPLATE, null, 2)}
+
+RULES
+1. "format" must be exactly "${TRIP_FORMAT}".
+2. Dates are "YYYY-MM-DD". Times are 24-hour "HH:MM"; add "+1" when a flight lands the next day (e.g. "07:05+1").
+3. startDate is the first day of the trip (usually the outbound departure); endDate is the last day (usually arriving home).
+4. travelers: first names of everyone travelling (max ${MAX_TRAVELERS}). Each gets their own packing-checklist column.
+5. places: the main towns or areas the trip is based in. homeBase is the place used on days with no stay booked. "color" is optional (#rrggbb).
+6. stays: every accommodation, with check-in and check-out dates. "place" must match a name in places.
+7. flights: one entry per flight leg, on its local departure date. "from"/"to" are airport codes. Only "date", "from" and "to" are required — leave out fields you don't know.
+8. days: only days with something specific. "plans" hold the useful detail — activities, reservations, transfers, car hire, tickets, reminders — one short line each, with times, addresses and confirmation numbers. "type" is one or two words (Tour, Dinner, Transfer, Car hire, Reminder…). "location" is optional: where we are that day if it differs from the stay or home base. "holiday" is optional: a public holiday on that day.
+9. checklist: "standard" for the app's built-in packing list, "none" for no list, or a custom list shaped like [{"section": "Essentials", "items": ["Passport", "Cash"]}]. Use "standard" unless I ask otherwise.
+10. Use only information I give you. Never invent flights, times, hotels or confirmation numbers — leave unknown optional fields out.
+11. If you had to assume something (a missing year, an unclear date), list it in "assumptions"; the app shows these to me before importing.
+12. Leave out "secondLanguage" unless I ask for packing-list translations (then set it to the language name and add "alt" translations to a custom checklist).
+
+MY TRIP INFO:
+`;
+}
+
+// Pull the JSON object out of whatever was pasted (AI replies often add fences or prose).
+function extractJson(text) {
+  const t = String(text || "").trim();
+  try { return JSON.parse(t); } catch {}
+  const a = t.indexOf("{"), b = t.lastIndexOf("}");
+  if (a < 0 || b <= a) throw new Error("No JSON found — paste the whole reply from your AI.");
+  try { return JSON.parse(t.slice(a, b + 1)); }
+  catch (e) { throw new Error("The JSON is incomplete or invalid (" + e.message + "). Ask your AI to resend it as valid JSON."); }
+}
+
+// trip-planner/v1 → wizard draft { trip, flights, notes, … } plus warnings.
+// Returns { errors } when the data can't become a trip at all; problems a user
+// can fix (dates, overlaps) are left for wizValidate().
+function draftFromImport(data) {
+  const warnings = [];
+  if (!data || typeof data !== "object" || Array.isArray(data)) return { errors: ["That isn't a trip — expected a JSON object."] };
+  if (data.format && data.format !== TRIP_FORMAT) warnings.push(`Unknown format “${str(data.format)}” — read it as ${TRIP_FORMAT}.`);
+  const arr = v => Array.isArray(v) ? v : [];
+  const t = blankTrip(), m = t.meta;
+
+  m.name = str(data.name);
+  if (!m.name) { m.name = "Imported trip"; warnings.push("No trip name — called it “Imported trip”."); }
+  m.emoji = data.emoji === undefined ? "✈️" : str(data.emoji);
+  m.subtitle = str(data.subtitle);
+  m.startDate = str(data.startDate);
+  m.endDate = str(data.endDate);
+  if (!isIsoDate(m.startDate) || !isIsoDate(m.endDate))
+    return { errors: [`startDate and endDate must be real dates written like 2027-06-01 (got “${m.startDate}” and “${m.endDate}”).`] };
+  const travelers = arr(data.travelers).map(x => str(x && typeof x === "object" ? x.name : x)).filter(Boolean);
+  if (travelers.length > MAX_TRAVELERS) warnings.push(`Only the first ${MAX_TRAVELERS} travelers were kept.`);
+  m.travelers = travelers.slice(0, MAX_TRAVELERS);
+  if (!m.travelers.length) { m.travelers = ["Me"]; warnings.push("No travelers listed — added “Me”."); }
+  m.secondLanguage = str(data.secondLanguage);
+  const bk = data.booking && typeof data.booking === "object" ? data.booking : {};
+  m.bookingRef = str(bk.ref);
+  m.bookedVia = str(bk.via);
+  m.passengers = arr(bk.passengers).map(str).filter(Boolean);
+
+  // Places by name (case-insensitive); unknown names create a place.
+  const byName = {};
+  const addPlace = (name, color) => {
+    const key = name.toLowerCase();
+    if (byName[key]) return byName[key];
+    const used = new Set(t.regions.map(r => r.color));
+    const r = { id: randId("place_"), name,
+      color: /^#[0-9a-f]{6}$/i.test(color || "") ? color : (PLACE_COLORS.find(c => !used.has(c)) || PLACE_COLORS[t.regions.length % PLACE_COLORS.length]) };
+    t.regions.push(r);
+    return (byName[key] = r);
+  };
+  arr(data.places).forEach(pl => { const n = str(pl && typeof pl === "object" ? pl.name : pl); if (n) addPlace(n, pl && pl.color); });
+  const placeId = v => { const n = str(v); return n ? addPlace(n).id : null; };
+  const home = str(data.homeBase);
+  m.defaultRegionId = home ? addPlace(home).id : (t.regions[0] ? t.regions[0].id : null);
+
+  t.stays = arr(data.stays).filter(x => x && typeof x === "object").map(x => ({
+    regionId: placeId(x.place), name: str(x.name) || "Stay", checkin: str(x.checkin), checkout: str(x.checkout) }));
+
+  const flights = arr(data.flights).filter(x => x && typeof x === "object").map(f => {
+    let from = str(f.from), to = str(f.to);
+    if ((!from || !to) && f.route) { const parts = String(f.route).split(/→|->/).map(str); from = from || parts[0] || ""; to = to || parts[1] || ""; }
+    return { date: str(f.date), from, to, flight: str(f.flight), dep: str(f.dep), arr: str(f.arr),
+      cls: str(f.class !== undefined ? f.class : f.cls), bags: str(f.bags), conf: str(f.conf !== undefined ? f.conf : f.confirmation),
+      terminalDep: str(f.terminalDep), terminalArr: str(f.terminalArr), aircraft: str(f.aircraft) };
+  });
+
+  const notes = {};
+  let outside = 0;
+  arr(data.days).filter(x => x && typeof x === "object").forEach(day => {
+    const date = str(day.date);
+    if (!isIsoDate(date)) { warnings.push(`Skipped a day with an unreadable date (“${date}”).`); return; }
+    if (date < m.startDate || date > m.endDate) { outside++; return; }
+    const o = {};
+    if (str(day.location)) o.location = str(day.location);
+    if ("place" in day) o.regionId = placeId(day.place);
+    if (str(day.holiday)) o.holiday = str(day.holiday);
+    const ev = arr(day.events).map(e => typeof e === "string" ? { text: str(e), kind: "note" }
+      : { text: str(e && e.text), kind: ["flight","note","user"].includes(e && e.kind) ? e.kind : "note" }).filter(e => e.text);
+    if (ev.length) o.events = ev;
+    if (Object.keys(o).length) t.days[date] = { ...(t.days[date] || {}), ...o };
+    const plans = arr(day.plans).map(pl => typeof pl === "string" ? { type: "Note", text: str(pl) }
+      : { type: str(pl && pl.type) || "Note", text: str(pl && (pl.text !== undefined ? pl.text : pl.summary)) }).filter(pl => pl.text);
+    if (plans.length) notes[date] = (notes[date] || []).concat(plans.map(pl =>
+      ({ type: pl.type, summary: pl.text, formatted: escapeHtml(pl.text), raw: pl.text })));
+  });
+  if (outside) warnings.push(`${outside} day${outside !== 1 ? "s" : ""} outside the trip dates ${outside !== 1 ? "were" : "was"} skipped.`);
+
+  const cl = data.checklist;
+  let template = "standard";
+  if (cl === undefined || cl === "standard") t.checklist.sections = clone(DEFAULT_TRIP.checklist.sections);
+  else if (cl === null || cl === "none" || cl === "blank" || (Array.isArray(cl) && !cl.length)) { t.checklist.sections = []; template = "blank"; }
+  else if (Array.isArray(cl)) {
+    template = "custom";
+    t.checklist.sections = cl.filter(x => x && typeof x === "object").map(sec => ({
+      id: str(sec.id) || randId("sec_"),
+      title: str(sec.section !== undefined ? sec.section : sec.title) || "Packing",
+      items: arr(sec.items).map(it => typeof it === "string" ? { id: randId("item_"), en: str(it), alt: "" }
+        : { id: str(it && it.id) || randId("item_"), en: str(it && (it.en !== undefined ? it.en : (it.item !== undefined ? it.item : it.text))), alt: str(it && it.alt) })
+        .filter(it => it.en)
+    }));
+  } else { t.checklist.sections = clone(DEFAULT_TRIP.checklist.sections); warnings.push("Didn't understand the checklist — used the standard list."); }
+
+  arr(data.assumptions).map(str).filter(Boolean).forEach(a => warnings.push("AI assumed: " + a));
+
+  const d = { mode: "create", tripId: null, trip: t, flights, step: 0, template, origHome: m.defaultRegionId, notes };
+  // homeLocation (e.g. "Boston, MA") overrides the home place's name as the day label.
+  m.defaultLocation = str(data.homeLocation) || (findRegion(t, m.defaultRegionId) || {}).name || "";
+  if (template === "standard") wizSyncTemplateAlt(d);
+  return { draft: d, warnings };
+}
+
+// Stored trip (+ this device's notes/checklist edits) → trip-planner/v1.
+function tripToPortable(tripId, includeNotes = true) {
+  const t = tripId === BUILTIN_TRIP_ID ? DEFAULT_TRIP : loadStoredTrip(tripId);
+  const m = t.meta;
+  const placeName = id => { const r = findRegion(t, id); return r ? r.name : null; };
+  const clean = o => { Object.keys(o).forEach(k => { if (o[k] === "" || o[k] === undefined || (Array.isArray(o[k]) && !o[k].length)) delete o[k]; }); return o; };
+  const plain = html => new DOMParser().parseFromString(String(html || ""), "text/html").body.textContent.trim();
+  const out = clean({
+    format: TRIP_FORMAT, name: m.name, emoji: m.emoji, subtitle: m.subtitle,
+    startDate: m.startDate, endDate: m.endDate, travelers: m.travelers.slice(),
+    secondLanguage: m.secondLanguage, homeBase: placeName(m.defaultRegionId) || "", homeLocation: m.defaultLocation,
+    places: t.regions.map(r => ({ name: r.name, color: r.color })),
+    stays: t.stays.map(st => clean({ name: st.name, place: placeName(st.regionId) || "", checkin: st.checkin, checkout: st.checkout })),
+    flights: [], days: []
+  });
+  out.flights = []; out.days = [];
+  tripDateKeys(t).forEach(k => {
+    const raw = (t.days || {})[k] || {};
+    (raw.flights || []).forEach(f => {
+      const [from, to] = String(f.route || "").split("→").map(str);
+      out.flights.push(clean({ date: k, from, to, flight: f.flight, dep: f.dep, arr: f.arr, class: f.cls, bags: f.bags, conf: f.conf,
+        terminalDep: f.terminalDep, terminalArr: f.terminalArr, aircraft: f.aircraft }));
+    });
+    const day = { date: k };
+    if (raw.location) day.location = raw.location;
+    if ("regionId" in raw) day.place = placeName(raw.regionId);
+    if (raw.holiday) day.holiday = raw.holiday;
+    if (raw.events && raw.events.length) day.events = raw.events.map(e => e.kind && e.kind !== "note" ? { text: e.text, kind: e.kind } : e.text);
+    if (includeNotes) {
+      const plans = getNotes(k, tripId).map(n => ({ type: n.type || "Note", text: plain(n.formatted) || str(n.summary) || str(n.raw) })).filter(pl => pl.text);
+      if (plans.length) day.plans = plans;
+    }
+    if (Object.keys(day).length > 1) out.days.push(day);
+  });
+  const removed = new Set(getRemovedItems(tripId));
+  const sections = t.checklist.sections.map(sec => ({ id: sec.id, section: sec.title,
+    items: sec.items.filter(it => !removed.has(it.id)).map(it => clean({ id: it.id, en: it.en, alt: it.alt })) }))
+    .filter(sec => sec.items.length);
+  const custom = getCustomItems(tripId);
+  if (custom.length) sections.push({ id: "custom", section: "Added by the family", items: custom.map(c => clean({ id: c.id, en: c.en, alt: c.th })) });
+  out.checklist = sections.length ? sections : "none";
+  const booking = clean({ ref: m.bookingRef, via: m.bookedVia, passengers: (m.passengers || []).slice() });
+  if (Object.keys(booking).length) out.booking = booking;
+  if (!out.flights.length) delete out.flights;
+  if (!out.days.length) delete out.days;
+  return out;
+}
+
+function slugify(s) { return String(s).toLowerCase().normalize("NFKD").replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "") || "trip"; }
+function downloadJson(obj, filename) {
+  const blob = new Blob([JSON.stringify(obj, null, 2)], { type: "application/json" });
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(blob); a.download = filename;
+  document.body.appendChild(a); a.click(); a.remove();
+  setTimeout(() => URL.revokeObjectURL(a.href), 1000);
+}
+function exportTrip(tripId) {
+  const data = tripToPortable(tripId, true);
+  downloadJson(data, `${slugify(data.name)}-${data.startDate}.json`);
+}
+
+// ── Share links: ?trip=<code>. "z" + base64url(deflate-raw(json)), or "j" +
+// base64url(json) where CompressionStream is unavailable. No dependencies.
+function bytesToB64url(bytes) {
+  let bin = "";
+  for (let i = 0; i < bytes.length; i += 0x8000) bin += String.fromCharCode.apply(null, bytes.subarray(i, i + 0x8000));
+  return btoa(bin).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "");
+}
+function b64urlToBytes(s) {
+  let b64 = s.replace(/-/g, "+").replace(/_/g, "/");
+  while (b64.length % 4) b64 += "=";
+  const bin = atob(b64), out = new Uint8Array(bin.length);
+  for (let i = 0; i < bin.length; i++) out[i] = bin.charCodeAt(i);
+  return out;
+}
+async function encodeTripCode(obj) {
+  const bytes = new TextEncoder().encode(JSON.stringify(obj));
+  if (typeof CompressionStream !== "function") return "j" + bytesToB64url(bytes);
+  const stream = new Blob([bytes]).stream().pipeThrough(new CompressionStream("deflate-raw"));
+  return "z" + bytesToB64url(new Uint8Array(await new Response(stream).arrayBuffer()));
+}
+async function decodeTripCode(code) {
+  const bytes = b64urlToBytes(code.slice(1));
+  if (code[0] === "j") return JSON.parse(new TextDecoder().decode(bytes));
+  if (code[0] !== "z") throw new Error("This trip link isn't recognised.");
+  if (typeof DecompressionStream !== "function") throw new Error("This browser can't open compressed trip links — ask for the trip file instead.");
+  const stream = new Blob([bytes]).stream().pipeThrough(new DecompressionStream("deflate-raw"));
+  return JSON.parse(await new Response(stream).text());
+}
+function appBaseUrl() { return location.href.split(/[?#]/)[0]; }
+const SHARE_LINK_SOFT_LIMIT = 6000;   // chars; beyond this some chat apps truncate
+
+let shareTripId = null;
+async function openTripShare(tripId) {
+  shareTripId = tripId;
+  closeTrips();
+  document.getElementById("trip-share-modal").classList.add("active");
+  await refreshTripShare();
+}
+async function refreshTripShare() {
+  const include = document.getElementById("ts-notes").checked;
+  const data = tripToPortable(shareTripId, include);
+  document.getElementById("ts-title").textContent = `🔗 Share “${data.name}”`;
+  const link = appBaseUrl() + "?trip=" + await encodeTripCode(data);
+  document.getElementById("ts-link").value = link;
+  document.getElementById("ts-long").style.display = link.length > SHARE_LINK_SOFT_LIMIT ? "block" : "none";
+}
+function closeTripShare() { document.getElementById("trip-share-modal").classList.remove("active"); }
+async function shareTripLink() {
+  const link = document.getElementById("ts-link").value;
+  const name = tripToPortable(shareTripId, false).name;
+  if (navigator.share) { try { await navigator.share({ title: name, text: `Trip: ${name}`, url: link }); return; } catch (e) { if (e && e.name === "AbortError") return; } }
+  copyTripLink();
+}
+async function copyTripLink() {
+  const el = document.getElementById("ts-link");
+  try { await navigator.clipboard.writeText(el.value); alert("Link copied."); }
+  catch { el.select(); alert("Select the link and copy it."); }
+}
+
+// ── Import panel ──
+let tiDraft = null;
+function openTripImport() {
+  closeTrips();
+  tiDraft = null;
+  document.getElementById("ti-title").textContent = "📥 Import a trip";
+  document.getElementById("ti-steps").style.display = "";
+  document.getElementById("ti-json").value = "";
+  document.getElementById("ti-file").value = "";
+  document.getElementById("ti-prompt").style.display = "none";
+  document.getElementById("ti-preview").innerHTML = "";
+  document.getElementById("trip-import-modal").classList.add("active");
+}
+function closeTripImport() { document.getElementById("trip-import-modal").classList.remove("active"); tiDraft = null; }
+
+async function copyAiPrompt(btn) {
+  const text = buildAiPrompt();
+  try { await navigator.clipboard.writeText(text); btn.textContent = "✓ Copied — now paste it into your AI"; }
+  catch {
+    const box = document.getElementById("ti-prompt");
+    box.value = text; box.style.display = "block"; box.select();
+    btn.textContent = "Copy the prompt below";
+  }
+}
+function tiFile(ev) {
+  const f = ev.target.files && ev.target.files[0];
+  if (!f) return;
+  const r = new FileReader();
+  r.onload = () => { document.getElementById("ti-json").value = r.result; tiCheck(); };
+  r.readAsText(f);
+}
+function tiCheck() {
+  let data;
+  try { data = extractJson(document.getElementById("ti-json").value); }
+  catch (e) { return tiRender({ errors: [e.message] }); }
+  tiRender(draftFromImport(data));
+}
+
+// Preview an import result: summary, warnings, and what to do next.
+function tiRender(res) {
+  const box = document.getElementById("ti-preview");
+  tiDraft = res.draft || null;
+  if (res.errors) { box.innerHTML = `<div class="ti-errors">${res.errors.map(escapeHtml).join("<br>")}</div>`; return; }
+  const t = tiDraft.trip, m = t.meta;
+  const problems = WIZ_STEPS.flatMap(([k]) => wizValidate(k, tiDraft));
+  const nDays = daysBetween(m.startDate, m.endDate) + 1;
+  const nPlans = Object.values(tiDraft.notes).reduce((n, a) => n + a.length, 0);
+  const nItems = t.checklist.sections.reduce((n, sc) => n + sc.items.length, 0);
+  const replaceable = !isBuiltinActive();
+  let h = `<div class="ti-summary">
+    <div class="ti-name">${escapeHtml(m.emoji ? m.emoji + " " : "")}${escapeHtml(m.name)}</div>
+    <div class="ti-dates">${escapeHtml(isIsoDate(m.startDate) && m.startDate <= m.endDate ? formatTripRange(m.startDate, m.endDate) + ` · ${nDays} days` : "")}</div>
+    <ul>
+      <li>👥 ${escapeHtml(m.travelers.join(", "))}</li>
+      <li>📍 ${t.regions.length ? escapeHtml(t.regions.map(r => r.name).join(", ")) : "No places"}</li>
+      <li>🏡 ${t.stays.length} stay${t.stays.length !== 1 ? "s" : ""} · ✈ ${tiDraft.flights.length} flight${tiDraft.flights.length !== 1 ? "s" : ""}</li>
+      <li>📝 ${nPlans} plan${nPlans !== 1 ? "s" : ""} across ${Object.keys(tiDraft.notes).length} day${Object.keys(tiDraft.notes).length !== 1 ? "s" : ""}</li>
+      <li>🧳 ${nItems ? nItems + " checklist items" : "No packing checklist"}</li>
+    </ul></div>`;
+  if (res.warnings.length) h += `<div class="ti-warnings">${res.warnings.map(w => "⚠️ " + escapeHtml(w)).join("<br>")}</div>`;
+  if (problems.length) {
+    h += `<div class="ti-errors">Needs fixing before import:<br>${problems.map(escapeHtml).join("<br>")}</div>
+      <button class="btn btn-primary" style="width:100%" onclick="tiToWizard()">Fix in the trip editor</button>`;
+  } else {
+    h += `<button class="btn btn-primary" style="width:100%; margin-bottom:8px" onclick="tiImport(false)">Import as new trip</button>`;
+    if (replaceable) h += `<button class="btn btn-secondary" style="width:100%; margin-bottom:8px" onclick="tiImport(true)">Replace “${escapeHtml(getActiveTrip().meta.name)}”</button>`;
+    h += `<button class="btn btn-secondary" style="width:100%" onclick="tiToWizard()">Review in the trip editor first</button>`;
+  }
+  box.innerHTML = h;
+}
+function tiImport(replace) {
+  if (!tiDraft) return;
+  const d = { ...tiDraft };
+  if (replace) {
+    const name = getActiveTrip().meta.name;
+    if (!confirm(`Replace “${name}” with the imported trip?\n\nIts notes and plans are replaced by the imported ones. Checklist ticks for items that still exist are kept.`)) return;
+    Object.assign(d, { mode: "edit", tripId: activeTripId(), replaceNotes: true });
+  }
+  const id = commitDraft(d);
+  if (!id) return;
+  closeTripImport();
+  switchTrip(id);
+}
+function tiToWizard() {
+  const d = tiDraft;
+  closeTripImport();
+  if (d) openWizard("create", null, d);
+}
+
+// Opening a ?trip= link shows the import preview for the shared trip.
+async function checkTripParam() {
+  const code = new URLSearchParams(location.search).get("trip");
+  if (!code) return false;
+  history.replaceState(null, "", location.pathname);
+  if (!localStorage.getItem("app_mode")) { localStorage.setItem("app_mode", "guest"); applyMode(); }
+  openTripImport();
+  document.getElementById("ti-title").textContent = "📥 A trip was shared with you";
+  document.getElementById("ti-steps").style.display = "none";
+  try { tiRender(draftFromImport(await decodeTripCode(code))); }
+  catch (e) { tiRender({ errors: ["Couldn't open this trip link: " + e.message] }); }
+  return true;
+}
+
 // ── Trip switcher UI ──
 function openTrips() { renderTripsList(); document.getElementById("trips-modal").classList.add("active"); }
 function closeTrips() { document.getElementById("trips-modal").classList.remove("active"); }
@@ -1621,6 +2099,8 @@ function renderTripsList() {
       t.id !== active ? `<button onclick="onSwitchTrip('${t.id}')">Open</button>` : "",
       !t.builtin ? `<button onclick="closeTrips(); openWizard('edit','${t.id}')">Edit</button>` : "",
       `<button onclick="onDuplicateTrip('${t.id}')">Duplicate</button>`,
+      `<button onclick="exportTrip('${t.id}')">Export</button>`,
+      `<button onclick="openTripShare('${t.id}')">Share link</button>`,
       !t.builtin ? `<button onclick="onRenameTrip('${t.id}')">Rename</button>` : "",
       !t.builtin ? `<button class="trip-del" onclick="onDeleteTrip('${t.id}')">Delete</button>` : ""
     ].join("");
@@ -1744,6 +2224,7 @@ function getDay(k, trip = getActiveTrip()) {
 function renderTripChrome() {
   const trip = getActiveTrip(), m = trip.meta;
   document.getElementById("trip-title").textContent = m.name + (m.emoji ? " " + m.emoji : "");
+  document.title = m.name;
   document.getElementById("trip-subtitle").textContent =
     [formatTripRange(m.startDate, m.endDate), m.subtitle].filter(Boolean).join(" \u00a0·\u00a0 ");
 
@@ -1828,11 +2309,11 @@ function saveSetup() {
   const g = document.getElementById("setup-github").value.trim()    || creds.github;
   const u = document.getElementById("setup-ghuser").value.trim()    || creds.ghuser;
   const r = document.getElementById("setup-ghrepo").value.trim()    || creds.ghrepo;
-  if (!a||!g||!u||!r) { alert("Please fill in all four fields."); return; }
+  if (!a) { alert("Please enter your Anthropic API key."); return; }
   localStorage.setItem("cred_anthropic",a);
-  localStorage.setItem("cred_github",g);
-  localStorage.setItem("cred_ghuser",u);
-  localStorage.setItem("cred_ghrepo",r);
+  if (g) localStorage.setItem("cred_github",g);
+  if (u) localStorage.setItem("cred_ghuser",u);
+  if (r) localStorage.setItem("cred_ghrepo",r);
   document.getElementById("setup-modal").classList.remove("active");
   renderCalendar();
 }
@@ -2019,7 +2500,7 @@ function resetIngester() {
   resetFileZone();
   const thread = document.getElementById("chat-thread");
   thread.innerHTML = "";
-  addBubble("claude", "Hi Pete! Drop in a booking confirmation, paste an itinerary, or just tell me what's planned — I'll figure out what goes where. You can also attach a PDF or image. 📋");
+  addBubble("claude", "Hi! Drop in a booking confirmation, paste an itinerary, or just tell me what's planned — I'll figure out what goes where. You can also attach a PDF or image. 📋");
 }
 
 function addBubble(role, html, isHTML=false) {
@@ -2126,7 +2607,7 @@ async function sendIngesterMessage() {
       body: JSON.stringify({
         model: "claude-sonnet-4-6",
         max_tokens: 2000,
-        system: `You are a travel planning assistant helping Pete manage his family trip to the US (July 1–17, 2026) with his son Nicky (Nicholas Boonsuan). You help parse bookings, reservations, and plans and slot them into the right days.
+        system: `You are a travel planning assistant helping plan the trip "${getActiveTrip().meta.name}" (${formatTripRange(getActiveTrip().meta.startDate, getActiveTrip().meta.endDate)}) for ${getActiveTrip().meta.travelers.join(", ")}. You help parse bookings, reservations, and plans and slot them into the right days.
 
 TRIP DAYS:
 ${tripDays}
@@ -2442,7 +2923,7 @@ function applyMode() {
   const fab = document.getElementById("fab");
   if (fab) fab.textContent = mode === "guest" ? "＋ Add Note" : "＋ Add Plans";
   const ind = document.getElementById("mode-indicator");
-  if (ind) ind.textContent = mode === "owner" ? "Full access (Pete)" : "Guest view";
+  if (ind) ind.textContent = mode === "owner" ? "Full access" : "Guest view";
   const keysLink = document.getElementById("keys-link");
   if (keysLink) keysLink.style.display = mode === "owner" ? "" : "none";
   updateSendButton();
@@ -2455,7 +2936,7 @@ function chooseMode(mode) {
   applyMode();
   if (mode === "owner") {
     const creds = getCreds();
-    if (!creds.anthropic || !creds.github) document.getElementById("setup-modal").classList.add("active");
+    if (!creds.anthropic) document.getElementById("setup-modal").classList.add("active");
   }
 }
 
@@ -2792,8 +3273,9 @@ function init() {
   applyMode();
   applyTripContext();
 
-  // An incoming family submission (?import=...) takes priority.
+  // An incoming family submission (?import=...) or shared trip (?trip=...) takes priority.
   if (checkImportParam()) return;
+  if (new URLSearchParams(location.search).get("trip")) { checkTripParam(); return; }
 
   const mode = localStorage.getItem("app_mode");
   if (!mode) {
@@ -2802,7 +3284,7 @@ function init() {
   }
   if (mode === "owner") {
     const creds = getCreds();
-    if (!creds.anthropic||!creds.github) {
+    if (!creds.anthropic) {
       document.getElementById("setup-modal").classList.add("active");
     }
   }
