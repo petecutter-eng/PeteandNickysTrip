@@ -585,6 +585,29 @@
   .mode-footer { text-align: center; font-size: 0.62rem; color: #6b7c8a; margin-top: 18px; letter-spacing: 0.04em; }
   .mode-footer a { color: #1a3a4a; text-decoration: none; cursor: pointer; font-weight: 600; }
   .mode-footer a:hover { text-decoration: underline; }
+  /* ══ Trips (multi-trip) ══ */
+  .example-banner {
+    background: #fff8e1; border: 1.5px solid #f0d78c; border-radius: 10px;
+    padding: 10px 12px; margin: 0 0 14px; font-size: 0.72rem; line-height: 1.5; color: #5a3e00;
+  }
+  .example-banner a { color: #1a3a4a; font-weight: 700; cursor: pointer; text-decoration: underline; }
+  .trip-row { border: 1.5px solid #e3ddd2; border-radius: 10px; padding: 10px 12px; margin-bottom: 10px; }
+  .trip-row.active { border-color: #3d7dbf; background: #f7faff; }
+  .trip-row-name { font-size: 0.85rem; font-weight: 700; color: #1a3a4a; }
+  .trip-row-dates { font-size: 0.68rem; color: #6b7c8a; margin: 2px 0 8px; }
+  .trip-row-actions { display: flex; flex-wrap: wrap; gap: 6px; }
+  .trip-row-actions button {
+    border: 1.5px solid #d8d2c7; background: #fff; border-radius: 7px; padding: 5px 10px;
+    font-family: 'Inter', sans-serif; font-size: 0.68rem; font-weight: 600; color: #1a3a4a; cursor: pointer;
+  }
+  .trip-row-actions button.trip-del { color: #c0392b; }
+  .trip-badge { display: inline-block; font-size: 0.55rem; font-weight: 700; text-transform: uppercase;
+    letter-spacing: 0.06em; padding: 1px 6px; border-radius: 4px; vertical-align: middle; margin-left: 4px; }
+  .trip-badge-active  { background: #e4edf9; color: #0f2e45; }
+  .trip-badge-example { background: #fde8a0; color: #6b4600; }
+  /* Send/publish/import only apply to the built-in (published) trip */
+  body.own-trip .send-to-pete, body.own-trip .owner-publish,
+  body.own-trip .cal-publish-link, body.own-trip #publish-bar { display: none !important; }
   .add-custom-item {
     width: 100%; padding: 10px; border: 1.5px dashed #b9b3a8; border-radius: 8px;
     background: #fff; color: #1a3a4a; font-family: 'Inter', sans-serif;
@@ -639,6 +662,21 @@
       <b>🔑 I'm Pete — full access</b>
       <span>Everything above, plus the AI plan ingester and publishing to the live page. Needs API keys.</span>
     </button>
+  </div>
+</div>
+
+<!-- ══ Trips Modal ══ -->
+<div class="modal-overlay" id="trips-modal">
+  <div class="modal" style="max-width:420px">
+    <h2>🧳 Your trips</h2>
+    <p>Trips are saved on this device. Duplicate a trip to start a new one from it.</p>
+    <div id="trips-list"></div>
+    <div class="modal-note" id="trips-example-note" style="display:none">
+      The example trip is only here to show how the app works. When you create your own trip, the example and anything you added to it is deleted from this device.
+    </div>
+    <div style="display:flex; gap:10px">
+      <button class="btn btn-secondary" onclick="closeTrips()">Close</button>
+    </div>
   </div>
 </div>
 
@@ -859,6 +897,10 @@ Does that work? Want me to add a "Leave home" reminder for **4:00am on July 1** 
       </button>
       <button class="fab" id="fab" onclick="onFabClick()">＋ Add Plans</button>
     </div>
+    <div class="example-banner" id="example-banner" style="display:none">
+      👋 <b>This is an example trip.</b> To plan your own, open <a onclick="openTrips()">Trips</a> and tap <b>Duplicate</b>.
+      Once you have your own trip, this example — and anything you've added to it — is deleted from this device.
+    </div>
     <button class="send-to-pete" id="send-to-pete-btn" onclick="openSend()">📤 Send my additions to Pete</button>
     <button class="owner-publish" id="owner-publish-btn" onclick="publishAdditions()">🚀 Publish my changes to the live page</button>
     <div class="calendar">
@@ -879,7 +921,7 @@ Does that work? Want me to add a "Leave home" reminder for **4:00am on July 1** 
       <b>Ref:</b> FQ5ZSK · Satguru Travel &amp; Tours, Bangkok
     </div>
     <div class="mode-footer">
-      <span id="mode-indicator"></span> · <a onclick="reopenModeChooser()">switch mode</a><span id="keys-link" style="display:none"> · <a onclick="openSetupModal()">update keys</a></span>
+      <a onclick="openTrips()">🧳 trips</a> · <span id="mode-indicator"></span> · <a onclick="reopenModeChooser()">switch mode</a><span id="keys-link" style="display:none"> · <a onclick="openSetupModal()">update keys</a></span>
     </div>
   </div>
 
@@ -1016,8 +1058,229 @@ const DEFAULT_TRIP = {
   briefing: { recipientEmail: "", whatsappRecipient: "", tone: "friendly" }
 };
 
-// Phase 0: always the built-in trip. Phase 1 swaps this for localStorage.
-function getActiveTrip() { return DEFAULT_TRIP; }
+// ══════════════════════════════════════════════════════
+//  TRIP STORE (multi-trip, per device)
+// ══════════════════════════════════════════════════════
+// The built-in trip (DEFAULT_TRIP) is always read from code, so repo edits
+// reach every device. User trips live in localStorage:
+//   trips_index            [{ id, name, startDate }]
+//   trip_<id>              full Trip JSON
+//   activeTripId           trip currently open
+//   builtin_trip           "owned" | "example" | "removed"
+// Per-trip state is namespaced by trip id:
+//   notes_<id>_<date> · checklist_<id>_by_<traveler> · checklist_<id>_custom · checklist_<id>_removed
+// On a fresh device the built-in trip is an *example*: it is deleted from the
+// device once the user creates their own trip. On devices that already used
+// it (legacy data) or in owner mode it is "owned" and never auto-removed.
+const BUILTIN_TRIP_ID = DEFAULT_TRIP.id;
+const STORAGE_VERSION = 1;
+
+function lsGet(key, fallback) {
+  try { const v = localStorage.getItem(key); return v == null ? fallback : JSON.parse(v); } catch { return fallback; }
+}
+function lsSet(key, val) { localStorage.setItem(key, JSON.stringify(val)); }
+
+function builtinStatus() { return localStorage.getItem("builtin_trip") || "example"; }
+function setBuiltinStatus(v) { localStorage.setItem("builtin_trip", v); }
+function getTripsIndex() { const idx = lsGet("trips_index", []); return Array.isArray(idx) ? idx : []; }
+function saveTripsIndex(idx) { lsSet("trips_index", idx); }
+function loadStoredTrip(id) {
+  const t = lsGet("trip_" + id, null);
+  return (t && t.schemaVersion === 1 && t.meta && t.meta.startDate && t.meta.endDate && t.meta.startDate <= t.meta.endDate) ? t : null;
+}
+
+// Every trip on this device, built-in first (unless the example was removed).
+function listTrips() {
+  const out = [];
+  const st = builtinStatus();
+  if (st !== "removed") out.push({ id: BUILTIN_TRIP_ID, name: DEFAULT_TRIP.meta.name, startDate: DEFAULT_TRIP.meta.startDate,
+                                   endDate: DEFAULT_TRIP.meta.endDate, builtin: true, example: st === "example" });
+  getTripsIndex().forEach(e => {
+    const t = loadStoredTrip(e.id);
+    if (t) out.push({ id: e.id, name: t.meta.name, startDate: t.meta.startDate, endDate: t.meta.endDate, builtin: false, example: false });
+  });
+  return out;
+}
+
+let _activeTripId = null, _activeTrip = null;
+function loadActiveTrip() {
+  const trips = listTrips();
+  let id = localStorage.getItem("activeTripId");
+  if (!trips.some(t => t.id === id)) id = trips.length ? trips[0].id : BUILTIN_TRIP_ID;
+  const trip = id === BUILTIN_TRIP_ID ? DEFAULT_TRIP : loadStoredTrip(id);
+  _activeTrip = trip || DEFAULT_TRIP;
+  _activeTripId = trip ? id : BUILTIN_TRIP_ID;
+}
+function getActiveTrip() { if (!_activeTrip) loadActiveTrip(); return _activeTrip; }
+function activeTripId()  { if (!_activeTripId) loadActiveTrip(); return _activeTripId; }
+function isBuiltinActive() { return activeTripId() === BUILTIN_TRIP_ID; }
+
+// Storage keys for per-trip state
+function notesKey(dateKey, tripId)      { return `notes_${tripId}_${dateKey}`; }
+function travelerStateKey(key, tripId)  { return `checklist_${tripId}_by_${key}`; }
+function customItemsKey(tripId)         { return `checklist_${tripId}_custom`; }
+function removedItemsKey(tripId)        { return `checklist_${tripId}_removed`; }
+
+// Delete every per-trip key (notes + checklist state) for one trip.
+function clearTripState(tripId) {
+  const prefixes = [`notes_${tripId}_`, `checklist_${tripId}_`];
+  const doomed = [];
+  for (let i = 0; i < localStorage.length; i++) {
+    const k = localStorage.key(i);
+    if (prefixes.some(p => k.startsWith(p))) doomed.push(k);
+  }
+  doomed.forEach(k => localStorage.removeItem(k));
+}
+
+// One-time move of pre-Phase-1 un-namespaced keys under the built-in trip.
+function migrateStorage() {
+  if (Number(localStorage.getItem("storage_version")) >= STORAGE_VERSION) return;
+  const moves = [];
+  for (let i = 0; i < localStorage.length; i++) {
+    const k = localStorage.key(i);
+    let m;
+    if ((m = k.match(/^notes_(\d{4}-\d{2}-\d{2})$/)))      moves.push([k, notesKey(m[1], BUILTIN_TRIP_ID)]);
+    else if (k === "checklist_custom")                    moves.push([k, customItemsKey(BUILTIN_TRIP_ID)]);
+    else if (k === "checklist_removed")                   moves.push([k, removedItemsKey(BUILTIN_TRIP_ID)]);
+    else if ((m = k.match(/^checklist_([a-z0-9]+)$/)))     moves.push([k, travelerStateKey(m[1], BUILTIN_TRIP_ID)]);
+  }
+  moves.forEach(([from, to]) => {
+    if (localStorage.getItem(to) == null) localStorage.setItem(to, localStorage.getItem(from));
+    localStorage.removeItem(from);
+  });
+  if (!localStorage.getItem("builtin_trip")) {
+    const used = moves.length > 0 || localStorage.getItem("app_mode") === "owner";
+    setBuiltinStatus(used ? "owned" : "example");
+  }
+  localStorage.setItem("storage_version", String(STORAGE_VERSION));
+}
+
+function newTripId() {
+  const taken = new Set(listTrips().map(t => t.id));
+  let id;
+  do { id = "trip_" + Math.random().toString(36).slice(2, 8).padEnd(6, "0"); } while (taken.has(id));
+  return id;
+}
+
+// Copy a trip's definition (days, stays, checklist + checklist edits) into a
+// new user trip. Notes and tick state are not copied.
+function duplicateTrip(srcId, name) {
+  const src = srcId === BUILTIN_TRIP_ID ? DEFAULT_TRIP : loadStoredTrip(srcId);
+  if (!src) return null;
+  const copy = JSON.parse(JSON.stringify(src));
+  copy.id = newTripId();
+  copy.meta.name = name;
+  lsSet("trip_" + copy.id, copy);
+  lsSet(customItemsKey(copy.id), getCustomItems(srcId));
+  lsSet(removedItemsKey(copy.id), getRemovedItems(srcId));
+  saveTripsIndex(getTripsIndex().concat([{ id: copy.id, name, startDate: copy.meta.startDate }]));
+  return copy.id;
+}
+
+function renameTrip(id, name) {
+  const t = loadStoredTrip(id);
+  if (!t) return;
+  t.meta.name = name;
+  lsSet("trip_" + id, t);
+  saveTripsIndex(getTripsIndex().map(e => e.id === id ? { ...e, name } : e));
+}
+
+function deleteTrip(id) {
+  if (id === BUILTIN_TRIP_ID) return;
+  localStorage.removeItem("trip_" + id);
+  clearTripState(id);
+  saveTripsIndex(getTripsIndex().filter(e => e.id !== id));
+  // Never leave the device with zero trips — bring the example back.
+  if (!listTrips().length) setBuiltinStatus("example");
+}
+
+// The user now has their own trip: delete the example and everything added to it.
+function removeExampleTrip() {
+  if (builtinStatus() !== "example") return;
+  clearTripState(BUILTIN_TRIP_ID);
+  setBuiltinStatus("removed");
+}
+
+function switchTrip(id) {
+  localStorage.setItem("activeTripId", id);
+  _activeTrip = _activeTripId = null;
+  if (document.getElementById("app-shell").classList.contains("show-detail")) {
+    document.getElementById("app-shell").classList.remove("show-detail");
+    document.getElementById("fab").classList.remove("hidden");
+  }
+  applyTripContext();
+}
+
+// Re-render everything that depends on which trip is active.
+function applyTripContext() {
+  document.body.classList.toggle("own-trip", !isBuiltinActive());
+  const banner = document.getElementById("example-banner");
+  if (banner) banner.style.display = (isBuiltinActive() && builtinStatus() === "example") ? "block" : "none";
+  renderTripChrome();
+  renderCalendar();
+  updateChecklistLaunchCount();
+  updateSendButton();
+}
+
+// ── Trip switcher UI ──
+function openTrips() { renderTripsList(); document.getElementById("trips-modal").classList.add("active"); }
+function closeTrips() { document.getElementById("trips-modal").classList.remove("active"); }
+
+function renderTripsList() {
+  const active = activeTripId();
+  const html = listTrips().map(t => {
+    const badges = (t.id === active ? `<span class="trip-badge trip-badge-active">Open</span>` : "") +
+                   (t.example ? `<span class="trip-badge trip-badge-example">Example</span>` : "");
+    const actions = [
+      t.id !== active ? `<button onclick="onSwitchTrip('${t.id}')">Open</button>` : "",
+      `<button onclick="onDuplicateTrip('${t.id}')">Duplicate</button>`,
+      !t.builtin ? `<button onclick="onRenameTrip('${t.id}')">Rename</button>` : "",
+      !t.builtin ? `<button class="trip-del" onclick="onDeleteTrip('${t.id}')">Delete</button>` : ""
+    ].join("");
+    return `<div class="trip-row${t.id === active ? " active" : ""}">
+      <div class="trip-row-name">${escapeHtml(t.name)} ${badges}</div>
+      <div class="trip-row-dates">${escapeHtml(formatTripRange(t.startDate, t.endDate))}</div>
+      <div class="trip-row-actions">${actions}</div>
+    </div>`;
+  }).join("");
+  document.getElementById("trips-list").innerHTML = html;
+  document.getElementById("trips-example-note").style.display = builtinStatus() === "example" ? "block" : "none";
+}
+
+function onSwitchTrip(id) { switchTrip(id); closeTrips(); }
+
+function onDuplicateTrip(id) {
+  const src = listTrips().find(t => t.id === id);
+  if (!src) return;
+  if (src.example && !confirm("This makes your own copy of the example trip.\n\nThe example — and any notes or checklist ticks you added to it — will then be deleted from this device.\n\nContinue?")) return;
+  const name = (prompt("Name for the new trip:", src.example ? "My trip" : src.name + " (copy)") || "").trim();
+  if (!name) return;
+  const newId = duplicateTrip(id, name);
+  if (!newId) return;
+  removeExampleTrip();
+  switchTrip(newId);
+  renderTripsList();
+}
+
+function onRenameTrip(id) {
+  const t = listTrips().find(x => x.id === id);
+  if (!t) return;
+  const name = (prompt("Rename trip:", t.name) || "").trim();
+  if (!name || name === t.name) return;
+  renameTrip(id, name);
+  if (id === activeTripId()) switchTrip(id);
+  renderTripsList();
+}
+
+function onDeleteTrip(id) {
+  const t = listTrips().find(x => x.id === id);
+  if (!t || !confirm(`Delete “${t.name}” and all its notes and checklist ticks from this device?\n\nThis can't be undone.`)) return;
+  const wasActive = id === activeTripId();
+  deleteTrip(id);
+  if (wasActive) switchTrip(listTrips()[0].id);
+  else applyTripContext();
+  renderTripsList();
+}
 
 // ── Date helpers (UTC so date keys never drift with the device timezone) ──
 const MONTHS_SHORT = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
@@ -1150,8 +1413,8 @@ const BAKED_REMOVED = [];
 // ══════════════════════════════════════════════════════
 //  STORAGE
 // ══════════════════════════════════════════════════════
-function getNotes(k) { try { return JSON.parse(localStorage.getItem("notes_"+k)||"[]"); } catch { return []; } }
-function saveNotes(k, n) { localStorage.setItem("notes_"+k, JSON.stringify(n)); }
+function getNotes(k, tripId = activeTripId()) { return lsGet(notesKey(k, tripId), []); }
+function saveNotes(k, n, tripId = activeTripId()) { lsSet(notesKey(k, tripId), n); }
 function getCreds() {
   return {
     anthropic: localStorage.getItem("cred_anthropic")||"",
@@ -1569,7 +1832,7 @@ function confirmPreview() {
   });
   pendingItems = [];
   addBubble("claude", `✅ Done! Added to your calendar. Hit "Publish Live" to update the live page.`);
-  document.getElementById("publish-bar").classList.add("visible");
+  if (isBuiltinActive()) document.getElementById("publish-bar").classList.add("visible");
   renderCalendar();
 }
 
@@ -1666,10 +1929,11 @@ async function publishToGitHub() {
 
 function buildPublishableHTML() {
   const allNotes = {};
-  tripDateKeys().forEach(k => { const n=getNotes(k); if(n.length) allNotes[k]=n; });
+  // Only the built-in trip is published; user trips stay on-device.
+  tripDateKeys(DEFAULT_TRIP).forEach(k => { const n=getNotes(k, BUILTIN_TRIP_ID); if(n.length) allNotes[k]=n; });
   const notesJSON     = JSON.stringify(allNotes);
-  const checklistJSON = JSON.stringify(getCustomItems().map(i => ({ id: i.id, en: i.en, th: i.th||"" })));
-  const removedJSON   = JSON.stringify(getRemovedItems());
+  const checklistJSON = JSON.stringify(getCustomItems(BUILTIN_TRIP_ID).map(i => ({ id: i.id, en: i.en, th: i.th||"" })));
+  const removedJSON   = JSON.stringify(getRemovedItems(BUILTIN_TRIP_ID));
   let currentHTML = document.documentElement.outerHTML;
   const nMarker = "// __BAKED_NOTES_START__", nEnd = "// __BAKED_NOTES_END__";
   const cMarker = "// __BAKED_CHECKLIST_START__", cEnd = "// __BAKED_CHECKLIST_END__";
@@ -1788,6 +2052,7 @@ function applyMode() {
 
 function chooseMode(mode) {
   localStorage.setItem("app_mode", mode);
+  if (mode === "owner" && builtinStatus() === "example") { setBuiltinStatus("owned"); applyTripContext(); }
   document.getElementById("mode-modal").classList.remove("active");
   applyMode();
   if (mode === "owner") {
@@ -1926,11 +2191,12 @@ function deleteCustomItem(id) {
 // ══════════════════════════════════════════════════════
 function collectAdditions() {
   const notes = {};
-  tripDateKeys().forEach(k => {
-    const g = getNotes(k).filter(n => n.guest);
+  // Additions are always for the built-in (shared) trip.
+  tripDateKeys(DEFAULT_TRIP).forEach(k => {
+    const g = getNotes(k, BUILTIN_TRIP_ID).filter(n => n.guest);
     if (g.length) notes[k] = g.map(n => ({ type: n.type, summary: n.summary, formatted: n.formatted, raw: n.raw }));
   });
-  const items = getCustomItems().filter(it => it.guest).map(it => ({ id: it.id, en: it.en, th: it.th || "" }));
+  const items = getCustomItems(BUILTIN_TRIP_ID).filter(it => it.guest).map(it => ({ id: it.id, en: it.en, th: it.th || "" }));
   return { notes, items };
 }
 function hasAdditions() {
@@ -1942,7 +2208,7 @@ function updateSendButton() {
   const btn = document.getElementById("send-to-pete-btn");
   if (btn) btn.classList.toggle("has-items", has);
   // Owner-mode publish buttons light up for any unpublished change — added notes/items OR removed items.
-  const ownerHas = has || getRemovedItems().length > 0;
+  const ownerHas = has || getRemovedItems(BUILTIN_TRIP_ID).length > 0;
   document.querySelectorAll(".owner-publish").forEach(b => b.classList.toggle("has-items", ownerHas));
 }
 
@@ -2012,6 +2278,8 @@ function checkImportParam() {
   try { importPayload = decodePayload(code); }
   catch(e) { console.error("Bad import code", e); return false; }
   history.replaceState(null, "", location.pathname);   // don't re-trigger on refresh
+  // Submissions are for the built-in trip — show it while reviewing.
+  if (!isBuiltinActive() && listTrips().some(t => t.id === BUILTIN_TRIP_ID)) switchTrip(BUILTIN_TRIP_ID);
   showImportReview(importPayload);
   return true;
 }
@@ -2049,13 +2317,13 @@ function mergeImport() {
   if (!importPayload) return;
   const notes = importPayload.notes || {};
   Object.keys(notes).forEach(k => {
-    const existing = getNotes(k);
+    const existing = getNotes(k, BUILTIN_TRIP_ID);
     notes[k].forEach(n => existing.push({ type: n.type||"Note", summary: n.summary, formatted: n.formatted, raw: n.raw||n.summary }));
-    saveNotes(k, existing);
+    saveNotes(k, existing, BUILTIN_TRIP_ID);
   });
   const incoming = importPayload.items || [];
   if (incoming.length) {
-    const cur = getCustomItems();
+    const cur = getCustomItems(BUILTIN_TRIP_ID);
     const ids   = new Set(cur.map(i => i.id));
     const names = new Set(cur.map(i => (i.en||"").toLowerCase()));
     incoming.forEach(it => {
@@ -2064,7 +2332,7 @@ function mergeImport() {
       cur.push({ id, en: it.en, th: it.th||"", guest: true });
       ids.add(id); names.add((it.en||"").toLowerCase());
     });
-    saveCustomItems(cur);
+    saveCustomItems(cur, BUILTIN_TRIP_ID);
   }
   renderCalendar();
   updateChecklistLaunchCount();
@@ -2107,13 +2375,16 @@ function closeImport() {
 //  INIT
 // ══════════════════════════════════════════════════════
 function init() {
-  if (typeof BAKED_NOTES !== "undefined") {
-    Object.entries(BAKED_NOTES).forEach(([k,v]) => {
-      if (!localStorage.getItem("notes_"+k)) saveNotes(k,v);
-    });
+  migrateStorage();
+  if (builtinStatus() !== "removed") {
+    if (typeof BAKED_NOTES !== "undefined") {
+      Object.entries(BAKED_NOTES).forEach(([k,v]) => {
+        if (localStorage.getItem(notesKey(k, BUILTIN_TRIP_ID)) == null) saveNotes(k, v, BUILTIN_TRIP_ID);
+      });
+    }
+    seedBakedChecklist();
+    seedBakedRemoved();
   }
-  seedBakedChecklist();
-  seedBakedRemoved();
   // Defensive: never start with the ingester open (a publish-while-open can bake it open).
   closeIngester();
   // Reset publish button in case a prior publish baked it in a transitional state.
@@ -2121,9 +2392,7 @@ function init() {
   if (publishBtn) { publishBtn.disabled = false; publishBtn.textContent = "🚀 Publish Live"; publishBtn.style.background = ""; }
   document.getElementById("publish-bar")?.classList.remove("visible");
   applyMode();
-  renderTripChrome();
-  renderCalendar();
-  updateChecklistLaunchCount();
+  applyTripContext();
 
   // An incoming family submission (?import=...) takes priority.
   if (checkImportParam()) return;
@@ -2146,49 +2415,45 @@ function init() {
 // ══════════════════════════════════════════════════════
 // Checklist columns come from trip.meta.travelers. The layout still has two
 // fixed slots (CSS classes "pete"/"nicky" = left/right) — N columns is Phase 2.
-// Storage key = lowercased name, so "Pete" still maps to checklist_pete.
+// Storage key = lowercased name ("Pete" → checklist_<tripId>_by_pete).
 function travelerKey(name) { return String(name).toLowerCase().replace(/[^a-z0-9]+/g, "_"); }
 function checklistTravelers() {
   return getActiveTrip().meta.travelers.slice(0, 2).map((name, i) =>
     ({ name, key: travelerKey(name), slot: i === 0 ? "pete" : "nicky" }));
 }
-function getTravelerState(key) { try { return JSON.parse(localStorage.getItem("checklist_"+key)||"{}"); } catch { return {}; } }
-function saveTravelerState(key, s) { localStorage.setItem("checklist_"+key, JSON.stringify(s)); }
+function getTravelerState(key) { return lsGet(travelerStateKey(key, activeTripId()), {}); }
+function saveTravelerState(key, s) { lsSet(travelerStateKey(key, activeTripId()), s); }
 function uncheckEverywhere(id) {
   checklistTravelers().forEach(t => { const st = getTravelerState(t.key); if (st[id]) { delete st[id]; saveTravelerState(t.key, st); } });
 }
 function checklistSections() { return getActiveTrip().checklist.sections; }
 
 // Custom (family-added) checklist items — live locally, baked & published like notes.
-function getCustomItems() {
-  try { return JSON.parse(localStorage.getItem("checklist_custom")||"[]"); } catch { return []; }
-}
-function saveCustomItems(arr) { localStorage.setItem("checklist_custom", JSON.stringify(arr)); }
+function getCustomItems(tripId = activeTripId()) { return lsGet(customItemsKey(tripId), []); }
+function saveCustomItems(arr, tripId = activeTripId()) { lsSet(customItemsKey(tripId), arr); }
 
 // Seed baked (published) custom items into local storage on first load.
 function seedBakedChecklist() {
   if (typeof BAKED_CHECKLIST === "undefined" || !BAKED_CHECKLIST.length) return;
-  const have = getCustomItems();
+  const have = getCustomItems(BUILTIN_TRIP_ID);
   const ids = new Set(have.map(i => i.id));
   let changed = false;
   BAKED_CHECKLIST.forEach(it => { if (it && it.id && !ids.has(it.id)) { have.push(it); changed = true; } });
-  if (changed) saveCustomItems(have);
+  if (changed) saveCustomItems(have, BUILTIN_TRIP_ID);
 }
 
 // Removed built-in items — IDs the owner has dropped from the default list.
 // Owner-only to set; baked & published so every device hides them too.
-function getRemovedItems() {
-  try { return JSON.parse(localStorage.getItem("checklist_removed")||"[]"); } catch { return []; }
-}
-function saveRemovedItems(arr) { localStorage.setItem("checklist_removed", JSON.stringify(arr)); }
+function getRemovedItems(tripId = activeTripId()) { return lsGet(removedItemsKey(tripId), []); }
+function saveRemovedItems(arr, tripId = activeTripId()) { lsSet(removedItemsKey(tripId), arr); }
 
 function seedBakedRemoved() {
   if (typeof BAKED_REMOVED === "undefined" || !BAKED_REMOVED.length) return;
-  const have = getRemovedItems();
+  const have = getRemovedItems(BUILTIN_TRIP_ID);
   const set = new Set(have);
   let changed = false;
   BAKED_REMOVED.forEach(id => { if (id && !set.has(id)) { have.push(id); set.add(id); changed = true; } });
-  if (changed) saveRemovedItems(have);
+  if (changed) saveRemovedItems(have, BUILTIN_TRIP_ID);
 }
 
 function isOwner() { return (localStorage.getItem("app_mode")||"guest") === "owner"; }

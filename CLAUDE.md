@@ -68,6 +68,15 @@ Custom checklist items are published the same way notes are: baked into the `BAK
 
 > Note: `buildPublishableHTML()` snapshots the live DOM, so always publish with the ingester **closed** — `init()` and the clean markup now defend against an open panel being baked in.
 
+### Multi-trip storage (per device)
+A device can hold several trips. The built-in trip (`DEFAULT_TRIP`, id `trip_default`) is always read from code; user trips are stored in localStorage.
+- `trips_index` — `[{ id, name, startDate }]` for user trips · `trip_<id>` — full Trip JSON · `activeTripId` — trip currently open
+- `builtin_trip` — `"owned"` | `"example"` | `"removed"`. Fresh devices see the built-in trip as an **example** (banner shown); creating their own trip (Trips → Duplicate) deletes the example and its data from that device. Devices with pre-existing data, or owner mode, mark it `"owned"` and never remove it.
+- Per-trip state: `notes_<id>_<date>`, `checklist_<id>_by_<traveler>`, `checklist_<id>_custom`, `checklist_<id>_removed`
+- `storage_version` — `migrateStorage()` moved the old un-namespaced keys (`notes_<date>`, `checklist_pete`, …) under `trip_default` once.
+- Publish, Send-to-Pete and `?import=` always operate on the built-in trip; those buttons are hidden while a user trip is open.
+- Trip switcher: footer **🧳 trips** link → open / duplicate / rename / delete.
+
 ### Credentials (owner mode only)
 Stored in browser localStorage (never in code):
 - `cred_anthropic` — Anthropic API key
@@ -78,7 +87,7 @@ Stored in browser localStorage (never in code):
 - `guest_name` — optional name a guest attaches to their submissions
 
 ### Notes persistence model
-1. User adds note via ingester → saved to `localStorage["notes_2026-07-XX"]`
+1. User adds note via ingester → saved to `localStorage["notes_<tripId>_2026-07-XX"]` (built-in trip id: `trip_default`)
 2. Visible immediately in calendar and detail view
 3. On Publish → `buildPublishableHTML()` bakes all notes into `BAKED_NOTES` constant
 4. GitHub API commits new index.html → GitHub Pages deploys in ~60s
@@ -210,7 +219,7 @@ Two separate WhatsApp rules break the unattended 7am send on the sandbox:
 2. **Delivery channel** — now defaults to Telegram (no roaming/business dependency); set `TELEGRAM_BOT_TOKEN` + `TELEGRAM_CHAT_ID` to activate (see "Telegram"). WhatsApp/Twilio remains as a fallback, including an optional approved-template production path via `TWILIO_CONTENT_SID`.
 3. **Favicon** — not yet added
 4. **Multi-day event ingestion** — ingester can add multi-day notes but doesn't yet add a `stays` entry to the trip; only adds notes to each day individually
-5. **In-app trip customization** — in progress. Phase 0 (done): all rendering reads from the `DEFAULT_TRIP` model. Until the wizard lands, a new trip means editing `DEFAULT_TRIP` + `trip-config.json`.
+5. **In-app trip customization** — in progress. Phase 0 (done): all rendering reads from the Trip model. Phase 1 (done): multi-trip storage + switcher. Until the wizard lands, a new trip means editing `DEFAULT_TRIP` + `trip-config.json`.
 
 ---
 
